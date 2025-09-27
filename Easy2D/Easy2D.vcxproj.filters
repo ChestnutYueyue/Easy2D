@@ -272,6 +272,9 @@
     <ClInclude Include="include\easy2d\e2dtext.h">
       <Filter>include\easy2d</Filter>
     </ClInclude>
+    <ClInclude Include="include\easy2d\e2dcanvas.h">
+      <Filter>include\easy2d</Filter>
+    </ClInclude>
     <ClInclude Include="include\easy2d\e2dlistener.h">
       <Filter>include\easy2d</Filter>
     </ClInclude>

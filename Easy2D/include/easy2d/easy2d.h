@@ -25,6 +25,7 @@
 #include <easy2d/e2dlistener.h>
 #include <easy2d/e2dshape.h>
 #include <easy2d/e2dtext.h>
+#include <easy2d/e2dcanvas.h>
 #include <easy2d/e2dnode.h>
 #include <easy2d/e2dtool.h>
 #include <easy2d/e2daction.h>

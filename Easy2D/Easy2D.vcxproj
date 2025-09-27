@@ -103,6 +103,7 @@
     <ClInclude Include="include\easy2d\e2daction.h" />
     <ClInclude Include="include\easy2d\e2dbase.h" />
     <ClInclude Include="include\easy2d\e2dcommon.h" />
+    <ClInclude Include="include\easy2d\e2dcanvas.h" />
     <ClInclude Include="include\easy2d\e2dlistener.h" />
     <ClInclude Include="include\easy2d\e2dmacros.h" />
     <ClInclude Include="include\easy2d\e2dmanager.h" />

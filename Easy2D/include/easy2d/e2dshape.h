@@ -8,7 +8,7 @@ namespace easy2d
 class Node;
 class ShapeMaker;
 class ShapeNode;
-class CanvasBrush;
+class Canvas;
 
 // ÐÎ×´
 class Shape :
@@ -17,7 +17,7 @@ class Shape :
 	friend Node;
 	friend ShapeMaker;
 	friend ShapeNode;
-	friend CanvasBrush;
+	friend Canvas;
 
 	enum class Preset
 	{
