@@ -7,17 +7,21 @@
 namespace easy2d
 {
 
+class CanvasBrush;
+
 // 画布
 class Canvas
 	: public Object
 {
+	friend class CanvasBrush;
+
 public:
 	Canvas(const Size& size);
 
 	virtual ~Canvas();
 
 	// 开始绘图
-	void beginDraw();
+	CanvasBrush* beginDraw();
 
 	// 结束绘图
 	void endDraw();
@@ -25,6 +29,21 @@ public:
 	// 获取画布图像
 	Image* getOutputImage() const;
 
+protected:
+	ID2D1RenderTarget* _rt;
+	ID2D1DrawingStateBlock* _state;
+	Image* _outputImage;
+	Size _size;
+};
+
+
+// 画布画刷
+class CanvasBrush
+	: public Object
+{
+	friend class Canvas;
+
+public:
 	// 清空画布
 	void clear();
 
@@ -168,20 +187,21 @@ public:
 	// 设置绘制图像时的像素插值方式
 	void setInterpolationMode(InterpolationMode mode);
 
-private:
+protected:
+	CanvasBrush(Canvas* canvas);
+
+	virtual ~CanvasBrush();
+
 	void _updateTransform();
 
 protected:
 	bool _dirtyTransform;
 	ID2D1RenderTarget* _rt;
 	ID2D1SolidColorBrush* _brush;
-	ID2D1DrawingStateBlock* _state;
-	Image* _outputImage;
 	InterpolationMode _interpolationMode;
 	float _opacity;
 	float _rotation;
 	Point _pos;
-	Size _size;
 	Vector2 _scale;
 	Vector2 _skew;
 	DrawingStyle _style;
