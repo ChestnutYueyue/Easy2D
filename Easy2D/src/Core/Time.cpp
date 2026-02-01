@@ -1,88 +1,114 @@
 #include <easy2d/e2dbase.h>
-#include <thread>
-#include <chrono>
-using namespace std::chrono;
+#include <SDL.h>
 
 
-// 游戏开始时间
-static steady_clock::time_point s_tStart;
-// 当前时间
-static steady_clock::time_point s_tNow;
-// 上一帧刷新时间
-static steady_clock::time_point s_tLast;
-// 固定的刷新时间
-static steady_clock::time_point s_tFixed;
-// 每一帧间隔
-static nanoseconds s_tExceptedInvertal;
+// 游戏开始时间（毫秒）
+static Uint64 s_tStart = 0;
+// 当前时间（毫秒）
+static Uint64 s_tNow = 0;
+// 上一帧刷新时间（毫秒）
+static Uint64 s_tLast = 0;
+// 固定的刷新时间（毫秒）
+static Uint64 s_tFixed = 0;
+// 每一帧间隔（毫秒）
+static Uint64 s_tExceptedInterval = 0;
+// SDL时间频率
+static Uint64 s_sdlFrequency = 0;
+
+
+// 将SDL时间转换为毫秒
+static inline float ticksToSeconds(Uint64 ticks)
+{
+	return static_cast<float>(ticks) / static_cast<float>(s_sdlFrequency);
+}
+
+static inline Uint64 ticksToMilliseconds(Uint64 ticks)
+{
+	return (ticks * 1000) / s_sdlFrequency;
+}
+
+static inline Uint64 millisecondsToTicks(Uint64 ms)
+{
+	return (ms * s_sdlFrequency) / 1000;
+}
 
 
 float easy2d::Time::getTotalTime()
 {
-	return duration_cast<microseconds>(s_tNow - s_tStart).count() / 1000.f / 1000.f;
+	return ticksToSeconds(s_tNow - s_tStart);
 }
 
 unsigned int easy2d::Time::getTotalTimeMilliseconds()
 {
-	return static_cast<unsigned int>(duration_cast<milliseconds>(s_tNow - s_tStart).count());
+	return static_cast<unsigned int>(ticksToMilliseconds(s_tNow - s_tStart));
 }
 
 float easy2d::Time::getDeltaTime()
 {
-	return duration_cast<microseconds>(s_tNow - s_tLast).count() / 1000.f / 1000.f;
+	return ticksToSeconds(s_tNow - s_tLast);
 }
 
 unsigned int easy2d::Time::getDeltaTimeMilliseconds()
 {
-	return static_cast<unsigned int>(duration_cast<milliseconds>(s_tNow - s_tLast).count());
+	return static_cast<unsigned int>(ticksToMilliseconds(s_tNow - s_tLast));
 }
 
 void easy2d::Time::__init(int expectedFPS)
 {
+	// 获取SDL时间频率
+	s_sdlFrequency = SDL_GetPerformanceFrequency();
+
 	if (expectedFPS > 0)
 	{
-		s_tExceptedInvertal = duration_cast<nanoseconds>(seconds(1)) / expectedFPS;
+		s_tExceptedInterval = s_sdlFrequency / expectedFPS;
 	}
 	else
 	{
-		s_tExceptedInvertal = nanoseconds(0);
+		s_tExceptedInterval = 0;
 	}
-	s_tStart = s_tFixed = s_tLast = s_tNow = steady_clock::now();
+
+	// 获取当前时间
+	Uint64 now = SDL_GetPerformanceCounter();
+	s_tStart = s_tFixed = s_tLast = s_tNow = now;
 }
 
 bool easy2d::Time::__isReady()
 {
-	return s_tExceptedInvertal < (s_tNow - s_tFixed);
+	return s_tExceptedInterval < (s_tNow - s_tFixed);
 }
 
 void easy2d::Time::__updateNow()
 {
 	// 刷新时间
-	s_tNow = steady_clock::now();
+	s_tNow = SDL_GetPerformanceCounter();
 }
 
 void easy2d::Time::__updateLast()
 {
-	s_tFixed += s_tExceptedInvertal;
+	s_tFixed += s_tExceptedInterval;
 
 	s_tLast = s_tNow;
-	s_tNow = steady_clock::now();
+	s_tNow = SDL_GetPerformanceCounter();
 }
 
 void easy2d::Time::__reset()
 {
-	s_tLast = s_tFixed = s_tNow = steady_clock::now();
+	Uint64 now = SDL_GetPerformanceCounter();
+	s_tLast = s_tFixed = s_tNow = now;
 }
 
 void easy2d::Time::__sleep()
 {
-	if (s_tExceptedInvertal.count())
+	if (s_tExceptedInterval > 0)
 	{
-		// 计算挂起时长
-		auto wait = duration_cast<nanoseconds>(s_tExceptedInvertal - (s_tNow - s_tFixed));
-		if (wait > milliseconds(1))
+		// 计算挂起时长（毫秒）
+		Uint64 waitTicks = s_tExceptedInterval - (s_tNow - s_tFixed);
+		Uint64 waitMs = ticksToMilliseconds(waitTicks);
+
+		if (waitMs > 1)
 		{
 			// 挂起线程，释放 CPU 占用
-			std::this_thread::sleep_for(wait);
+			SDL_Delay(static_cast<Uint32>(waitMs));
 		}
 	}
 }

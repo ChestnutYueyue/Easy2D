@@ -59,7 +59,7 @@ flowchart TB
     end
 
     subgraph 渲染层["🎨 渲染层"]
-        E --> H[Direct2D 渲染]
+        E --> H[OpenGL 渲染]
         F --> H
         G --> H
         H --> I[GPU 加速]
@@ -73,9 +73,9 @@ flowchart TB
     end
 
     subgraph 系统层["🔧 系统层"]
-        N[窗口管理]
-        O[输入处理]
-        P[音频播放]
+        N[SDL2 窗口管理]
+        O[SDL2 输入处理]
+        P[miniaudio 音频播放]
         Q[文件IO]
     end
 
@@ -171,8 +171,8 @@ mindmap
 ```mermaid
 flowchart LR
     A[系统要求] --> B[Windows 7+]
-    A --> C[Visual Studio 2013+]
-    A --> D[DirectX 11]
+    A --> C[Visual Studio 2017+ 或 MinGW-w64]
+    A --> D[OpenGL 3.3+]
     
     B --> E[支持平台]
     C --> F[开发工具]
@@ -184,26 +184,38 @@ flowchart LR
     style D fill:#e8f5e9
 ```
 
+### 技术栈与依赖库
+
+| 库名 | 版本 | 用途 | 说明 |
+|:---:|:---:|:---|:---|
+| **SDL2** | 2.x | 窗口管理、输入处理、事件系统 | 跨平台多媒体库 |
+| **OpenGL** | 3.3+ | 2D图形渲染 | 硬件加速渲染 |
+| **glad** | 最新 | OpenGL 加载器 | 管理 OpenGL 函数指针 |
+| **FreeType** | 2.x | 字体渲染 | TrueType/OpenType 字体支持 |
+| **stb** | 最新 | 图像加载 | stb_image 等单头文件库 |
+| **miniaudio** | 最新 | 音频播放 | 跨平台音频库 |
+| **zlib** | 1.3.1 | 数据压缩 | FreeType 依赖 |
+| **spdlog** | 最新 | 日志系统 | 高性能 C++ 日志库 |
+
 ### 安装流程
 
 ```mermaid
 flowchart TD
     A[开始安装] --> B{选择安装方式}
     
-    B -->|简易安装| C[下载安装包]
+    B -->|xmake 自动构建| C[安装 xmake]
     B -->|源码编译| D[克隆仓库]
     
-    C --> E[运行安装程序]
-    E --> F[选择VS版本]
-    F --> G[自动配置环境]
+    C --> E[运行 xmake 命令]
+    E --> F[自动下载依赖]
+    F --> G[编译生成]
     
     D --> H[git clone]
-    H --> I[打开sln文件]
-    I --> J[编译生成lib]
-    J --> K[配置项目属性]
+    H --> I[配置 xmake]
+    I --> J[编译生成]
     
     G --> L[安装完成]
-    K --> L
+    J --> L
     
     L --> M[创建新项目]
     M --> N[开始游戏开发]
@@ -223,55 +235,104 @@ git clone https://github.com/nomango/easy2d.git
 # 访问 https://github.com/Easy2D/Easy2D/releases
 ```
 
-### 第二步：编译引擎
+### 第二步：安装 xmake
+
+**Windows (PowerShell):**
+```powershell
+# 使用安装脚本
+Invoke-Expression (Invoke-Webrequest 'https://xmake.io/psget.text' -UseBasicParsing).Content
+```
+
+**或者下载安装包:**
+- 访问 https://xmake.io/#/zh-cn/guide/installation 下载安装程序
+
+### 第三步：编译引擎
 
 ```mermaid
 sequenceDiagram
     participant 开发者
-    participant VS as Visual Studio
+    participant Xmake as xmake
+    participant 包管理器
     participant 编译器
     participant 输出
 
-    开发者->>VS: 打开 Easy2D.sln
-    VS->>VS: 选择配置(Debug/Release)
-    VS->>VS: 选择平台(x86/x64)
-    开发者->>VS: 点击生成解决方案
-    VS->>编译器: 调用MSVC编译
+    开发者->>Xmake: xmake
+    Xmake->>包管理器: 检查依赖库
+    包管理器->>包管理器: 自动下载 SDL2等
+    Xmake->>编译器: 调用编译器
     编译器->>编译器: 编译源文件
-    编译器->>输出: 生成Easy2D.lib
-    输出->>VS: 输出到/Easy2D/output/
-    VS->>开发者: 编译完成
+    编译器->>输出: 生成 libeasy2d.lib
+    输出->>Xmake: 输出到 build/ 目录
+    Xmake->>开发者: 编译完成
 ```
 
-### 第三步：配置项目
+**编译命令:**
 
-```mermaid
-flowchart LR
-    subgraph 配置步骤
-        A[项目属性] --> B[附加包含目录]
-        A --> C[附加库目录]
-        A --> D[附加依赖项]
+```bash
+# 进入项目目录
+cd Easy2D
+
+# 默认编译 (Debug 模式)
+xmake
+
+# 编译 Release 版本
+xmake -m release
+
+# 指定编译器 (MSVC)
+xmake f --toolchain=msvc
+xmake
+
+# 指定编译器 (MinGW)
+xmake f --toolchain=mingw --mingw=/path/to/mingw
+xmake
+
+# 清理并重新编译
+xmake clean
+xmake
+
+# 编译并运行演示程序
+xmake -r
+xmake run GreedyMonster
+```
+
+### 第四步：配置项目
+
+**使用 xmake 创建新游戏项目:**
+
+创建 `xmake.lua` 文件:
+
+```lua
+-- 我的游戏项目
+set_project("MyGame")
+set_version("1.0.0")
+set_languages("c++17")
+
+-- 添加依赖
+add_requires("libsdl2", "glad", "freetype", "stb", "zlib")
+
+-- 可执行文件目标
+target("MyGame")
+    set_kind("binary")
+    add_files("src/*.cpp")
+    add_includedirs("src")
+    
+    -- 添加 Easy2D 头文件路径
+    add_includedirs("path/to/Easy2D/include")
+    
+    -- 添加依赖包
+    add_packages("libsdl2", "glad", "freetype", "stb", "zlib")
+    
+    -- 链接 Easy2D 库
+    add_linkdirs("path/to/Easy2D/build/windows/x64/release")
+    add_links("libeasy2d")
+    
+    -- Windows 系统库
+    if is_plat("windows") then
+        add_syslinks("opengl32", "user32", "gdi32", "shell32")
     end
-    
-    B --> B1[Easy2D/include/]
-    C --> C1[Easy2D/output/]
-    D --> D1[Easy2D.lib]
-    
-    style A fill:#fff3e0
-    style B fill:#e8f5e9
-    style C fill:#e8f5e9
-    style D fill:#e8f5e9
 ```
 
-**详细配置：**
-
-| 配置项 | 路径/值 |
-|:---|:---|
-| C/C++ → 附加包含目录 | `$(SolutionDir)../Easy2D/include/` |
-| 链接器 → 附加库目录 | `$(SolutionDir)../Easy2D/output/` |
-| 链接器 → 附加依赖项 | `Easy2D.lib` |
-
-### 第四步：Hello World
+### 第五步：Hello World
 
 ```cpp
 #include <easy2d/easy2d.h>
@@ -310,6 +371,106 @@ int main()
 
 ---
 
+## 🔧 编译器支持
+
+### MSVC (Visual Studio)
+
+**支持的版本:**
+- Visual Studio 2017 (15.0+)
+- Visual Studio 2019 (16.0+)
+- Visual Studio 2022 (17.0+)
+
+**环境配置:**
+
+1. **安装 Visual Studio**
+   - 下载地址: https://visualstudio.microsoft.com/
+   - 安装 "使用 C++ 的桌面开发" 工作负载
+
+2. **安装 xmake**
+   ```powershell
+   Invoke-Expression (Invoke-Webrequest 'https://xmake.io/psget.text' -UseBasicParsing).Content
+   ```
+
+3. **编译项目**
+   ```bash
+   # 使用默认 MSVC 工具链
+   xmake f -c
+   xmake
+   
+   # 指定 VS 版本 (可选)
+   xmake f --vs=2022
+   xmake
+   ```
+
+**MSVC 特定配置:**
+
+```lua
+-- xmake.lua 中 MSVC 配置
+if is_plat("windows") then
+    -- 设置为 Windows 子系统 (GUI 程序)
+    add_ldflags("/SUBSYSTEM:WINDOWS", {force = true})
+    -- 设置入口点
+    add_ldflags("/ENTRY:WinMainCRTStartup", {force = true})
+    -- 启用多处理器编译
+    add_cxxflags("/MP", {force = true})
+    -- UTF-8 编码支持
+    add_cxxflags("/source-charset:utf-8", {force = true})
+    add_cxxflags("/execution-charset:utf-8", {force = true})
+end
+```
+
+### MinGW-w64
+
+**支持的版本:**
+- MinGW-w64 8.0+
+- GCC 8.0+
+
+**环境配置:**
+
+1. **安装 MinGW-w64**
+   - 推荐: MSYS2 (https://www.msys2.org/)
+   ```bash
+   # 安装基础开发工具
+   pacman -S base-devel mingw-w64-x86_64-toolchain
+   ```
+
+2. **配置环境变量**
+   - 将 `C:\msys64\mingw64\bin` 添加到 PATH
+
+3. **编译项目**
+   ```bash
+   # 配置 MinGW 工具链
+   xmake f --toolchain=mingw --mingw=C:/msys64/mingw64
+   xmake
+   ```
+
+**MinGW 特定配置:**
+
+```lua
+-- xmake.lua 中 MinGW 配置
+if is_plat("mingw") then
+    -- 启用所有警告
+    add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
+    -- UTF-8 编码支持
+    add_cxxflags("-finput-charset=UTF-8", {force = true})
+    add_cxxflags("-fexec-charset=UTF-8", {force = true})
+end
+```
+
+### 编译配置对比
+
+| 配置项 | MSVC | MinGW |
+|:---:|:---:|:---:|
+| **工具链** | `msvc` | `mingw` |
+| **C++ 标准** | `/std:c++17` | `-std=c++17` |
+| **警告级别** | `/W3` | `-Wall -Wextra` |
+| **多线程编译** | `/MP` | `-jN` |
+| **UTF-8 编码** | `/source-charset:utf-8` | `-finput-charset=UTF-8` |
+| **调试信息** | `/Zi` | `-g` |
+| **优化级别** | `/O2` | `-O3` |
+
+---
+
 ## 📁 项目结构
 
 ```mermaid
@@ -317,50 +478,57 @@ flowchart TB
     subgraph Easy2D项目结构
         Root[Easy2D/] --> Src[src/]
         Root --> Inc[include/]
-        Root --> Out[output/]
+        Root --> Build[build/]
         Root --> Samples[samples/]
         Root --> Docs[docs/]
         Root --> Logo[logo/]
+        Root --> Xmake[xmake.lua]
     end
     
     Src --> SrcCore[core/ 核心模块]
-    Src --> SrcRender[renderer/ 渲染模块]
+    Src --> SrcRender[rendering/ 渲染模块]
     Src --> SrcAudio[audio/ 音频模块]
     Src --> SrcGUI[gui/ GUI模块]
     Src --> SrcUtils[utils/ 工具模块]
+    Src --> SrcAnim[animation/ 动画模块]
+    Src --> SrcScene[scene/ 场景模块]
+    Src --> SrcPhys[physics/ 物理模块]
     
     Inc --> IncEasy2d[easy2d/ 头文件]
     
-    Samples --> SampleHello[HelloWorld/]
-    Samples --> SampleDemo[Demo/]
+    Samples --> SampleHello[GreedyMonster-Easy2D/]
     
     style Root fill:#e3f2fd
     style Src fill:#e8f5e9
     style Inc fill:#fff3e0
-    style Out fill:#fce4ec
+    style Build fill:#fce4ec
     style Samples fill:#f3e5f5
+    style Xmake fill:#ffccbc
 ```
 
 ### 目录说明
 
 ```
 Easy2D/
-├── src/                    # 源代码
-│   ├── core/              # 核心功能（场景、节点、导演）
-│   ├── renderer/          # 渲染系统（精灵、纹理、文字）
-│   ├── animation/         # 动画系统
-│   ├── audio/             # 音频系统
-│   ├── gui/               # GUI组件
-│   └── utils/             # 工具类
-├── include/               # 头文件
-│   └── easy2d/
-│       └── easy2d.h       # 主头文件
-├── output/                # 编译输出（.lib文件）
-├── samples/               # 示例项目
-│   ├── HelloWorld/        # Hello World示例
-│   └── Demo/              # 综合演示
-├── docs/                  # 文档
-└── logo/                  # Logo资源
+├── Easy2D/
+│   ├── src/                    # 源代码
+│   │   ├── Core/              # 核心功能（场景、节点、导演、窗口）
+│   │   ├── Rendering/         # 渲染系统（OpenGL、精灵、纹理、文字）
+│   │   ├── Animation/         # 动画系统
+│   │   ├── Resources/         # 资源管理（图片、音频、字体）
+│   │   ├── Scene/             # 场景和节点
+│   │   ├── Utils/             # 工具类
+│   │   └── Physics/           # 物理系统
+│   └── include/               # 头文件
+│       └── easy2d/
+│           └── easy2d.h       # 主头文件
+├── GreedyMonster-Easy2D/      # 演示游戏项目
+│   ├── src/                   # 演示程序源码
+│   └── xmake.lua              # 演示程序构建配置
+├── build/                     # 编译输出目录 (自动生成)
+├── docs/                      # 文档
+├── logo/                      # Logo资源
+└── xmake.lua                  # 主构建配置文件
 ```
 
 ---
@@ -593,7 +761,7 @@ public:
 ```mermaid
 sequenceDiagram
     participant User as 用户
-    participant Window as 游戏窗口
+    participant Window as SDL2 窗口
     participant Dispatcher as 事件分发器
     participant Listener as 事件监听器
     participant Node as 游戏节点
@@ -637,7 +805,7 @@ mindmap
 | 🌐 官方网站 | [easy2d.cn](https://easy2d.cn) | 完整文档和教程 |
 | 📦 GitHub | [github.com/Easy2D/Easy2D](https://github.com/Easy2D/Easy2D) | 源码和发布版本 |
 | 💬 QQ群 | 608406540 | 技术交流和答疑 |
-| 📝 示例项目 | `/samples/` 目录 | 官方示例代码 |
+| 📝 示例项目 | `/GreedyMonster-Easy2D/` 目录 | 官方示例游戏 |
 
 ---
 
@@ -651,13 +819,14 @@ timeline
                  : 场景管理
                  : 简单动画
     section 当前
-        稳定版本 : 完整动画系统
-                 : GUI组件
-                 : 音频支持
+        v3.0.0 : SDL2 跨平台支持
+               : OpenGL 渲染
+               : xmake 构建系统
+               : 现代化日志系统
     section 未来
-        Kiwano引擎 : 全新架构
-                   : 跨平台支持
-                   : 更强大的功能
+        持续改进 : 更多平台支持
+                 : 性能优化
+                 : 更多示例
 ```
 
 > ⚠️ **重要提示**：Easy2D 是作者个人的早期作品，目前处于维护状态。新的游戏引擎项目 [Kiwano](https://github.com/nomango/kiwano) 已经更加庞大且专业，建议关注新项目的发展。
