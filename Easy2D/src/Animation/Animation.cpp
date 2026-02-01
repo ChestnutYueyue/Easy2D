@@ -69,7 +69,7 @@ void easy2d::Animation::_update()
 		_last += _seq->getInterval();
 		++_frameIndex;
 
-		if (_frameIndex == frames.size())
+		if (static_cast<size_t>(_frameIndex) == frames.size())
 		{
 			this->stop();
 			break;

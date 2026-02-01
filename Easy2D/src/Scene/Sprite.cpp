@@ -111,13 +111,13 @@ void easy2d::Sprite::crop(const Rect& cropRect)
 	else
 	{
 		// 保证裁剪矩形不超出图片大小
-		_cropRect.leftTop.x = min(max(cropRect.leftTop.x, 0), _image->getWidth());
-		_cropRect.leftTop.y = min(max(cropRect.leftTop.y, 0), _image->getHeight());
-		_cropRect.rightBottom.x = min(max(cropRect.rightBottom.x, 0), _image->getWidth());
-		_cropRect.rightBottom.y = min(max(cropRect.rightBottom.y, 0), _image->getHeight());
+		_cropRect.leftTop.x = std::min(std::max(cropRect.leftTop.x, 0.0f), _image->getWidth());
+		_cropRect.leftTop.y = std::min(std::max(cropRect.leftTop.y, 0.0f), _image->getHeight());
+		_cropRect.rightBottom.x = std::min(std::max(cropRect.rightBottom.x, 0.0f), _image->getWidth());
+		_cropRect.rightBottom.y = std::min(std::max(cropRect.rightBottom.y, 0.0f), _image->getHeight());
 		setSize(
-			min(max(cropRect.getWidth(), 0), _image->getWidth() - _cropRect.leftTop.x),
-			min(max(cropRect.getHeight(), 0), _image->getHeight() - _cropRect.leftTop.y)
+			std::min(std::max(cropRect.getWidth(), 0.0f), _image->getWidth() - _cropRect.leftTop.x),
+			std::min(std::max(cropRect.getHeight(), 0.0f), _image->getHeight() - _cropRect.leftTop.y)
 		);
 	}
 }

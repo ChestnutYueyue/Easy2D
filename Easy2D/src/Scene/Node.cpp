@@ -510,7 +510,7 @@ void easy2d::Node::setOpacity(float opacity)
 	if (_realOpacity == opacity)
 		return;
 
-	_displayOpacity = _realOpacity = max(min(float(opacity), 1), 0);
+	_displayOpacity = _realOpacity = std::max(std::min(float(opacity), 1.0f), 0.0f);
 	// 更新节点透明度
 	_updateOpacity();
 }
@@ -530,8 +530,8 @@ void easy2d::Node::setAnchor(float anchorX, float anchorY)
 	if (_anchor.x == anchorX && _anchor.y == anchorY)
 		return;
 
-	_anchor.x = max(min(float(anchorX), 1), 0);
-	_anchor.y = max(min(float(anchorY), 1), 0);
+	_anchor.x = std::max(std::min(float(anchorX), 1.0f), 0.0f);
+	_anchor.y = std::max(std::min(float(anchorY), 1.0f), 0.0f);
 	_dirtyTransform = true;
 }
 
@@ -842,8 +842,8 @@ void easy2d::Node::setAutoUpdate(bool autoUpdate)
 
 void easy2d::Node::setDefaultAnchor(float defaultAnchorX, float defaultAnchorY)
 {
-	s_fDefaultAnchorX = max(min(float(defaultAnchorX), 1), 0);
-	s_fDefaultAnchorY = max(min(float(defaultAnchorY), 1), 0);
+	s_fDefaultAnchorX = std::max(std::min(float(defaultAnchorX), 1.0f), 0.0f);
+	s_fDefaultAnchorY = std::max(std::min(float(defaultAnchorY), 1.0f), 0.0f);
 }
 
 void easy2d::Node::resumeAllActions()

@@ -1,9 +1,8 @@
 #include <unordered_map>
 #include <easy2d/e2dbase.h>
 #include <easy2d/e2dmanager.h>
-
 #include <dinput.h>
-#pragma comment(lib, "dinput8.lib")
+
 
 #define BUFFER_SIZE	256
 

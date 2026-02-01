@@ -45,10 +45,12 @@ target("easy2d")
         -- Windows 平台链接 OpenGL
         add_syslinks("opengl32")
         -- Windows 平台链接其他系统库
-        add_syslinks("user32", "gdi32", "shell32")
+        add_syslinks("user32", "gdi32", "shell32", "dinput8", "dxguid", "comdlg32")
     elseif is_plat("mingw") then
         -- MinGW 平台链接 OpenGL
         add_syslinks("opengl32")
+        -- MinGW 平台链接其他系统库
+        add_syslinks("dinput8", "dxguid", "comdlg32")
     else
         -- Linux 平台链接 OpenGL
         add_syslinks("GL")

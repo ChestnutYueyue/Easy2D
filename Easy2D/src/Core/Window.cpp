@@ -4,7 +4,7 @@
 #include <Windowsx.h>
 #include <imm.h>
 #include <easy2d/GLRenderer.h>
-#pragma comment (lib ,"imm32.lib")
+
 
 // 窗口句柄
 static HWND s_HWnd = nullptr;
@@ -267,8 +267,8 @@ void easy2d::Window::setSize(int width, int height)
 	if (screenWidth < width || screenHeight < height)
 		E2D_WARNING("The window is larger than screen!");
 	// 取最小值
-	width = min(width, screenWidth);
-	height = min(height, screenHeight);
+	width = std::min(width, screenWidth);
+	height = std::min(height, screenHeight);
 	// 修改窗口大小，并设置窗口在屏幕居中
 	::MoveWindow(s_HWnd, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, TRUE);
 }

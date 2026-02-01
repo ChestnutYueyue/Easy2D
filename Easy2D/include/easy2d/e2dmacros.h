@@ -36,10 +36,13 @@
 #include <d2d1helper.h>
 
 // Import Libraries
+#if MSVC_VER
 #pragma comment(lib, "d2d1.lib")
 #pragma comment(lib, "dwrite.lib")
 #pragma comment(lib, "windowscodecs.lib")
 #pragma comment(lib, "winmm.lib")
+#endif
+
 
 
 #ifndef HINST_THISCOMPONENT

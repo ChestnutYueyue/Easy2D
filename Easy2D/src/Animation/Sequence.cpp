@@ -31,7 +31,10 @@ void easy2d::Sequence::_init()
 		}
 	}
 	// 初始化第一个动作
-	_actions[0]->_init();
+	if (!_actions.empty())
+	{
+		_actions[0]->_init();
+	}
 }
 
 void easy2d::Sequence::_update()
@@ -46,7 +49,7 @@ void easy2d::Sequence::_update()
 		if (action->_isDone())
 		{
 			++_currIndex;
-			if (_currIndex == _actions.size())
+			if (static_cast<size_t>(_currIndex) == _actions.size())
 			{
 				this->stop();
 			}
@@ -115,7 +118,8 @@ easy2d::Sequence * easy2d::Sequence::reverse() const
 	auto sequence = gcnew Sequence;
 	if (sequence && !_actions.empty())
 	{
-		std::vector<Action*> newActions(_actions.size());
+		std::vector<Action*> newActions;
+		newActions.reserve(_actions.size());
 		for (auto iter = _actions.crbegin(), iterCrend = _actions.crend(); iter != iterCrend; ++iter)
 		{
 			if (*iter)

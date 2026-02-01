@@ -504,22 +504,26 @@ namespace __gc_helper
 
 #ifndef E2D_LOG
 #	ifdef E2D_DEBUG
-#		define E2D_LOG(FORMAT, ...) easy2d::Logger::messageln(FORMAT, __VA_ARGS__)
+#		define E2D_LOG(FORMAT, ...) easy2d::Logger::messageln(FORMAT, ##__VA_ARGS__)
 #	else
-#		define E2D_LOG __noop
+#		ifdef _MSC_VER
+#			define E2D_LOG __noop
+#		else
+#			define E2D_LOG(...) ((void)0)
+#		endif
 #	endif
 #endif
 
 #ifndef E2D_WARNING
-#	define E2D_WARNING(FORMAT, ...) easy2d::Logger::warningln(FORMAT, __VA_ARGS__)
+#	define E2D_WARNING(FORMAT, ...) easy2d::Logger::warningln(FORMAT, ##__VA_ARGS__)
 #endif
 
 #ifndef E2D_ERROR
-#	define E2D_ERROR(FORMAT, ...) easy2d::Logger::errorln(FORMAT, __VA_ARGS__)
+#	define E2D_ERROR(FORMAT, ...) easy2d::Logger::errorln(FORMAT, ##__VA_ARGS__)
 #endif
 
 #ifndef E2D_ERROR_IF_FAILED
-#	define E2D_ERROR_IF_FAILED(HR, FORMAT, ...) do { if (FAILED(HR)) { E2D_ERROR(FORMAT, __VA_ARGS__); } } while (0)
+#	define E2D_ERROR_IF_FAILED(HR, FORMAT, ...) do { if (FAILED(HR)) { E2D_ERROR(FORMAT, ##__VA_ARGS__); } } while (0)
 #endif
 
 }

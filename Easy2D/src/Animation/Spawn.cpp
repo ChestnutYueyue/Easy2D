@@ -113,7 +113,8 @@ easy2d::Spawn * easy2d::Spawn::reverse() const
 	auto spawn = gcnew Spawn;
 	if (spawn && !_actions.empty())
 	{
-		std::vector<Action*> newActions(_actions.size());
+		std::vector<Action*> newActions;
+		newActions.reserve(_actions.size());
 		for (auto iter = _actions.crbegin(), iterCrend = _actions.crend(); iter != iterCrend; ++iter)
 		{
 			if (*iter)

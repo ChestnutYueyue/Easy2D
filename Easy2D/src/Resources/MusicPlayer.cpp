@@ -167,7 +167,7 @@ float easy2d::MusicPlayer::getVolume()
 
 void easy2d::MusicPlayer::setVolume(float volume)
 {
-	s_fMusicVolume = min(max(float(volume), -224), 224);
+	s_fMusicVolume = std::min(std::max(float(volume), -224.0f), 224.0f);
 	for (auto pair : GetMusicFileList())
 	{
 		pair.second->setVolume(s_fMusicVolume);

@@ -32,7 +32,7 @@ easy2d::FrameSequence::~FrameSequence()
 
 void easy2d::FrameSequence::setInterval(float interval)
 {
-	_interval = max(interval, 0);
+	_interval = std::max(interval, 0.0f);
 }
 
 void easy2d::FrameSequence::add(KeyFrame* frame)
@@ -96,7 +96,8 @@ easy2d::FrameSequence * easy2d::FrameSequence::clone() const
 easy2d::FrameSequence * easy2d::FrameSequence::reverse() const
 {
 	auto& oldFrames = this->getFrames();
-	std::vector<KeyFrame*> frames(oldFrames.size());
+	std::vector<KeyFrame*> frames;
+	frames.reserve(oldFrames.size());
 
 	if (!oldFrames.empty())
 	{

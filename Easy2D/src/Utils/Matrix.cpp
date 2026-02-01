@@ -46,10 +46,10 @@ easy2d::Rect easy2d::Matrix32::transform(const Rect& rect) const
 	Vector2 bottom_left = transform(rect.getLeftBottom());
 	Vector2 bottom_right = transform(rect.getRightBottom());
 
-	float left = min(min(top_left.x, top_right.x), min(bottom_left.x, bottom_right.x));
-	float right = max(max(top_left.x, top_right.x), max(bottom_left.x, bottom_right.x));
-	float top = min(min(top_left.y, top_right.y), min(bottom_left.y, bottom_right.y));
-	float bottom = max(max(top_left.y, top_right.y), max(bottom_left.y, bottom_right.y));
+	float left = std::min(std::min(top_left.x, top_right.x), std::min(bottom_left.x, bottom_right.x));
+	float right = std::max(std::max(top_left.x, top_right.x), std::max(bottom_left.x, bottom_right.x));
+	float top = std::min(std::min(top_left.y, top_right.y), std::min(bottom_left.y, bottom_right.y));
+	float bottom = std::max(std::max(top_left.y, top_right.y), std::max(bottom_left.y, bottom_right.y));
 
 	return Rect{ Point{left, top}, Point{right, bottom} };
 }
@@ -91,7 +91,7 @@ easy2d::Matrix32 easy2d::Matrix32::translation(
 	float x,
 	float y)
 {
-	return easy2d::Matrix32::Matrix32(
+	return easy2d::Matrix32(
 		1.f, 0.f,
 		0.f, 1.f,
 		x, y
@@ -103,7 +103,7 @@ easy2d::Matrix32 easy2d::Matrix32::scaling(
 	float y,
 	const Point& center)
 {
-	return easy2d::Matrix32::Matrix32(
+	return easy2d::Matrix32(
 		x, 0.f,
 		0.f, y,
 		center.x - x * center.x,
@@ -117,7 +117,7 @@ easy2d::Matrix32 easy2d::Matrix32::rotation(
 {
 	float s = math::Sin(angle);
 	float c = math::Cos(angle);
-	return easy2d::Matrix32::Matrix32(
+	return easy2d::Matrix32(
 		c, s,
 		-s, c,
 		center.x * (1 - c) + center.y * s,
@@ -132,7 +132,7 @@ easy2d::Matrix32 easy2d::Matrix32::skewing(
 {
 	float tx = math::Tan(angle_x);
 	float ty = math::Tan(angle_y);
-	return easy2d::Matrix32::Matrix32(
+	return easy2d::Matrix32(
 		1.f, -ty,
 		-tx, 1.f,
 		center.y * tx, center.x * ty
@@ -143,7 +143,7 @@ easy2d::Matrix32 easy2d::Matrix32::invert(Matrix32 const& matrix)
 {
 	float det = 1.f / matrix.determinant();
 
-	return easy2d::Matrix32::Matrix32(
+	return easy2d::Matrix32(
 		det * matrix._22,
 		-det * matrix._12,
 		-det * matrix._21,
