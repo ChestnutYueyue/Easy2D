@@ -38,9 +38,7 @@
 #include <easy2d/GLStateManager.h>
 #include <easy2d/GLPostProcess.h>
 #include <easy2d/GLFullScreenQuad.h>
+#include <easy2d/GLTextureAtlas.h>
 
-#if defined(DEBUG) || defined(_DEBUG)
-#	pragma comment(lib, "libeasy2dd.lib")
-#else
-#	pragma comment(lib, "libeasy2d.lib")
-#endif
+// 窗口组件
+#include <SDL.h>

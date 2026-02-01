@@ -1,5 +1,6 @@
 #define NOMINMAX
 #include <easy2d/GLRenderer.h>
+#include <easy2d/GLTextureAtlas.h>
 #include <easy2d/e2dbase.h>
 #include <easy2d/e2dmanager.h>
 #include <easy2d/e2dnode.h>
@@ -8,6 +9,9 @@
 #include <easy2d/GLTextRenderer.h>
 #include <SDL.h>
 #include <SDL_opengl.h>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <string>
 
 namespace easy2d
 {
@@ -80,6 +84,9 @@ bool GLRenderer::initialize(SDL_Window* window, int width, int height)
         return false;
     }
 
+    // 初始化纹理图集系统
+    E2D_GL_TEXTURE_ATLAS.initialize(2048, 2048, 4);
+
     // 设置默认投影矩阵（正交投影，原点在左上角）
     setProjection(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
 
@@ -109,12 +116,8 @@ void GLRenderer::shutdown()
         return;
     }
 
-    // 销毁FPS文本
-    if (_fpsText != nullptr)
-    {
-        delete _fpsText;
-        _fpsText = nullptr;
-    }
+    // 关闭纹理图集系统
+    E2D_GL_TEXTURE_ATLAS.shutdown();
 
     // 销毁批次渲染器
     if (_batchRenderer != nullptr)
@@ -208,11 +211,7 @@ bool GLRenderer::initializeResources()
         return false;
     }
 
-    // 创建FPS显示文本
-    _fpsText = new Text("FPS: 0");
-    _fpsText->setAnchor(0, 0);
-    _fpsText->setPos(0, 20);
-    _fpsText->setScale(0.7f);
+
 
     return true;
 }
@@ -235,14 +234,20 @@ void GLRenderer::beginFrame()
 
     // 重置模型矩阵
     _modelMatrix.identity();
+
+    // 开始批次渲染
+    if (_batchRenderer)
+    {
+        _batchRenderer->begin();
+    }
 }
 
 void GLRenderer::endFrame()
 {
-    // 渲染FPS（如果需要）
-    if (_showFps)
+    // 结束批次渲染，提交所有待渲染的精灵
+    if (_batchRenderer)
     {
-        renderFps();
+        _batchRenderer->end();
     }
 
     // 交换缓冲区
@@ -251,8 +256,25 @@ void GLRenderer::endFrame()
         SDL_GL_SwapWindow(_window);
     }
 
-    // 更新FPS统计
-    _fpsFrameCount++;
+    // 更新FPS统计（使用SDL2高精度计时器）
+    if (_showFps)
+    {
+        _fpsFrameCount++;
+        Uint64 currentTime = SDL_GetPerformanceCounter();
+        Uint64 frequency = SDL_GetPerformanceFrequency();
+        double deltaTime = static_cast<double>(currentTime - _fpsLastTime) / frequency;
+
+        if (deltaTime >= 0.5) // 每0.5秒更新一次FPS显示
+        {
+            double fps = _fpsFrameCount / deltaTime;
+            _fpsFrameCount = 0;
+            _fpsLastTime = currentTime;
+
+            // 更新窗口标题显示FPS
+            std::string titleWithFps = _windowTitle + " - FPS: " + std::to_string(static_cast<int>(fps));
+            SDL_SetWindowTitle(_window, titleWithFps.c_str());
+        }
+    }
 }
 
 void GLRenderer::clear(const Color& color)
@@ -274,19 +296,16 @@ Color GLRenderer::getBackgroundColor() const
 
 void GLRenderer::setProjection(float left, float right, float bottom, float top)
 {
-    // 构建正交投影矩阵
-    float tx = -(right + left) / (right - left);
-    float ty = -(top + bottom) / (top - bottom);
-    float tz = -1.0f;
+    // 使用 GLM 构建正交投影矩阵
+    glm::mat4 ortho = glm::ortho(left, right, bottom, top, -1.0f, 1.0f);
 
-    float ortho[16] = {
-        2.0f / (right - left), 0.0f, 0.0f, 0.0f,
-        0.0f, 2.0f / (top - bottom), 0.0f, 0.0f,
-        0.0f, 0.0f, -1.0f, 0.0f,
-        tx, ty, tz, 1.0f
-    };
+    memcpy(_projectionMatrix, glm::value_ptr(ortho), sizeof(_projectionMatrix));
 
-    memcpy(_projectionMatrix, ortho, sizeof(ortho));
+    // 同时更新批次渲染器的投影矩阵
+    if (_batchRenderer)
+    {
+        _batchRenderer->setProjectionMatrix(_projectionMatrix);
+    }
 }
 
 void GLRenderer::setModelMatrix(const Matrix32& matrix)
@@ -308,7 +327,47 @@ void GLRenderer::drawTexture(GLTexture* texture, const Rect& destRect, const Rec
 
     // 计算纹理坐标
     float u1 = 0.0f, v1 = 0.0f, u2 = 1.0f, v2 = 1.0f;
-    if (srcRect)
+    
+    // 尝试使用纹理图集
+    const AtlasRegion* atlasRegion = E2D_GL_TEXTURE_ATLAS.getRegion(texture);
+    if (atlasRegion)
+    {
+        // 使用图集中的UV坐标
+        if (srcRect)
+        {
+            // 计算在图集中的相对UV坐标
+            float texWidth = static_cast<float>(texture->getWidth());
+            float texHeight = static_cast<float>(texture->getHeight());
+            float srcU1 = srcRect->getLeft() / texWidth;
+            float srcV1 = srcRect->getTop() / texHeight;
+            float srcU2 = srcRect->getRight() / texWidth;
+            float srcV2 = srcRect->getBottom() / texHeight;
+            
+            // 映射到图集UV空间
+            float regionWidth = atlasRegion->uv1.x - atlasRegion->uv0.x;
+            float regionHeight = atlasRegion->uv1.y - atlasRegion->uv0.y;
+            
+            u1 = atlasRegion->uv0.x + srcU1 * regionWidth;
+            v1 = atlasRegion->uv0.y + srcV1 * regionHeight;
+            u2 = atlasRegion->uv0.x + srcU2 * regionWidth;
+            v2 = atlasRegion->uv0.y + srcV2 * regionHeight;
+        }
+        else
+        {
+            u1 = atlasRegion->uv0.x;
+            v1 = atlasRegion->uv0.y;
+            u2 = atlasRegion->uv1.x;
+            v2 = atlasRegion->uv1.y;
+        }
+        
+        // 获取图集页面纹理
+        GLTextureAtlasPage* page = E2D_GL_TEXTURE_ATLAS.getPage(atlasRegion->pageIndex);
+        if (page)
+        {
+            texture = page->getTexture();
+        }
+    }
+    else if (srcRect)
     {
         float texWidth = static_cast<float>(texture->getWidth());
         float texHeight = static_cast<float>(texture->getHeight());
@@ -326,24 +385,44 @@ void GLRenderer::drawTexture(GLTexture* texture, const Rect& destRect, const Rec
         Vertex(Point(destRect.getLeft(), destRect.getBottom()), Point(u1, v2), color)
     };
 
-    // 使用纹理着色器
-    GLShader* shader = _shaderManager.getTextureShader();
-    shader->use();
-    shader->setMat4("uProjection", _projectionMatrix);
-    shader->setMat4("uModel", _modelMatrix);
-    shader->setFloat("uOpacity", _opacity);
-    shader->setBool("uUseTexture", true);
+    // 应用模型矩阵变换到顶点位置
+    for (int i = 0; i < 4; ++i)
+    {
+        vertices[i].position = _modelMatrix.transformPoint(vertices[i].position);
+    }
 
-    // 绑定纹理
-    texture->bind(0);
-    shader->setInt("uTexture", 0);
+    // 应用透明度
+    Color finalColor = color;
+    finalColor.a *= _opacity;
+    for (int i = 0; i < 4; ++i)
+    {
+        vertices[i].color = finalColor;
+    }
 
-    // 创建临时缓冲区并绘制
-    GLBuffer buffer;
-    std::vector<Vertex> vertVec = { vertices[0], vertices[1], vertices[2], vertices[3] };
-    std::vector<unsigned int> indices = { 0, 1, 2, 0, 2, 3 };
-    buffer.create(vertVec, indices);
-    buffer.draw();
+    // 使用批次渲染器添加四边形
+    if (_batchRenderer)
+    {
+        _batchRenderer->addQuad(vertices, texture->getID());
+    }
+    else
+    {
+        // 回退到直接渲染（不应该发生）
+        GLShader* shader = _shaderManager.getTextureShader();
+        shader->use();
+        shader->setMat4("uProjection", _projectionMatrix);
+        shader->setMat4("uModel", _modelMatrix);
+        shader->setFloat("uOpacity", _opacity);
+        shader->setBool("uUseTexture", true);
+
+        texture->bind(0);
+        shader->setInt("uTexture", 0);
+
+        GLBuffer buffer;
+        std::vector<Vertex> vertVec = { vertices[0], vertices[1], vertices[2], vertices[3] };
+        std::vector<unsigned int> indices = { 0, 1, 2, 0, 2, 3 };
+        buffer.create(vertVec, indices);
+        buffer.draw();
+    }
 }
 
 void GLRenderer::drawFilledRect(const Rect& rect, const Color& color)
@@ -507,35 +586,35 @@ void GLRenderer::renderScene(bool showBodyShapes)
     SceneManager::__render(showBodyShapes);
 }
 
-void GLRenderer::renderFps()
-{
-    if (!_fpsText)
-    {
-        return;
-    }
-
-    // 更新FPS
-    float currentTime = Time::getTotalTime();
-    float deltaTime = currentTime - _fpsLastTime;
-
-    if (deltaTime >= 0.5f)
-    {
-        _fpsCurrent = _fpsFrameCount / deltaTime;
-        _fpsFrameCount = 0;
-        _fpsLastTime = currentTime;
-
-        // 更新FPS文本
-        String fpsString = "FPS: " + std::to_string(static_cast<int>(_fpsCurrent));
-        _fpsText->setText(fpsString);
-    }
-
-    // 渲染FPS文本
-    _fpsText->_render();
-}
-
 void GLRenderer::showFps(bool show)
 {
     _showFps = show;
+
+    if (_window)
+    {
+        if (show)
+        {
+            // 保存当前窗口标题并初始化FPS计时器
+            if (_windowTitle.empty())
+            {
+                const char* currentTitle = SDL_GetWindowTitle(_window);
+                if (currentTitle)
+                {
+                    _windowTitle = currentTitle;
+                }
+            }
+            _fpsLastTime = SDL_GetPerformanceCounter();
+            _fpsFrameCount = 0;
+        }
+        else
+        {
+            // 恢复原始窗口标题
+            if (!_windowTitle.empty())
+            {
+                SDL_SetWindowTitle(_window, _windowTitle.c_str());
+            }
+        }
+    }
 }
 
 void GLRenderer::showBodyShapes(bool show)

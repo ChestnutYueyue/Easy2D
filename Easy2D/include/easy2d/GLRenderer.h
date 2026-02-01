@@ -7,6 +7,7 @@
 #include "GLTexture.h"
 #include "GLFrameBuffer.h"
 #include "GLBuffer.h"
+#include <string>
 
 // 前向声明SDL类型
 struct SDL_Window;
@@ -227,7 +228,7 @@ public:
     void renderScene(bool showBodyShapes = false);
 
     /**
-     * @brief 显示FPS
+     * @brief 显示FPS（使用SDL2窗口标题显示）
      * @param show 是否显示
      */
     void showFps(bool show);
@@ -311,11 +312,6 @@ private:
     bool initializeResources();
 
     /**
-     * @brief 渲染FPS显示
-     */
-    void renderFps();
-
-    /**
      * @brief 创建设备相关资源
      */
     bool createDeviceResources();
@@ -365,13 +361,10 @@ private:
     // 默认纹理（白色像素，用于纯色绘制）
     GLTexture* _defaultTexture = nullptr;
 
-    // FPS统计
+    // FPS统计（使用SDL2窗口标题显示）
     int _fpsFrameCount = 0;
-    float _fpsLastTime = 0.0f;
-    float _fpsCurrent = 0.0f;
-
-    // FPS显示文本
-    Text* _fpsText = nullptr;
+    GLint64 _fpsLastTime = 0;
+    std::string _windowTitle;
 };
 
 // 便捷宏定义

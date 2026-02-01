@@ -2,6 +2,7 @@
 #include <easy2d/e2daction.h>
 #include <easy2d/e2dbase.h>
 #include <easy2d/GLRenderer.h>
+#include <easy2d/GLTextureAtlas.h>
 
 easy2d::Sprite::Sprite()
 	: _image(nullptr)
@@ -155,6 +156,17 @@ void easy2d::Sprite::setImage(Image* image, bool resetCropRect)
 		GC::release(_image);
 		_image = image;
 		GC::retain(_image);
+
+		// 尝试将纹理添加到图集以优化渲染
+		if (_image)
+		{
+			GLTexture* texture = _image->getTexture();
+			if (texture && texture->isValid())
+			{
+				// 自动添加到纹理图集
+				E2D_GL_TEXTURE_ATLAS.addTexture(texture);
+			}
+		}
 	}
 
 	if (resetCropRect)

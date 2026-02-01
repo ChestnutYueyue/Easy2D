@@ -16,6 +16,7 @@ add_requires("glad")
 add_requires("freetype")
 add_requires("stb")
 add_requires("zlib")
+add_requires("glm")
 add_requires("spdlog", {configs = {header_only = true}})
 
 -- 添加静态库目标
@@ -40,6 +41,7 @@ target("easy2d")
     add_packages("zlib")
     add_packages("freetype", {configs = {zlib = true}})
     add_packages("stb")
+    add_packages("glm")
     add_packages("spdlog")
 
     -- 添加系统链接库
@@ -86,10 +88,8 @@ target("easy2d")
         -- add_cxxflags("/WX", {force = true})  -- 暂时禁用，避免迁移期间的编译错误
         -- 启用多处理器编译
         add_cxxflags("/MP", {force = true})
-        -- 设置源文件编码为 UTF-8 (MSVC 不支持 utf-16 作为源字符集)
-        add_cxxflags("/source-charset:utf-8", {force = true})
-        -- 设置执行字符集为 UTF-8
-        add_cxxflags("/execution-charset:utf-8", {force = true})
+        -- 设置源文件和执行字符集为 UTF-8（使用 /utf-8 同时设置两者）
+        add_cxxflags("/utf-8", {force = true})
 
     elseif is_plat("mingw") then
         -- MinGW 平台特定配置

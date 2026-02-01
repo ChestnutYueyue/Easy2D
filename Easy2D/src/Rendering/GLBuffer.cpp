@@ -1,5 +1,7 @@
 #include <easy2d/GLBuffer.h>
+#include <easy2d/GLShader.h>
 #include <easy2d/e2dbase.h>
+#include <cstring>
 
 namespace easy2d
 {
@@ -169,10 +171,21 @@ GLBatchRenderer::GLBatchRenderer(unsigned int maxVertices, unsigned int maxIndic
     , _indexCount(0)
     , _quadCount(0)
     , _batchStarted(false)
+    , _currentTextureID(0)
+    , _atlasMode(false)
 {
     // 预分配空间
     _vertices.reserve(maxVertices);
     _indices.reserve(maxIndices);
+    
+    // 初始化投影矩阵为单位矩阵
+    float identity[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    memcpy(_projectionMatrix, identity, sizeof(_projectionMatrix));
 }
 
 GLBatchRenderer::~GLBatchRenderer()
@@ -234,8 +247,10 @@ void GLBatchRenderer::begin()
     _vertexCount = 0;
     _indexCount = 0;
     _quadCount = 0;
+    _currentTextureID = 0;
     _vertices.clear();
     _indices.clear();
+    _textureBatches.clear();
 }
 
 void GLBatchRenderer::end()
@@ -257,11 +272,18 @@ void GLBatchRenderer::addQuad(const Vertex vertices[4], GLuint textureID)
         return;
     }
 
-    // 检查是否需要提交当前批次
-    if (_quadCount >= _maxQuads)
+    // 检查是否需要切换纹理批次
+    if (needTextureSwitch(textureID))
+    {
+        startNewTextureBatch(textureID);
+    }
+
+    // 检查是否需要提交当前批次（顶点缓冲区已满）
+    if (_quadCount >= _maxQuads || _vertexCount + 4 > _maxVertices)
     {
         submitBatch();
         begin();
+        startNewTextureBatch(textureID);
     }
 
     // 添加顶点
@@ -282,6 +304,12 @@ void GLBatchRenderer::addQuad(const Vertex vertices[4], GLuint textureID)
     _vertexCount += 4;
     _indexCount += 6;
     _quadCount++;
+
+    // 更新当前纹理批次的索引计数
+    if (!_textureBatches.empty())
+    {
+        _textureBatches.back().indexCount += 6;
+    }
 }
 
 void GLBatchRenderer::addTriangle(const Vertex vertices[3], GLuint textureID)
@@ -323,9 +351,33 @@ void GLBatchRenderer::flush()
     }
 }
 
+bool GLBatchRenderer::needTextureSwitch(GLuint textureID) const
+{
+    // 如果启用了图集模式，所有纹理都视为同一个批次
+    if (_atlasMode)
+    {
+        return false;
+    }
+
+    // 如果当前没有批次，或者纹理ID不同，需要切换
+    if (_textureBatches.empty())
+    {
+        return true;
+    }
+
+    // 检查当前纹理是否与上一个相同
+    return _currentTextureID != textureID;
+}
+
+void GLBatchRenderer::startNewTextureBatch(GLuint textureID)
+{
+    _currentTextureID = textureID;
+    _textureBatches.emplace_back(textureID, _indexCount);
+}
+
 void GLBatchRenderer::submitBatch()
 {
-    if (_vertexCount == 0)
+    if (_vertexCount == 0 || _textureBatches.empty())
     {
         return;
     }
@@ -341,20 +393,67 @@ void GLBatchRenderer::submitBatch()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, _indices.size() * sizeof(unsigned int), _indices.data());
 
-    // 绘制
-    glDrawElements(GL_TRIANGLES, _indexCount, GL_UNSIGNED_INT, nullptr);
+    // 获取着色器
+    GLShaderManager& shaderManager = GLShaderManager::getInstance();
+    GLShader* shader = shaderManager.getTextureShader();
+    shader->use();
+
+    // 设置投影矩阵
+    shader->setMat4("uProjection", _projectionMatrix);
+    float identity[16] = {
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    };
+    shader->setMat4("uModel", identity);
+    shader->setFloat("uOpacity", 1.0f);
+    shader->setBool("uUseTexture", true);
+
+    // 按纹理批次绘制
+    if (_atlasMode && !_textureBatches.empty())
+    {
+        // 图集模式：只绑定一次纹理，绘制所有内容
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _textureBatches[0].textureID);
+        shader->setInt("uTexture", 0);
+        glDrawElements(GL_TRIANGLES, _indexCount, GL_UNSIGNED_INT, nullptr);
+    }
+    else
+    {
+        // 普通模式：按纹理分组绘制
+        for (const auto& batch : _textureBatches)
+        {
+            if (batch.indexCount == 0)
+            {
+                continue;
+            }
+
+            // 绑定纹理
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, batch.textureID);
+            shader->setInt("uTexture", 0);
+
+            // 绘制该纹理的批次
+            const void* offset = reinterpret_cast<const void*>(batch.startIndex * sizeof(unsigned int));
+            glDrawElements(GL_TRIANGLES, batch.indexCount, GL_UNSIGNED_INT, offset);
+        }
+    }
 
     // 解绑
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     // 重置计数
     _vertexCount = 0;
     _indexCount = 0;
     _quadCount = 0;
+    _currentTextureID = 0;
     _vertices.clear();
     _indices.clear();
+    _textureBatches.clear();
 }
 
 } // namespace easy2d

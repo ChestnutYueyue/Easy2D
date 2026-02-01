@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace easy2d
 {
@@ -359,14 +360,9 @@ void GLShader::setMat4(const std::string& name, const float* matrix) const
 
 void GLShader::setMat4(const std::string& name, const Matrix32& matrix) const
 {
-    // 将2D矩阵转换为4x4矩阵
-    float mat4[16] = {
-        matrix._11, matrix._12, 0.0f, 0.0f,
-        matrix._21, matrix._22, 0.0f, 0.0f,
-        0.0f,       0.0f,       1.0f, 0.0f,
-        matrix._31, matrix._32, 0.0f, 1.0f
-    };
-    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, mat4);
+    // 使用 GLM 将2D矩阵转换为4x4矩阵
+    glm::mat4 mat4 = matrix.toMat4();
+    glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(mat4));
 }
 
 // GLShaderManager 实现

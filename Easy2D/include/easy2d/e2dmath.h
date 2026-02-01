@@ -1,5 +1,9 @@
 #pragma once
 #include <easy2d/e2dmacros.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_inverse.hpp>
+#include <glm/gtc/constants.hpp>
 #include <cmath>
 
 namespace easy2d
@@ -8,71 +12,77 @@ namespace easy2d
 	{
 		namespace constants
 		{
-			const auto PI_F = 3.141592653589793f;
-			const auto PI_F_2 = 1.570796326794896f;
-			const auto PI_F_X_2 = 6.283185307179586f;
+			// 使用 GLM 的常量
+			constexpr float PI_F = glm::pi<float>();
+			constexpr float PI_F_2 = glm::half_pi<float>();
+			constexpr float PI_F_X_2 = glm::two_pi<float>();
 
-			const auto PI_D = 3.14159265358979323846;
-			const auto PI_D_2 = 1.57079632679489661923;
-			const auto PI_D_X_2 = 6.28318530717958647692;
+			constexpr double PI_D = glm::pi<double>();
+			constexpr double PI_D_2 = glm::half_pi<double>();
+			constexpr double PI_D_X_2 = glm::two_pi<double>();
 		}
 
-		inline int Abs(int val) { return ::abs(val); }
+		// 使用 GLM 的数学函数
+		template<typename T>
+		inline T Abs(T val) { return glm::abs(val); }
 
-		inline float Abs(float val) { return ::fabsf(val); }
+		inline float Sqrt(float val) { return glm::sqrt(val); }
+		inline double Sqrt(double val) { return glm::sqrt(val); }
 
-		inline double Abs(double val) { return ::fabs(val); }
+		inline float Pow(float base, float exponent) { return glm::pow(base, exponent); }
+		inline double Pow(double base, double exponent) { return glm::pow(base, exponent); }
 
-		inline float Sqrt(float val) { return ::sqrtf(val); }
+		template<typename T>
+		inline T Sign(T val) { return glm::sign(val); }
 
-		inline double Sqrt(double val) { return ::sqrt(val); }
+		// 角度制转弧度制后计算三角函数
+		inline float Sin(float val) { return glm::sin(val * constants::PI_F / 180.f); }
+		inline double Sin(double val) { return glm::sin(val * constants::PI_D / 180.0); }
 
-		inline float Pow(float base, float exponent) { return ::powf(base, exponent); }
+		inline float Cos(float val) { return glm::cos(val * constants::PI_F / 180.f); }
+		inline double Cos(double val) { return glm::cos(val * constants::PI_D / 180.0); }
 
-		inline double Pow(double base, double exponent) { return ::pow(base, exponent); }
+		inline float Tan(float val) { return glm::tan(val * constants::PI_F / 180.f); }
+		inline double Tan(double val) { return glm::tan(val * constants::PI_D / 180.0); }
 
-		inline int Sign(int val) { return val < 0 ? -1 : 1; }
+		// 反三角函数，结果转角度制
+		inline float Asin(float val) { return glm::degrees(glm::asin(val)); }
+		inline double Asin(double val) { return glm::degrees(glm::asin(val)); }
 
-		inline float Sign(float val) { return val < 0 ? -1.f : 1.f; }
+		inline float Acos(float val) { return glm::degrees(glm::acos(val)); }
+		inline double Acos(double val) { return glm::degrees(glm::acos(val)); }
 
-		inline double Sign(double val) { return val < 0 ? -1.0 : 1.0; }
+		inline float Atan(float val) { return glm::degrees(glm::atan(val)); }
+		inline double Atan(double val) { return glm::degrees(glm::atan(val)); }
 
-		inline float Sin(float val) { return ::sinf(val * constants::PI_F / 180.f); }
+		inline float Atan2(float y, float x) { return glm::degrees(glm::atan(y, x)); }
+		inline double Atan2(double y, double x) { return glm::degrees(glm::atan(y, x)); }
 
-		inline double Sin(double val) { return ::sin(val * constants::PI_D / 180.0); }
+		inline float Ceil(float val) { return glm::ceil(val); }
+		inline double Ceil(double val) { return glm::ceil(val); }
 
-		inline float Cos(float val) { return ::cosf(val * constants::PI_F / 180.f); }
+		inline float Floor(float val) { return glm::floor(val); }
+		inline double Floor(double val) { return glm::floor(val); }
 
-		inline double Cos(double val) { return ::cos(val * constants::PI_D / 180.0); }
+		inline float Round(float val) { return glm::round(val); }
+		inline double Round(double val) { return glm::round(val); }
 
-		inline float Tan(float val) { return ::tanf(val * constants::PI_F / 180.f); }
+		inline float Min(float a, float b) { return glm::min(a, b); }
+		inline float Max(float a, float b) { return glm::max(a, b); }
+		inline double Min(double a, double b) { return glm::min(a, b); }
+		inline double Max(double a, double b) { return glm::max(a, b); }
 
-		inline double Tan(double val) { return ::tan(val * constants::PI_D / 180.0); }
+		inline float Clamp(float val, float minVal, float maxVal) { return glm::clamp(val, minVal, maxVal); }
+		inline double Clamp(double val, double minVal, double maxVal) { return glm::clamp(val, minVal, maxVal); }
 
-		inline float Asin(float val) { return ::asinf(val) * 180.f / constants::PI_F; }
-
-		inline double Asin(double val) { return ::asin(val) * 180.f / constants::PI_F; }
-
-		inline float Acos(float val) { return ::acosf(val) * 180.f / constants::PI_F; }
-
-		inline double Acos(double val) { return ::acos(val) * 180.f / constants::PI_F; }
-
-		inline float Atan(float val) { return ::atanf(val) * 180.f / constants::PI_F; }
-
-		inline double Atan(double val) { return ::atan(val) * 180.f / constants::PI_F; }
-
-		inline float Ceil(float val) { return ::ceil(val); }
-
-		inline double Ceil(double val) { return ::ceil(val); }
-
-		inline float Floor(float val) { return ::floor(val); }
-
-		inline double Floor(double val) { return ::floor(val); }
+		// 线性插值
+		inline float Lerp(float a, float b, float t) { return glm::mix(a, b, t); }
+		inline double Lerp(double a, double b, double t) { return glm::mix(a, b, t); }
 	}
 
 	class Size;
 
-	// 坐标
+	// 坐标 - 使用 GLM vec2 作为底层存储
 	class Point
 	{
 	public:
@@ -80,26 +90,32 @@ namespace easy2d
 		float y;	// Y 坐标
 
 	public:
-		Point();
+		Point() : x(0), y(0) {}
+		Point(float x, float y) : x(x), y(y) {}
+		Point(const Point& other) : x(other.x), y(other.y) {}
+		Point(const glm::vec2& v) : x(v.x), y(v.y) {}
 
-		Point(float x, float y);
-
-		Point(const Point& other);
-
-		Point operator + (Point const& point) const;
-		Point operator - (Point const& point) const;
-		Point operator * (float const& point) const;
-		Point operator / (float const& point) const;
-		Point operator - () const;
-		bool operator== (const Point& point) const;
-		bool operator!= (const Point& point) const;
+		Point operator + (Point const& point) const { return Point(x + point.x, y + point.y); }
+		Point operator - (Point const& point) const { return Point(x - point.x, y - point.y); }
+		Point operator * (float const& point) const { return Point(x * point, y * point); }
+		Point operator / (float const& point) const { return Point(x / point, y / point); }
+		Point operator - () const { return Point(-x, -y); }
+		bool operator== (const Point& point) const { return x == point.x && y == point.y; }
+		bool operator!= (const Point& point) const { return !operator==(point); }
 
 		operator easy2d::Size() const;
+		operator glm::vec2() const { return glm::vec2(x, y); }
 
-		bool isEmpty() const;
+		bool isEmpty() const { return !x && !y; }
+
+		// 转换为 GLM vec2
+		glm::vec2 toVec2() const { return glm::vec2(x, y); }
 
 		// 判断两点间距离
-		static float distance(const Point&, const Point&);
+		static float distance(const Point& p1, const Point& p2)
+		{
+			return glm::distance(glm::vec2(p1.x, p1.y), glm::vec2(p2.x, p2.y));
+		}
 	};
 
 
@@ -114,23 +130,22 @@ namespace easy2d
 		float height;	// 高度
 
 	public:
-		Size();
+		Size() : width(0), height(0) {}
+		Size(float width, float height) : width(width), height(height) {}
+		Size(const Size& other) : width(other.width), height(other.height) {}
 
-		Size(float width, float height);
+		Size operator + (Size const& size) const { return Size(width + size.width, height + size.height); }
+		Size operator - (Size const& size) const { return Size(width - size.width, height - size.height); }
+		Size operator * (float const& size) const { return Size(width * size, height * size); }
+		Size operator / (float const& size) const { return Size(width / size, height / size); }
+		Size operator - () const { return Size(-width, -height); }
+		bool operator== (const Size& size) const { return width == size.width && height == size.height; }
+		bool operator!= (const Size& size) const { return !operator==(size); }
 
-		Size(const Size& other);
+		operator easy2d::Point() const { return Point(width, height); }
+		operator glm::vec2() const { return glm::vec2(width, height); }
 
-		Size operator + (Size const& size) const;
-		Size operator - (Size const& size) const;
-		Size operator * (float const& size) const;
-		Size operator / (float const& size) const;
-		Size operator - () const;
-		bool operator== (const Size& size) const;
-		bool operator!= (const Size& size) const;
-
-		operator easy2d::Point() const;
-
-		bool isEmpty() const;
+		bool isEmpty() const { return !width && !height; }
 	};
 
 
@@ -141,67 +156,54 @@ namespace easy2d
 		Point leftTop, rightBottom;
 
 	public:
-		Rect();
+		Rect() = default;
+		Rect(const Point& lt, const Point& rb) : leftTop(lt), rightBottom(rb) {}
+		Rect(const Point& pos, const Size& size) { setRect(pos, size); }
+		Rect(const Rect& other) : leftTop(other.leftTop), rightBottom(other.rightBottom) {}
 
-		Rect(const Point& lt, const Point& rb);
-
-		Rect(const Point& pos, const Size& size);
-
-		Rect(const Rect& other);
-
-		Rect& operator= (const Rect& other);
-
-		bool operator== (const Rect& rect) const;
-
-		bool isEmpty() const;
-
-		// 设置矩形
-		void setRect(
-			const Point& pos,
-			const Size& size
-		);
-
-		// 判断点是否在矩形内
-		bool containsPoint(
-			const Point& point
-		) const;
-
-		// 判断两矩形是否相交
-		bool intersects(
-			const Rect& rect
-		) const;
-
-		inline float getWidth() const
+		Rect& operator= (const Rect& other)
 		{
-			return rightBottom.x - leftTop.x;
+			leftTop = other.leftTop;
+			rightBottom = other.rightBottom;
+			return *this;
 		}
 
+		bool operator== (const Rect& rect) const { return leftTop == rect.leftTop && rightBottom == rect.rightBottom; }
+
+		bool isEmpty() const { return leftTop.isEmpty() && rightBottom.isEmpty(); }
+
+		void setRect(const Point& pos, const Size& size)
+		{
+			leftTop = pos;
+			rightBottom = Point{ pos.x + size.width, pos.y + size.height };
+		}
+
+		bool containsPoint(const Point& point) const
+		{
+			return point.x >= leftTop.x && point.x <= rightBottom.x && point.y >= leftTop.y && point.y <= rightBottom.y;
+		}
+
+		bool intersects(const Rect& rect) const
+		{
+			return !(rightBottom.x < rect.leftTop.x || rect.rightBottom.x < leftTop.x ||
+					rightBottom.y < rect.leftTop.y || rect.rightBottom.y < leftTop.y);
+		}
+
+		inline float getWidth() const { return rightBottom.x - leftTop.x; }
 		inline float getHeight() const { return rightBottom.y - leftTop.y; }
-
 		inline Size getSize() const { return Size{ getWidth(), getHeight() }; }
-
 		inline Vector2 getLeftTop() const { return leftTop; }
-
 		inline Vector2 getRightBottom() const { return rightBottom; }
-
 		inline Vector2 getRightTop() const { return Vector2{ getRight(), getTop() }; }
-
 		inline Vector2 getLeftBottom() const { return Vector2{ getLeft(), getBottom() }; }
-
 		inline float getLeft() const { return leftTop.x; }
-
 		inline float getTop() const { return leftTop.y; }
-
 		inline float getRight() const { return rightBottom.x; }
-
 		inline float getBottom() const { return rightBottom.y; }
 	};
 
 
-	// 二维变换矩阵
-	template <typename _Lty, typename _Rty>
-	struct MatrixMultiply;
-
+	// 二维变换矩阵 - 使用 GLM mat3 作为底层存储
 	struct Matrix32
 	{
 		union
@@ -220,116 +222,196 @@ namespace easy2d
 			};
 		};
 
-		Matrix32();
-
-		Matrix32(float _11, float _12, float _21, float _22, float _31, float _32);
-
-		Matrix32(Matrix32 const& other);
-
-		template <typename T>
-		Matrix32(T const& other)
+		Matrix32()
+			: _11(1.f), _12(0.f)
+			, _21(0.f), _22(1.f)
+			, _31(0.f), _32(0.f)
 		{
-			for (int i = 0; i < 6; i++)
-				m[i] = other[i];
 		}
 
-		template <typename _Lty, typename _Rty>
-		inline Matrix32& operator= (MatrixMultiply<_Lty, _Rty> const& other)
+		Matrix32(float _11, float _12, float _21, float _22, float _31, float _32)
+			: _11(_11), _12(_12), _21(_21), _22(_22), _31(_31), _32(_32)
 		{
-			Matrix32 result(other);
-			(*this) = result;
-			return *this;
 		}
 
-		float operator [](unsigned int index) const;
+		Matrix32(Matrix32 const& other)
+			: _11(other._11), _12(other._12)
+			, _21(other._21), _22(other._22)
+			, _31(other._31), _32(other._32)
+		{
+		}
 
+		// 从 GLM mat3 构造
+		Matrix32(const glm::mat3& mat)
+		{
+			_11 = mat[0][0]; _12 = mat[0][1];
+			_21 = mat[1][0]; _22 = mat[1][1];
+			_31 = mat[2][0]; _32 = mat[2][1];
+		}
 
-		void identity();
+		float operator [](unsigned int index) const { return m[index]; }
 
-		Vector2 transform(const Vector2& v) const;
+		void identity()
+		{
+			_11 = 1.f; _12 = 0.f;
+			_21 = 0.f; _22 = 1.f;
+			_31 = 0.f; _32 = 0.f;
+		}
 
-		Rect transform(const Rect& rect) const;
+		Vector2 transform(const Vector2& v) const
+		{
+			return Vector2(
+				v.x * _11 + v.y * _21 + _31,
+				v.x * _12 + v.y * _22 + _32
+			);
+		}
 
-		void translate(float x, float y);
+		Point transformPoint(const Point& p) const
+		{
+			return Point(
+				p.x * _11 + p.y * _21 + _31,
+				p.x * _12 + p.y * _22 + _32
+			);
+		}
 
-		void translate(const Vector2& v);
+		Rect transform(const Rect& rect) const
+		{
+			Vector2 top_left = transform(rect.getLeftTop());
+			Vector2 top_right = transform(rect.getRightTop());
+			Vector2 bottom_left = transform(rect.getLeftBottom());
+			Vector2 bottom_right = transform(rect.getRightBottom());
 
-		float determinant() const;
+			float left = std::min(std::min(top_left.x, top_right.x), std::min(bottom_left.x, bottom_right.x));
+			float right = std::max(std::max(top_left.x, top_right.x), std::max(bottom_left.x, bottom_right.x));
+			float top = std::min(std::min(top_left.y, top_right.y), std::min(bottom_left.y, bottom_right.y));
+			float bottom = std::max(std::max(top_left.y, top_right.y), std::max(bottom_left.y, bottom_right.y));
 
-		bool isIdentity() const;
+			return Rect{ Point{left, top}, Point{right, bottom} };
+		}
 
-		bool isInvertible() const;
+		void translate(float x, float y)
+		{
+			_31 += _11 * x + _21 * y;
+			_32 += _12 * x + _22 * y;
+		}
 
-		D2D1::Matrix3x2F const& toD2DMatrix() const;
+		void translate(const Vector2& v)
+		{
+			translate(v.x, v.y);
+		}
 
-		static Matrix32 translation(
-			float x,
-			float y);
+		float determinant() const
+		{
+			return (_11 * _22) - (_12 * _21);
+		}
 
-		static Matrix32 scaling(
-			float x,
-			float y,
-			const Point& center = Point());
+		bool isIdentity() const
+		{
+			return _11 == 1.f && _12 == 0.f &&
+				_21 == 0.f && _22 == 1.f &&
+				_31 == 0.f && _32 == 0.f;
+		}
 
-		static Matrix32 rotation(
-			float angle,
-			const Point& center = Point());
+		bool isInvertible() const
+		{
+			return 0 != determinant();
+		}
 
-		static Matrix32 skewing(
-			float angle_x,
-			float angle_y,
-			const Point& center = Point());
+		// 转换为 GLM mat3
+		glm::mat3 toMat3() const
+		{
+			return glm::mat3(
+				_11, _12, 0.0f,
+				_21, _22, 0.0f,
+				_31, _32, 1.0f
+			);
+		}
 
-		static Matrix32 invert(Matrix32 const& matrix);
+		// 转换为 GLM mat4（用于 OpenGL 着色器）
+		glm::mat4 toMat4() const
+		{
+			return glm::mat4(
+				_11, _12, 0.0f, 0.0f,
+				_21, _22, 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f,
+				_31, _32, 0.0f, 1.0f
+			);
+		}
+
+		// 转换为 D2D1 矩阵（保留兼容性）
+		D2D1::Matrix3x2F const& toD2DMatrix() const
+		{
+			return reinterpret_cast<D2D1::Matrix3x2F const&>(*this);
+		}
+
+		static Matrix32 translation(float x, float y)
+		{
+			return Matrix32(
+				1.f, 0.f,
+				0.f, 1.f,
+				x, y
+			);
+		}
+
+		static Matrix32 scaling(float x, float y, const Point& center = Point())
+		{
+			return Matrix32(
+				x, 0.f,
+				0.f, y,
+				center.x - x * center.x,
+				center.y - y * center.y
+			);
+		}
+
+		static Matrix32 rotation(float angle, const Point& center = Point())
+		{
+			float radians = angle * math::constants::PI_F / 180.f;
+			float s = glm::sin(radians);
+			float c = glm::cos(radians);
+			return Matrix32(
+				c, s,
+				-s, c,
+				center.x * (1 - c) + center.y * s,
+				center.y * (1 - c) - center.x * s
+			);
+		}
+
+		static Matrix32 skewing(float angle_x, float angle_y, const Point& center = Point())
+		{
+			float tx = glm::tan(angle_x * math::constants::PI_F / 180.f);
+			float ty = glm::tan(angle_y * math::constants::PI_F / 180.f);
+			return Matrix32(
+				1.f, -ty,
+				-tx, 1.f,
+				center.y * tx, center.x * ty
+			);
+		}
+
+		static Matrix32 invert(Matrix32 const& matrix)
+		{
+			float det = 1.f / matrix.determinant();
+
+			return Matrix32(
+				det * matrix._22,
+				-det * matrix._12,
+				-det * matrix._21,
+				det * matrix._11,
+				det * (matrix._21 * matrix._32 - matrix._22 * matrix._31),
+				det * (matrix._12 * matrix._31 - matrix._11 * matrix._32)
+			);
+		}
+
+		// 矩阵乘法
+		Matrix32 operator*(const Matrix32& other) const
+		{
+			return Matrix32(
+				_11 * other._11 + _12 * other._21,
+				_11 * other._12 + _12 * other._22,
+				_21 * other._11 + _22 * other._21,
+				_21 * other._12 + _22 * other._22,
+				_31 * other._11 + _32 * other._21 + other._31,
+				_31 * other._12 + _32 * other._22 + other._32
+			);
+		}
 	};
-
-
-	// 使用模板表达式优化矩阵乘法
-	template <typename _Lty, typename _Rty>
-	struct MatrixMultiply
-	{
-		_Lty const& lhs;
-		_Rty const& rhs;
-
-		MatrixMultiply(_Lty const& lhs, _Rty const& rhs)
-			: lhs(lhs)
-			, rhs(rhs)
-		{}
-
-		inline float operator [](unsigned int index) const
-		{
-			switch (index)
-			{
-			case 0:
-				return lhs[0] * rhs[0] + lhs[1] * rhs[2];
-			case 1:
-				return lhs[0] * rhs[1] + lhs[1] * rhs[3];
-			case 2:
-				return lhs[2] * rhs[0] + lhs[3] * rhs[2];
-			case 3:
-				return lhs[2] * rhs[1] + lhs[3] * rhs[3];
-			case 4:
-				return lhs[4] * rhs[0] + lhs[5] * rhs[2] + rhs[4];
-			case 5:
-				return lhs[4] * rhs[1] + lhs[5] * rhs[3] + rhs[5];
-			default:
-				return 0.f;
-			}
-		}
-	};
-
-	inline
-	MatrixMultiply<Matrix32, Matrix32>
-	operator *(Matrix32 const& lhs, Matrix32 const& rhs)
-	{
-		return MatrixMultiply<Matrix32, Matrix32>(lhs, rhs);
-	}
-
-	template <typename _Lty, typename _Rty>
-	inline
-	MatrixMultiply<MatrixMultiply<_Lty, _Rty>, Matrix32>
-	operator *(MatrixMultiply<_Lty, _Rty> const& lhs, Matrix32 const& rhs)
-	{
-		return MatrixMultiply<MatrixMultiply<_Lty, _Rty>, Matrix32>(lhs, rhs);
-	}
 }
