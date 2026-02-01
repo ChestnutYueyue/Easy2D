@@ -403,23 +403,62 @@ private:
 };
 
 
+// 日志级别枚举
+enum class LogLevel
+{
+	Trace = 0,		// 追踪信息
+	Debug,			// 调试信息
+	Info,			// 普通信息
+	Warn,			// 警告信息
+	Error,			// 错误信息
+	Critical,		// 严重错误
+	Off				// 关闭日志
+};
+
 // 日志
 class Logger
 {
 public:
+	// 初始化日志系统
+	static void initialize();
+
+	// 关闭日志系统
+	static void shutdown();
+
 	// 启用日志记录
 	static void enable();
 
 	// 关闭日志记录
 	static void disable();
 
-	// 输出日志消息
-	static void messageln(String format, ...);
+	// 设置日志级别
+	static void setLevel(LogLevel level);
+
+	// 输出追踪日志（最详细）
+	static void trace(String format, ...);
+
+	// 输出调试日志
+	static void debug(String format, ...);
+
+	// 输出普通信息
+	static void info(String format, ...);
 
 	// 输出警告
-	static void warningln(String format, ...);
+	static void warn(String format, ...);
 
 	// 输出错误
+	static void error(String format, ...);
+
+	// 输出严重错误
+	static void critical(String format, ...);
+
+	// 输出日志消息（兼容旧接口）
+	static void messageln(String format, ...);
+
+	// 输出警告（兼容旧接口）
+	static void warningln(String format, ...);
+
+	// 输出错误（兼容旧接口）
 	static void errorln(String format, ...);
 
 	// 打开/关闭控制台
@@ -502,28 +541,79 @@ namespace __gc_helper
 // Log macros
 //
 
+// 追踪日志宏（仅在 Debug 模式下有效）
+#ifndef E2D_TRACE
+#   ifdef E2D_DEBUG
+#       define E2D_TRACE(...) easy2d::Logger::trace(__VA_ARGS__)
+#   else
+#       ifdef _MSC_VER
+#           define E2D_TRACE __noop
+#       else
+#           define E2D_TRACE(...) ((void)0)
+#       endif
+#   endif
+#endif
+
+// 调试日志宏（仅在 Debug 模式下有效）
+#ifndef E2D_DEBUG_LOG
+#   ifdef E2D_DEBUG
+#       define E2D_DEBUG_LOG(...) easy2d::Logger::debug(__VA_ARGS__)
+#   else
+#       ifdef _MSC_VER
+#           define E2D_DEBUG_LOG __noop
+#       else
+#           define E2D_DEBUG_LOG(...) ((void)0)
+#       endif
+#   endif
+#endif
+
+// 普通信息日志宏（仅在 Debug 模式下有效，兼容旧接口）
 #ifndef E2D_LOG
-#	ifdef E2D_DEBUG
-#		define E2D_LOG(FORMAT, ...) easy2d::Logger::messageln(FORMAT, ##__VA_ARGS__)
-#	else
-#		ifdef _MSC_VER
-#			define E2D_LOG __noop
-#		else
-#			define E2D_LOG(...) ((void)0)
-#		endif
-#	endif
+#   ifdef E2D_DEBUG
+#       define E2D_LOG(...) easy2d::Logger::info(__VA_ARGS__)
+#   else
+#       ifdef _MSC_VER
+#           define E2D_LOG __noop
+#       else
+#           define E2D_LOG(...) ((void)0)
+#       endif
+#   endif
 #endif
 
+// 警告日志宏（始终有效）
 #ifndef E2D_WARNING
-#	define E2D_WARNING(FORMAT, ...) easy2d::Logger::warningln(FORMAT, ##__VA_ARGS__)
+#   define E2D_WARNING(...) easy2d::Logger::warn(__VA_ARGS__)
 #endif
 
+// 错误日志宏（始终有效）
 #ifndef E2D_ERROR
-#	define E2D_ERROR(FORMAT, ...) easy2d::Logger::errorln(FORMAT, ##__VA_ARGS__)
+#   define E2D_ERROR(...) easy2d::Logger::error(__VA_ARGS__)
 #endif
 
+// 严重错误日志宏（始终有效）
+#ifndef E2D_CRITICAL
+#   define E2D_CRITICAL(...) easy2d::Logger::critical(__VA_ARGS__)
+#endif
+
+// HRESULT 错误检查宏
 #ifndef E2D_ERROR_IF_FAILED
-#	define E2D_ERROR_IF_FAILED(HR, FORMAT, ...) do { if (FAILED(HR)) { E2D_ERROR(FORMAT, ##__VA_ARGS__); } } while (0)
+#   define E2D_ERROR_IF_FAILED(HR, ...) do { if (FAILED(HR)) { E2D_ERROR(__VA_ARGS__); } } while (0)
+#endif
+
+// 断言宏（仅在 Debug 模式下有效）
+#ifndef E2D_ASSERT
+#   ifdef E2D_DEBUG
+#       define E2D_ASSERT(COND, ...) \
+            do { \
+                if (!(COND)) { \
+                    easy2d::Logger::critical("ASSERTION FAILED: " #COND); \
+                    easy2d::Logger::critical(__VA_ARGS__); \
+                    __debugbreak(); \
+                } \
+            } while(0)
+#   else
+#       define E2D_ASSERT(...) ((void)0)
+#   endif
 #endif
 
 }

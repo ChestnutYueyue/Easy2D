@@ -21,6 +21,10 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 		return false;
 	}
 
+	// 初始化日志系统
+	Logger::initialize();
+	E2D_LOG("Easy2D Game initializing...");
+
 	// 保存唯一标识
 	s_sUniqueName = uniqueName.empty() ? title : uniqueName;
 
@@ -196,6 +200,8 @@ void easy2d::Game::destroy()
 	if (!s_bInitialized)
 		return;
 
+	E2D_LOG("Easy2D Game destroying...");
+
 	// 清空图片缓存
 	Image::clearCache();
 	// 回收音乐相关资源
@@ -210,6 +216,9 @@ void easy2d::Game::destroy()
 	CoUninitialize();
 
 	s_bInitialized = false;
+
+	// 关闭日志系统
+	Logger::shutdown();
 }
 
 easy2d::String easy2d::Game::getUniqueName()

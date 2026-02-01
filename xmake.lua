@@ -16,6 +16,7 @@ add_requires("glad")
 add_requires("freetype")
 add_requires("stb")
 add_requires("zlib")
+add_requires("spdlog", {configs = {header_only = true}})
 
 -- 添加静态库目标
 target("easy2d")
@@ -39,6 +40,7 @@ target("easy2d")
     add_packages("zlib")
     add_packages("freetype", {configs = {zlib = true}})
     add_packages("stb")
+    add_packages("spdlog")
 
     -- 添加系统链接库
     if is_plat("windows") then
