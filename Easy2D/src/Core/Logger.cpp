@@ -8,7 +8,15 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <spdlog/sinks/rotating_file_sink.h>
-#include <spdlog/sinks/msvc_sink.h>
+
+// 平台特定头文件
+#ifdef _WIN32
+    #include <spdlog/sinks/msvc_sink.h>
+    #include <windows.h>
+#else
+    #include <unistd.h>
+    #include <sys/ioctl.h>
+#endif
 
 namespace
 {
@@ -25,6 +33,10 @@ namespace
 
 namespace 
 {
+#ifdef _WIN32
+	/**
+	 * @brief 重定向标准输入输出流到 Windows 控制台
+	 */
 	void RedirectStdIO()
 	{
 		s_cinBuffer = std::cin.rdbuf();
@@ -55,6 +67,9 @@ namespace
 		std::wcerr.rdbuf(s_wconsoleError.rdbuf());
 	}
 
+	/**
+	 * @brief 重置标准输入输出流到原始状态
+	 */
 	void ResetStdIO()
 	{
 		s_consoleInput.close();
@@ -85,6 +100,10 @@ namespace
 
 	HWND allocated_console = nullptr;
 
+	/**
+	 * @brief 分配 Windows 控制台窗口
+	 * @return 控制台窗口句柄
+	 */
 	HWND AllocateConsole()
 	{
 		if (::AllocConsole())
@@ -99,6 +118,9 @@ namespace
 		return allocated_console;
 	}
 
+	/**
+	 * @brief 释放已分配的 Windows 控制台
+	 */
 	void FreeAllocatedConsole()
 	{
 		if (allocated_console)
@@ -109,12 +131,97 @@ namespace
 		}
 	}
 
+	/**
+	 * @brief 获取已分配的控制台窗口句柄
+	 * @return 控制台窗口句柄
+	 */
 	HWND GetAllocatedConsole()
 	{
 		return allocated_console;
 	}
+#else
+	// Unix/Linux 平台的全局变量
+	bool s_consoleAllocated = false;
+
+	/**
+	 * @brief Unix/Linux 平台重定向标准输入输出流
+	 */
+	void RedirectStdIO()
+	{
+		s_cinBuffer = std::cin.rdbuf();
+		s_coutBuffer = std::cout.rdbuf();
+		s_cerrBuffer = std::cerr.rdbuf();
+
+		// Unix/Linux 平台使用 /dev/tty 作为控制台设备
+		s_consoleInput.open("/dev/tty", std::ios::in);
+		s_consoleOutput.open("/dev/tty", std::ios::out);
+		s_consoleError.open("/dev/tty", std::ios::out);
+
+		if (s_consoleInput.is_open())
+			std::cin.rdbuf(s_consoleInput.rdbuf());
+		if (s_consoleOutput.is_open())
+			std::cout.rdbuf(s_consoleOutput.rdbuf());
+		if (s_consoleError.is_open())
+			std::cerr.rdbuf(s_consoleError.rdbuf());
+	}
+
+	/**
+	 * @brief Unix/Linux 平台重置标准输入输出流
+	 */
+	void ResetStdIO()
+	{
+		s_consoleInput.close();
+		s_consoleOutput.close();
+		s_consoleError.close();
+
+		std::cin.rdbuf(s_cinBuffer);
+		std::cout.rdbuf(s_coutBuffer);
+		std::cerr.rdbuf(s_cerrBuffer);
+
+		s_cinBuffer = nullptr;
+		s_coutBuffer = nullptr;
+		s_cerrBuffer = nullptr;
+	}
+
+	/**
+	 * @brief Unix/Linux 平台分配控制台
+	 * @return 是否成功分配
+	 */
+	bool AllocateConsoleUnix()
+	{
+		// Unix/Linux 平台通常已经有关联的终端
+		// 这里我们只需要标记控制台已分配
+		s_consoleAllocated = true;
+		RedirectStdIO();
+		return s_consoleAllocated;
+	}
+
+	/**
+	 * @brief Unix/Linux 平台释放控制台
+	 */
+	void FreeAllocatedConsole()
+	{
+		if (s_consoleAllocated)
+		{
+			ResetStdIO();
+			s_consoleAllocated = false;
+		}
+	}
+
+	/**
+	 * @brief Unix/Linux 平台检查是否已分配控制台
+	 * @return 是否已分配
+	 */
+	bool IsConsoleAllocated()
+	{
+		return s_consoleAllocated;
+	}
+#endif
 }
 
+/**
+ * @brief 启用日志记录
+ */
 void easy2d::Logger::enable()
 {
 	s_bEnable = true;
@@ -124,6 +231,9 @@ void easy2d::Logger::enable()
 	}
 }
 
+/**
+ * @brief 禁用日志记录
+ */
 void easy2d::Logger::disable()
 {
 	s_bEnable = false;
@@ -133,6 +243,9 @@ void easy2d::Logger::disable()
 	}
 }
 
+/**
+ * @brief 初始化日志系统
+ */
 void easy2d::Logger::initialize()
 {
 	if (s_initialized)
@@ -182,6 +295,9 @@ void easy2d::Logger::initialize()
 	}
 }
 
+/**
+ * @brief 关闭日志系统
+ */
 void easy2d::Logger::shutdown()
 {
 	if (s_logger)
@@ -193,6 +309,10 @@ void easy2d::Logger::shutdown()
 	s_initialized = false;
 }
 
+/**
+ * @brief 设置日志级别
+ * @param level 日志级别
+ */
 void easy2d::Logger::setLevel(LogLevel level)
 {
 	if (!s_logger)
@@ -228,6 +348,11 @@ void easy2d::Logger::setLevel(LogLevel level)
 	s_logger->set_level(spd_level);
 }
 
+/**
+ * @brief 记录 Trace 级别日志
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::trace(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -242,6 +367,11 @@ void easy2d::Logger::trace(String format, ...)
 	s_logger->trace(buffer);
 }
 
+/**
+ * @brief 记录 Debug 级别日志
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::debug(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -256,6 +386,11 @@ void easy2d::Logger::debug(String format, ...)
 	s_logger->debug(buffer);
 }
 
+/**
+ * @brief 记录 Info 级别日志
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::info(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -270,6 +405,11 @@ void easy2d::Logger::info(String format, ...)
 	s_logger->info(buffer);
 }
 
+/**
+ * @brief 记录 Warn 级别日志
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::warn(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -284,6 +424,11 @@ void easy2d::Logger::warn(String format, ...)
 	s_logger->warn(buffer);
 }
 
+/**
+ * @brief 记录 Error 级别日志
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::error(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -298,6 +443,11 @@ void easy2d::Logger::error(String format, ...)
 	s_logger->error(buffer);
 }
 
+/**
+ * @brief 记录 Critical 级别日志
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::critical(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -312,6 +462,11 @@ void easy2d::Logger::critical(String format, ...)
 	s_logger->critical(buffer);
 }
 
+/**
+ * @brief 记录普通消息日志（带换行）
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::messageln(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -326,6 +481,11 @@ void easy2d::Logger::messageln(String format, ...)
 	s_logger->info(buffer);
 }
 
+/**
+ * @brief 记录警告日志（带换行）
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::warningln(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -340,6 +500,11 @@ void easy2d::Logger::warningln(String format, ...)
 	s_logger->warn(buffer);
 }
 
+/**
+ * @brief 记录错误日志（带换行）
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::errorln(String format, ...)
 {
 	if (!s_bEnable || !s_logger)
@@ -354,8 +519,13 @@ void easy2d::Logger::errorln(String format, ...)
 	s_logger->error(buffer);
 }
 
+/**
+ * @brief 显示或隐藏控制台窗口
+ * @param show true 显示控制台，false 隐藏控制台
+ */
 void easy2d::Logger::showConsole(bool show)
 {
+#ifdef _WIN32
 	HWND currConsole = ::GetConsoleWindow();
 	if (show)
 	{
@@ -392,4 +562,22 @@ void easy2d::Logger::showConsole(bool show)
 			}
 		}
 	}
+#else
+	// Unix/Linux 平台：控制台显示/隐藏通常由终端控制
+	// 这里我们只记录状态，实际显示/隐藏由终端管理
+	if (show)
+	{
+		if (!IsConsoleAllocated())
+		{
+			AllocateConsoleUnix();
+		}
+	}
+	else
+	{
+		if (IsConsoleAllocated())
+		{
+			FreeAllocatedConsole();
+		}
+	}
+#endif
 }

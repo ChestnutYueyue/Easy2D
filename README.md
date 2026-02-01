@@ -12,7 +12,9 @@
 
 ## 📖 简介
 
-> 🎮 **Easy2D** 是一个为 C++ 设计的轻量级 2D 游戏引擎，专注于简化游戏开发流程，让开发者能够快速构建 Windows 平台的 2D 游戏。
+> 🎮 **Easy2D** 是一个为 C++ 设计的轻量级 2D 游戏引擎，专注于简化游戏开发流程，让开发者能够快速构建跨平台的 2D 游戏。
+>
+> ✅ **支持平台**: Windows | Linux | macOS
 
 ### 🎯 设计目标
 
@@ -171,18 +173,27 @@ mindmap
 ```mermaid
 flowchart LR
     A[系统要求] --> B[Windows 7+]
-    A --> C[Visual Studio 2017+ 或 MinGW-w64]
-    A --> D[OpenGL 3.3+]
+    A --> C[Linux]
+    A --> D[macOS]
+    A --> E[OpenGL 3.3+]
     
-    B --> E[支持平台]
-    C --> F[开发工具]
-    D --> G[图形API]
+    B --> F[Windows平台]
+    C --> G[Linux平台]
+    D --> H[macOS平台]
+    E --> I[图形API]
     
     style A fill:#e3f2fd
     style B fill:#e8f5e9
     style C fill:#e8f5e9
     style D fill:#e8f5e9
+    style E fill:#e8f5e9
 ```
+
+| 平台 | 最低版本 | 编译器要求 | 状态 |
+|:---:|:---:|:---|:---:|
+| **Windows** | Windows 7+ | MSVC 2017+ / MinGW-w64 8.0+ | ✅ 完全支持 |
+| **Linux** | Ubuntu 18.04+ | GCC 8.0+ / Clang 7.0+ | ✅ 完全支持 |
+| **macOS** | macOS 10.14+ | Xcode 10.0+ | ✅ 完全支持 |
 
 ### 技术栈与依赖库
 
@@ -196,6 +207,8 @@ flowchart LR
 | **miniaudio** | 最新 | 音频播放 | 跨平台音频库 |
 | **zlib** | 1.3.1 | 数据压缩 | FreeType 依赖 |
 | **spdlog** | 最新 | 日志系统 | 高性能 C++ 日志库 |
+| **simpleini** | 最新 | INI配置文件 | 跨平台配置存储 |
+| **portable-file-dialogs** | 最新 | 文件对话框 | 跨平台文件选择 |
 
 ### 安装流程
 
@@ -373,7 +386,7 @@ int main()
 
 ## 🔧 编译器支持
 
-### MSVC (Visual Studio)
+### Windows - MSVC (Visual Studio)
 
 **支持的版本:**
 - Visual Studio 2017 (15.0+)
@@ -402,24 +415,7 @@ int main()
    xmake
    ```
 
-**MSVC 特定配置:**
-
-```lua
--- xmake.lua 中 MSVC 配置
-if is_plat("windows") then
-    -- 设置为 Windows 子系统 (GUI 程序)
-    add_ldflags("/SUBSYSTEM:WINDOWS", {force = true})
-    -- 设置入口点
-    add_ldflags("/ENTRY:WinMainCRTStartup", {force = true})
-    -- 启用多处理器编译
-    add_cxxflags("/MP", {force = true})
-    -- UTF-8 编码支持
-    add_cxxflags("/source-charset:utf-8", {force = true})
-    add_cxxflags("/execution-charset:utf-8", {force = true})
-end
-```
-
-### MinGW-w64
+### Windows - MinGW-w64
 
 **支持的版本:**
 - MinGW-w64 8.0+
@@ -444,30 +440,74 @@ end
    xmake
    ```
 
-**MinGW 特定配置:**
+### Linux
 
-```lua
--- xmake.lua 中 MinGW 配置
-if is_plat("mingw") then
-    -- 启用所有警告
-    add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
-    -- UTF-8 编码支持
-    add_cxxflags("-finput-charset=UTF-8", {force = true})
-    add_cxxflags("-fexec-charset=UTF-8", {force = true})
-end
-```
+**支持的发行版:**
+- Ubuntu 18.04+
+- Debian 10+
+- Fedora 30+
+- Arch Linux
+- 其他支持 OpenGL 3.3+ 的发行版
+
+**环境配置:**
+
+1. **安装依赖**
+   ```bash
+   # Ubuntu/Debian
+   sudo apt-get install build-essential libgl1-mesa-dev libx11-dev
+   
+   # Fedora
+   sudo dnf install gcc-c++ mesa-libGL-devel libX11-devel
+   
+   # Arch Linux
+   sudo pacman -S base-devel mesa libx11
+   ```
+
+2. **安装 xmake**
+   ```bash
+   curl -fsSL https://xmake.io/shget.text | bash
+   ```
+
+3. **编译项目**
+   ```bash
+   xmake f -c
+   xmake
+   ```
+
+### macOS
+
+**支持的版本:**
+- macOS 10.14+
+- Xcode 10.0+
+
+**环境配置:**
+
+1. **安装 Xcode Command Line Tools**
+   ```bash
+   xcode-select --install
+   ```
+
+2. **安装 xmake**
+   ```bash
+   brew install xmake
+   ```
+
+3. **编译项目**
+   ```bash
+   xmake f -c
+   xmake
+   ```
 
 ### 编译配置对比
 
-| 配置项 | MSVC | MinGW |
-|:---:|:---:|:---:|
-| **工具链** | `msvc` | `mingw` |
-| **C++ 标准** | `/std:c++17` | `-std=c++17` |
-| **警告级别** | `/W3` | `-Wall -Wextra` |
-| **多线程编译** | `/MP` | `-jN` |
-| **UTF-8 编码** | `/source-charset:utf-8` | `-finput-charset=UTF-8` |
-| **调试信息** | `/Zi` | `-g` |
-| **优化级别** | `/O2` | `-O3` |
+| 配置项 | MSVC | MinGW | Linux GCC | macOS Clang |
+|:---:|:---:|:---:|:---:|:---:|
+| **工具链** | `msvc` | `mingw` | `gcc` | `clang` |
+| **C++ 标准** | `/std:c++17` | `-std=c++17` | `-std=c++17` | `-std=c++17` |
+| **警告级别** | `/W3` | `-Wall -Wextra` | `-Wall -Wextra` | `-Wall -Wextra` |
+| **多线程编译** | `/MP` | `-jN` | `-jN` | `-jN` |
+| **调试信息** | `/Zi` | `-g` | `-g` | `-g` |
+| **优化级别** | `/O2` | `-O3` | `-O3` | `-O3` |
 
 ---
 
@@ -819,14 +859,16 @@ timeline
                  : 场景管理
                  : 简单动画
     section 当前
-        v3.0.0 : SDL2 跨平台支持
+        v3.0.0 : ✅ 跨平台支持 (Windows/Linux/macOS)
                : OpenGL 渲染
                : xmake 构建系统
                : 现代化日志系统
+               : 跨平台文件对话框
+               : 跨平台配置存储
     section 未来
-        持续改进 : 更多平台支持
-                 : 性能优化
+        持续改进 : 性能优化
                  : 更多示例
+                 : 移动平台支持
 ```
 
 > ⚠️ **重要提示**：Easy2D 是作者个人的早期作品，目前处于维护状态。新的游戏引擎项目 [Kiwano](https://github.com/nomango/kiwano) 已经更加庞大且专业，建议关注新项目的发展。
