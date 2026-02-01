@@ -1,205 +1,308 @@
 #include <easy2d/e2dtool.h>
 #include <algorithm>
 #include <list>
-#include <commdlg.h>
-#include <io.h> // _access
-#include <direct.h> // _mkdir
-#include <shlobj.h> // SHGetFolderPathA, CSIDL_LOCAL_APPDATA
+#include <filesystem>
+#include <fstream>
+#include <easy2d/portable-file-dialogs.h>
+
+#ifdef _WIN32
+#include <windows.h>
+#include <shlobj.h>
+#else
+#include <unistd.h>
+#include <sys/types.h>
+#include <pwd.h>
+#endif
+
+namespace fs = std::filesystem;
 
 static easy2d::String s_sLocalAppDataPath;
 static easy2d::String s_sTempPath;
 static easy2d::String s_sDataSavePath;
 static std::list<easy2d::String> s_vPathList;
 
+/**
+ * @brief 获取本地应用数据目录（跨平台实现）
+ */
+static easy2d::String GetLocalAppDataPath()
+{
+#ifdef _WIN32
+    char szPath[MAX_PATH];
+    HRESULT hr = SHGetFolderPathA(nullptr, CSIDL_LOCAL_APPDATA, nullptr, 0, szPath);
+    if (SUCCEEDED(hr))
+    {
+        return easy2d::String(szPath);
+    }
+#elif defined(__APPLE__)
+    const char* home = getenv("HOME");
+    if (!home)
+    {
+        struct passwd* pw = getpwuid(getuid());
+        home = pw ? pw->pw_dir : "";
+    }
+    return easy2d::String(home) + "/Library/Application Support";
+#else
+    // Linux - 使用 XDG 规范
+    const char* xdgData = getenv("XDG_DATA_HOME");
+    if (xdgData)
+    {
+        return easy2d::String(xdgData);
+    }
+    const char* home = getenv("HOME");
+    if (!home)
+    {
+        struct passwd* pw = getpwuid(getuid());
+        home = pw ? pw->pw_dir : "";
+    }
+    return easy2d::String(home) + "/.local/share";
+#endif
+    return "";
+}
+
+/**
+ * @brief 获取临时目录（跨平台实现）
+ */
+static easy2d::String GetTempPath()
+{
+#ifdef _WIN32
+    char path[MAX_PATH];
+    if (::GetTempPathA(MAX_PATH, path) != 0)
+    {
+        return easy2d::String(path);
+    }
+#else
+    const char* tmp = getenv("TMPDIR");
+    if (tmp)
+    {
+        return easy2d::String(tmp);
+    }
+    return "/tmp";
+#endif
+    return "";
+}
+
 bool easy2d::Path::__init(const String& uniqueName)
 {
-	char szPath[MAX_PATH];
-	HRESULT hr = SHGetFolderPathA(nullptr, CSIDL_LOCAL_APPDATA, nullptr, 0, szPath);
+    s_sLocalAppDataPath = GetLocalAppDataPath();
+    if (s_sLocalAppDataPath.empty())
+    {
+        E2D_WARNING("Get local AppData path failed!");
+        return false;
+    }
 
-	if (SUCCEEDED(hr))
-	{
-		s_sLocalAppDataPath = szPath;
-	}
-	else
-	{
-		E2D_WARNING("Get local AppData path failed!");
-		return false;
-	}
-	
-	// 获取数据的默认保存路径
-	s_sDataSavePath = s_sLocalAppDataPath + "\\Easy2DGameData\\";
-	if (!uniqueName.empty())
-	{
-		s_sDataSavePath.append(uniqueName).append("\\");
-	}
-	if (!Path::exists(s_sDataSavePath))
-	{
-		if (!Path::createFolder(s_sDataSavePath))
-		{
-			s_sDataSavePath = "";
-		}
-	}
-	s_sDataSavePath.append("Data.ini");
+    // 获取数据的默认保存路径
+#ifdef _WIN32
+    s_sDataSavePath = s_sLocalAppDataPath + "\\Easy2DGameData\\";
+#else
+    s_sDataSavePath = s_sLocalAppDataPath + "/Easy2DGameData/";
+#endif
+    if (!uniqueName.empty())
+    {
+        s_sDataSavePath.append(uniqueName);
+#ifdef _WIN32
+        s_sDataSavePath.append("\\");
+#else
+        s_sDataSavePath.append("/");
+#endif
+    }
+    if (!Path::exists(s_sDataSavePath))
+    {
+        if (!Path::createFolder(s_sDataSavePath))
+        {
+            s_sDataSavePath = "";
+        }
+    }
+    s_sDataSavePath.append("Data.ini");
 
-	// 获取临时文件目录
-	char path[_MAX_PATH];
-	if (0 == ::GetTempPathA(_MAX_PATH, path))
-	{
-		return false;
-	}
+    // 获取临时文件目录
+    s_sTempPath = GetTempPath();
+#ifdef _WIN32
+    s_sTempPath.append("\\Easy2DGameTemp\\");
+#else
+    s_sTempPath.append("/Easy2DGameTemp/");
+#endif
+    if (!uniqueName.empty())
+    {
+        s_sTempPath.append(uniqueName);
+#ifdef _WIN32
+        s_sTempPath.append("\\");
+#else
+        s_sTempPath.append("/");
+#endif
+    }
 
-	s_sTempPath.append(path).append("\\Easy2DGameTemp\\");
-	if (!uniqueName.empty())
-	{
-		s_sTempPath.append(uniqueName).append("\\");
-	}
+    if (!Path::exists(s_sTempPath))
+    {
+        if (!Path::createFolder(s_sTempPath))
+        {
+            s_sTempPath = "";
+        }
+    }
 
-	if (!Path::exists(s_sTempPath))
-	{
-		if (!Path::createFolder(s_sTempPath))
-		{
-			s_sTempPath = "";
-		}
-	}
-
-	return true;
+    return true;
 }
 
 void easy2d::Path::add(String path)
 {
-	if (path[path.length() - 1] != L'\\' && path[path.length() - 1] != L'/')
-	{
-		path.append("\\");
-	}
-	auto iter = std::find(s_vPathList.cbegin(), s_vPathList.cend(), path);
-	if (iter == s_vPathList.cend())
-	{
-		s_vPathList.push_front(path);
-	}
+    if (path[path.length() - 1] != L'\\' && path[path.length() - 1] != L'/')
+    {
+#ifdef _WIN32
+        path.append("\\");
+#else
+        path.append("/");
+#endif
+    }
+    auto iter = std::find(s_vPathList.cbegin(), s_vPathList.cend(), path);
+    if (iter == s_vPathList.cend())
+    {
+        s_vPathList.push_front(path);
+    }
 }
 
 easy2d::String easy2d::Path::getTempPath()
 {
-	return s_sTempPath;
+    return s_sTempPath;
 }
 
 easy2d::String easy2d::Path::getExecutableFilePath()
 {
-	char szPath[_MAX_PATH] = { 0 };
-	if (::GetModuleFileNameA(nullptr, szPath, _MAX_PATH) != 0)
-	{
-		return String(szPath);
-	}
-	return String();
+#ifdef _WIN32
+    char szPath[MAX_PATH] = { 0 };
+    if (::GetModuleFileNameA(nullptr, szPath, MAX_PATH) != 0)
+    {
+        return String(szPath);
+    }
+#elif defined(__linux__)
+    char path[4096];
+    ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
+    if (len != -1)
+    {
+        path[len] = '\0';
+        return String(path);
+    }
+#elif defined(__APPLE__)
+    char path[4096];
+    uint32_t size = sizeof(path);
+    if (_NSGetExecutablePath(path, &size) == 0)
+    {
+        return String(path);
+    }
+#endif
+    return String();
 }
 
 easy2d::String easy2d::Path::searchForFile(const String& path)
 {
-	if (Path::exists(path))
-	{
-		return path;
-	}
-	else
-	{
-		for (auto& resPath : s_vPathList)
-		{
-			if (Path::exists(resPath + path))
-			{
-				return resPath + path;
-			}
-		}
-	}
-	return String();
+    if (Path::exists(path))
+    {
+        return path;
+    }
+    else
+    {
+        for (auto& resPath : s_vPathList)
+        {
+            if (Path::exists(resPath + path))
+            {
+                return resPath + path;
+            }
+        }
+    }
+    return String();
 }
 
-easy2d::String easy2d::Path::extractResource(int resNameId, const String & resType, const String & destFileName)
+easy2d::String easy2d::Path::extractResource(int resNameId, const String& resType, const String& destFileName)
 {
-	String destFilePath = s_sTempPath + destFileName;
-	// 创建文件
-	HANDLE hFile = ::CreateFileA(destFilePath.c_str(), GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY, NULL);
-	if (hFile == INVALID_HANDLE_VALUE)
-		return String();
+    String destFilePath = s_sTempPath + destFileName;
 
-	// 查找资源文件中、加载资源到内存、得到资源大小
-	Resource res{ resNameId, resType };
-	auto data = res.loadData();
+    // 使用标准 C++ fstream 替代 Windows API
+    std::ofstream file(destFilePath.c_str(), std::ios::binary | std::ios::trunc);
+    if (!file.is_open())
+    {
+        return String();
+    }
 
-	if (data.isValid())
-	{
-		// 写入文件
-		DWORD dwWrite = 0;
-		::WriteFile(hFile, data.buffer, (DWORD)data.size, &dwWrite, NULL);
-		::CloseHandle(hFile);
-		return destFilePath;
-	}
-	else
-	{
-		::CloseHandle(hFile);
-		::DeleteFileA(destFilePath.c_str());
-		return String();
-	}
+    // 查找资源文件中、加载资源到内存、得到资源大小
+    Resource res{ resNameId, resType };
+    auto data = res.loadData();
+
+    if (data.isValid())
+    {
+        // 写入文件
+        file.write(static_cast<const char*>(data.buffer), static_cast<std::streamsize>(data.size));
+        file.close();
+        return destFilePath;
+    }
+    else
+    {
+        file.close();
+        // 删除文件
+        std::remove(destFilePath.c_str());
+        return String();
+    }
 }
 
 easy2d::String easy2d::Path::getDataSavePath()
 {
-	return s_sDataSavePath;
+    return s_sDataSavePath;
 }
 
 easy2d::String easy2d::Path::getSaveFilePath(const String& title, const String& defExt)
 {
-	// 弹出保存对话框
-	OPENFILENAMEA ofn = { 0 };
-	char strFilename[MAX_PATH] = { 0 };					// 用于接收文件名
-	ofn.lStructSize = sizeof(OPENFILENAME);				// 结构体大小
-	ofn.hwndOwner = (HWND)Window::getNativeWindowHandle();	// 窗口句柄
-	ofn.lpstrFilter = "所有文件\0*.*\0\0";				// 设置过滤
-	ofn.nFilterIndex = 1;								// 过滤器索引
-	ofn.lpstrFile = strFilename;						// 接收返回的文件路径和文件名
-	ofn.nMaxFile = sizeof(strFilename);					// 缓冲区长度
-	ofn.lpstrInitialDir = nullptr;						// 初始目录为默认
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-	ofn.lpstrTitle = title.c_str();						// 标题
-	ofn.lpstrDefExt = defExt.c_str();					// 默认追加的扩展名
+    // 使用 portable-file-dialogs 替代 Windows API
+    std::vector<std::string> filters;
+    if (!defExt.empty())
+    {
+        filters.push_back(defExt.c_str());
+        filters.push_back("*." + std::string(defExt.c_str()));
+    }
+    else
+    {
+        filters.push_back("All Files");
+        filters.push_back("*");
+    }
 
-	if (GetSaveFileNameA(&ofn))
-	{
-		return strFilename;
-	}
-	return "";
+    pfd::save_file dialog(
+        title.c_str(),
+        "",
+        filters,
+        pfd::opt::force_overwrite
+    );
+
+    std::string result = dialog.result();
+    return result.empty() ? "" : result.c_str();
 }
 
 bool easy2d::Path::createFolder(const String& dirPath)
 {
-	if (dirPath.empty() || dirPath.length() >= MAX_PATH)
-	{
-		return false;
-	}
+    if (dirPath.empty())
+    {
+        return false;
+    }
 
-	char tmpDirPath[_MAX_PATH] = { 0 };
-	int length = (int)dirPath.length();
-
-	for (int i = 0; i < length; ++i)
-	{
-		tmpDirPath[i] = dirPath.at(i);
-		if (tmpDirPath[i] == L'\\' || tmpDirPath[i] == L'/' || i == (length - 1))
-		{
-			if (_access_s(tmpDirPath, 0) != 0)
-			{
-				if (_mkdir(tmpDirPath) != 0)
-				{
-					return false;
-				}
-			}
-		}
-	}
-	return true;
+    try
+    {
+        return fs::create_directories(fs::path(dirPath.c_str()));
+    }
+    catch (const fs::filesystem_error& e)
+    {
+        E2D_ERROR("Create folder failed: %s", e.what());
+        return false;
+    }
 }
 
-bool easy2d::Path::exists(const String & path)
+bool easy2d::Path::exists(const String& path)
 {
-	if (path.empty() || path.length() >= MAX_PATH)
-	{
-		return false;
-	}
-	return _access_s(path.c_str(), 0) == 0;
+    if (path.empty())
+    {
+        return false;
+    }
+
+    try
+    {
+        return fs::exists(fs::path(path.c_str()));
+    }
+    catch (const fs::filesystem_error&)
+    {
+        return false;
+    }
 }

@@ -18,6 +18,7 @@ add_requires("stb")
 add_requires("zlib")
 add_requires("glm")
 add_requires("spdlog", {configs = {header_only = true}})
+add_requires("simpleini")
 
 -- 添加静态库目标
 target("easy2d")
@@ -43,23 +44,26 @@ target("easy2d")
     add_packages("stb")
     add_packages("glm")
     add_packages("spdlog")
+    add_packages("simpleini")
 
     -- 添加系统链接库
     if is_plat("windows") then
         -- Windows 平台链接 OpenGL
         add_syslinks("opengl32")
-        -- Windows 平台链接其他系统库
-        add_syslinks("user32", "gdi32", "shell32", "dinput8", "dxguid", "comdlg32")
+        -- Windows 平台链接其他系统库（跨平台改造后简化）
+        add_syslinks("user32", "gdi32", "shell32")
     elseif is_plat("mingw") then
         -- MinGW 平台链接 OpenGL
         add_syslinks("opengl32")
-        -- MinGW 平台链接其他系统库
-        add_syslinks("dinput8", "dxguid", "comdlg32")
+        -- MinGW 平台链接其他系统库（跨平台改造后简化）
+        add_syslinks("shell32")
     else
         -- Linux 平台链接 OpenGL
         add_syslinks("GL")
-        -- Linux 平台可能需要 X11
+        -- Linux 平台需要 X11
         add_syslinks("X11")
+        -- Linux 平台需要线程支持
+        add_syslinks("pthread", "dl")
     end
 
     -- 添加源文件
