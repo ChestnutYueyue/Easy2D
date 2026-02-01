@@ -9,217 +9,217 @@ namespace easy2d
 {
 
 
-// ÓÎÏ·¿ØÖÆ
+// æ¸¸æˆæ§åˆ¶
 class Game
 {
 public:
-	// ³õÊ¼»¯ÓÎÏ·
+	// åˆå§‹åŒ–æ¸¸æˆ
 	static bool init(
-		const String& title = "Easy2D Game",	/* ´°¿Ú±êÌâ */
-		int width = 640,						/* ´°¿Ú¿í¶È */
-		int height = 480,						/* ´°¿Ú¸ß¶È */
-		const String& uniqueName = "",			/* Î¨Ò»±êÊ¶ */
-		bool singleton = false					/* ½öÄÜÆô¶¯Ò»¸öÓÎÏ·ÊµÀı */
+		const String& title = "Easy2D Game",	/* çª—å£æ ‡é¢˜ */
+		int width = 640,						/* çª—å£å®½åº¦ */
+		int height = 480,						/* çª—å£é«˜åº¦ */
+		const String& uniqueName = "",			/* å”¯ä¸€æ ‡è¯† */
+		bool singleton = false					/* ä»…èƒ½å¯åŠ¨ä¸€ä¸ªæ¸¸æˆå®ä¾‹ */
 	);
 
-	// Æô¶¯ÓÎÏ·
+	// å¯åŠ¨æ¸¸æˆ
 	static void start(
-		int fpsLimit = 0					/* FPS ÏŞÖÆ£¬0Îª²»ÏŞÖÆ */
+		int fpsLimit = 0					/* FPS é™åˆ¶ï¼Œ0ä¸ºä¸é™åˆ¶ */
 	);
 
-	// ÔİÍ£ÓÎÏ·
+	// æš‚åœæ¸¸æˆ
 	static void pause();
 
-	// ¼ÌĞøÓÎÏ·
+	// ç»§ç»­æ¸¸æˆ
 	static void resume();
 
-	// ½áÊøÓÎÏ·
+	// ç»“æŸæ¸¸æˆ
 	static void quit();
 
-	// »ØÊÕÓÎÏ·×ÊÔ´
+	// å›æ”¶æ¸¸æˆèµ„æº
 	static void destroy();
 
-	// ÖØÖÃÓÎÏ·ÄÚ²¿¼ÆÊ±
+	// é‡ç½®æ¸¸æˆå†…éƒ¨è®¡æ—¶
 	static void reset();
 
-	// ÓÎÏ·ÊÇ·ñÔİÍ£
+	// æ¸¸æˆæ˜¯å¦æš‚åœ
 	static bool isPaused();
 
-	// »ñÈ¡ÓÎÏ·Î¨Ò»±êÊ¶
+	// è·å–æ¸¸æˆå”¯ä¸€æ ‡è¯†
 	static String getUniqueName();
 };
 
 class Node;
 
-// ´°¿Ú¿ØÖÆ
+// çª—å£æ§åˆ¶
 class Window
 {
 	friend class Game;
 
 public:
-	// Êó±êÖ¸ÕëÑùÊ½
+	// é¼ æ ‡æŒ‡é’ˆæ ·å¼
 	enum class Cursor : int
 	{
-		None,		/* ÎŞÖ¸Õë */
-		Normal,		/* Ä¬ÈÏÖ¸ÕëÑùÊ½ */
-		Hand,		/* ÊÖ×´Ö¸Õë */
-		No,			/* ½ûÖ¹Ö¸Õë */
-		Wait,		/* É³Â©Ö¸Õë */
-		ArrowWait,	/* Ä¬ÈÏÖ¸ÕëºÍĞ¡É³Â© */
+		None,		/* æ— æŒ‡é’ˆ */
+		Normal,		/* é»˜è®¤æŒ‡é’ˆæ ·å¼ */
+		Hand,		/* æ‰‹çŠ¶æŒ‡é’ˆ */
+		No,			/* ç¦æ­¢æŒ‡é’ˆ */
+		Wait,		/* æ²™æ¼æŒ‡é’ˆ */
+		ArrowWait,	/* é»˜è®¤æŒ‡é’ˆå’Œå°æ²™æ¼ */
 	};
 
 public:
-	// ĞŞ¸Ä´°¿Ú´óĞ¡
+	// ä¿®æ”¹çª—å£å¤§å°
 	static void setSize(
-		int width,			/* ´°¿Ú¿í¶È */
-		int height			/* ´°¿Ú¸ß¶È */
+		int width,			/* çª—å£å®½åº¦ */
+		int height			/* çª—å£é«˜åº¦ */
 	);
 
-	// ÉèÖÃ´°¿Ú±êÌâ
+	// è®¾ç½®çª—å£æ ‡é¢˜
 	static void setTitle(
-		const String& title	/* ´°¿Ú±êÌâ */
+		const String& title	/* çª—å£æ ‡é¢˜ */
 	);
 
-	// ÉèÖÃ´°¿ÚÍ¼±ê
+	// è®¾ç½®çª—å£å›¾æ ‡
 	static void setIcon(
 		int iconID
 	);
 
-	// ÉèÖÃÊó±êÖ¸ÕëÑùÊ½
+	// è®¾ç½®é¼ æ ‡æŒ‡é’ˆæ ·å¼
 	static void setCursor(
 		Cursor cursor
 	);
 
-	// ÉèÖÃ×Ô¶¨ÒåÊó±êÖ¸Õë
+	// è®¾ç½®è‡ªå®šä¹‰é¼ æ ‡æŒ‡é’ˆ
 	static void setCustomCursor(
 		Node* cursor
 	);
 
-	// ÉèÖÃ×Ô¶¨ÒåÊó±êÖ¸Õë
+	// è®¾ç½®è‡ªå®šä¹‰é¼ æ ‡æŒ‡é’ˆ
 	static void setCustomCursor(
 		Function<Node*(Cursor)> cursorFunc
 	);
 
-	// »ñÈ¡×Ô¶¨ÒåÊó±êÖ¸Õë
+	// è·å–è‡ªå®šä¹‰é¼ æ ‡æŒ‡é’ˆ
 	static Node* getCustomCursor();
 
-	// »ñÈ¡´°¿Ú±êÌâ
+	// è·å–çª—å£æ ‡é¢˜
 	static String getTitle();
 
-	// »ñÈ¡´°¿Ú¿í¶È
+	// è·å–çª—å£å®½åº¦
 	static float getWidth();
 
-	// »ñÈ¡´°¿Ú¸ß¶È
+	// è·å–çª—å£é«˜åº¦
 	static float getHeight();
 
-	// »ñÈ¡´°¿Ú´óĞ¡
+	// è·å–çª—å£å¤§å°
 	static Size getSize();
 
-	// »ñÈ¡´°¿Ú¾ä±ú
+	// è·å–çª—å£å¥æŸ„
 	static HWND getHWnd();
 
-	// ÊÇ·ñÔÊĞíÏìÓ¦ÊäÈë·¨
+	// æ˜¯å¦å…è®¸å“åº”è¾“å…¥æ³•
 	static void setTypewritingEnable(
 		bool enable
 	);
 
-	// µ¯³öÌáÊ¾´°¿Ú
+	// å¼¹å‡ºæç¤ºçª—å£
 	static void info(
-		const String& text,					/* ÄÚÈİ */
-		const String& title = "Infomation"	/* ´°¿Ú±êÌâ */
+		const String& text,					/* å†…å®¹ */
+		const String& title = "Infomation"	/* çª—å£æ ‡é¢˜ */
 	);
 
-	// µ¯³ö¾¯¸æ´°¿Ú
+	// å¼¹å‡ºè­¦å‘Šçª—å£
 	static void warning(
-		const String& text,					/* ÄÚÈİ */
-		const String& title = "Warning"		/* ´°¿Ú±êÌâ */
+		const String& text,					/* å†…å®¹ */
+		const String& title = "Warning"		/* çª—å£æ ‡é¢˜ */
 	);
 
-	// µ¯³ö´íÎó´°¿Ú
+	// å¼¹å‡ºé”™è¯¯çª—å£
 	static void error(
-		const String& text,					/* ÄÚÈİ */
-		const String& title = "Error"		/* ´°¿Ú±êÌâ */
+		const String& text,					/* å†…å®¹ */
+		const String& title = "Error"		/* çª—å£æ ‡é¢˜ */
 	);
 
 private:
-	// ³õÊ¼»¯´°¿Ú
+	// åˆå§‹åŒ–çª—å£
 	static bool __init(
 		const String& title,
 		int width,
 		int height
 	);
 
-	// ÖØÖÃ´°¿ÚÊôĞÔ
+	// é‡ç½®çª—å£å±æ€§
 	static void __uninit();
 
-	// ´¦Àí´°¿ÚÏûÏ¢
+	// å¤„ç†çª—å£æ¶ˆæ¯
 	static void __poll();
 
-	// ¸üĞÂÖ¸Õë
+	// æ›´æ–°æŒ‡é’ˆ
 	static void __updateCursor();
 
-	// Win32 ´°¿ÚÏûÏ¢»Øµ÷³ÌĞò
+	// Win32 çª—å£æ¶ˆæ¯å›è°ƒç¨‹åº
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 };
 
 
-// Ê±¼ä¿ØÖÆ
+// æ—¶é—´æ§åˆ¶
 class Time
 {
 	friend class Game;
 
 public:
-	// »ñÈ¡ÉÏÒ»Ö¡Óëµ±Ç°Ö¡µÄÊ±¼ä¼ä¸ô£¨Ãë£©
+	// è·å–ä¸Šä¸€å¸§ä¸å½“å‰å¸§çš„æ—¶é—´é—´éš”ï¼ˆç§’ï¼‰
 	static float getDeltaTime();
 
-	// »ñÈ¡ÉÏÒ»Ö¡Óëµ±Ç°Ö¡µÄÊ±¼ä¼ä¸ô£¨ºÁÃë£©
+	// è·å–ä¸Šä¸€å¸§ä¸å½“å‰å¸§çš„æ—¶é—´é—´éš”ï¼ˆæ¯«ç§’ï¼‰
 	static unsigned int getDeltaTimeMilliseconds();
 
-	// »ñÈ¡ÓÎÏ·×ÜÊ±³¤£¨Ãë£©
+	// è·å–æ¸¸æˆæ€»æ—¶é•¿ï¼ˆç§’ï¼‰
 	static float getTotalTime();
 
-	// »ñÈ¡ÓÎÏ·×ÜÊ±³¤£¨ºÁÃë£©
+	// è·å–æ¸¸æˆæ€»æ—¶é•¿ï¼ˆæ¯«ç§’ï¼‰
 	static unsigned int getTotalTimeMilliseconds();
 
 private:
-	// ³õÊ¼»¯¼ÆÊ±²Ù×÷
+	// åˆå§‹åŒ–è®¡æ—¶æ“ä½œ
 	static void __init(int expectedFPS);
 
-	// ÊÇ·ñ´ïµ½¸üĞÂÊ±¼ä
+	// æ˜¯å¦è¾¾åˆ°æ›´æ–°æ—¶é—´
 	static bool __isReady();
 
-	// ¸üĞÂµ±Ç°Ê±¼ä
+	// æ›´æ–°å½“å‰æ—¶é—´
 	static void __updateNow();
 
-	// ¸üĞÂÊ±¼äĞÅÏ¢
+	// æ›´æ–°æ—¶é—´ä¿¡æ¯
 	static void __updateLast();
 
-	// ÖØÖÃÊ±¼äĞÅÏ¢
+	// é‡ç½®æ—¶é—´ä¿¡æ¯
 	static void __reset();
 
-	// ¹ÒÆğÏß³Ì
+	// æŒ‚èµ·çº¿ç¨‹
 	static void __sleep();
 };
 
 
-// ÊäÈë¿ØÖÆ
+// è¾“å…¥æ§åˆ¶
 class Input
 {
 	friend class Game;
 
 public:
-	// ¼ì²â¼üÅÌÄ³°´¼üÊÇ·ñÕı±»°´ÏÂ
+	// æ£€æµ‹é”®ç›˜æŸæŒ‰é”®æ˜¯å¦æ­£è¢«æŒ‰ä¸‹
 	static bool isDown(
 		KeyCode::Value key
 	);
 
-	// ¼ì²â¼üÅÌÄ³°´¼üÊÇ·ñ±»µã»÷
+	// æ£€æµ‹é”®ç›˜æŸæŒ‰é”®æ˜¯å¦è¢«ç‚¹å‡»
 	static bool isPressed(
 		KeyCode::Value key
 	);
 
-	// deprecated: ÇëÊ¹ÓÃ isPressed Ìæ´ú
-	// ¼ì²â¼üÅÌÄ³°´¼üÊÇ·ñ±»µã»÷
+	// deprecated: è¯·ä½¿ç”¨ isPressed æ›¿ä»£
+	// æ£€æµ‹é”®ç›˜æŸæŒ‰é”®æ˜¯å¦è¢«ç‚¹å‡»
 	static inline bool isPress(
 		KeyCode::Value key
 	)
@@ -227,13 +227,13 @@ public:
 		return Input::isPressed(key);
 	}
 
-	// ¼ì²â¼üÅÌÄ³°´¼üÊÇ·ñÕıÔÚËÉ¿ª
+	// æ£€æµ‹é”®ç›˜æŸæŒ‰é”®æ˜¯å¦æ­£åœ¨æ¾å¼€
 	static bool isReleased(
 		KeyCode::Value key
 	);
 
-	// deprecated: ÇëÊ¹ÓÃ isReleased Ìæ´ú
-	// ¼ì²â¼üÅÌÄ³°´¼üÊÇ·ñÕıÔÚËÉ¿ª
+	// deprecated: è¯·ä½¿ç”¨ isReleased æ›¿ä»£
+	// æ£€æµ‹é”®ç›˜æŸæŒ‰é”®æ˜¯å¦æ­£åœ¨æ¾å¼€
 	static inline bool isRelease(
 		KeyCode::Value key
 	)
@@ -241,18 +241,18 @@ public:
 		return Input::isReleased(key);
 	}
 
-	// ¼ì²âÊó±ê°´¼üÊÇ·ñÕı±»°´ÏÂ
+	// æ£€æµ‹é¼ æ ‡æŒ‰é”®æ˜¯å¦æ­£è¢«æŒ‰ä¸‹
 	static bool isDown(
 		MouseCode::Value code
 	);
 
-	// ¼ì²âÊó±ê°´¼üÊÇ·ñ±»µã»÷
+	// æ£€æµ‹é¼ æ ‡æŒ‰é”®æ˜¯å¦è¢«ç‚¹å‡»
 	static bool isPressed(
 		MouseCode::Value code
 	);
 
-	// deprecated: ÇëÊ¹ÓÃ isPressed Ìæ´ú
-	// ¼ì²âÊó±ê°´¼üÊÇ·ñ±»µã»÷
+	// deprecated: è¯·ä½¿ç”¨ isPressed æ›¿ä»£
+	// æ£€æµ‹é¼ æ ‡æŒ‰é”®æ˜¯å¦è¢«ç‚¹å‡»
 	static inline bool isPress(
 		MouseCode::Value code
 	)
@@ -260,13 +260,13 @@ public:
 		return Input::isPressed(code);
 	}
 
-	// ¼ì²âÊó±ê°´¼üÊÇ·ñÕıÔÚËÉ¿ª
+	// æ£€æµ‹é¼ æ ‡æŒ‰é”®æ˜¯å¦æ­£åœ¨æ¾å¼€
 	static bool isReleased(
 		MouseCode::Value code
 	);
 
-	// deprecated: ÇëÊ¹ÓÃ isReleased Ìæ´ú
-	// ¼ì²âÊó±ê°´¼üÊÇ·ñÕıÔÚËÉ¿ª
+	// deprecated: è¯·ä½¿ç”¨ isReleased æ›¿ä»£
+	// æ£€æµ‹é¼ æ ‡æŒ‰é”®æ˜¯å¦æ­£åœ¨æ¾å¼€
 	static inline bool isRelease(
 		MouseCode::Value code
 	)
@@ -274,173 +274,178 @@ public:
 		return Input::isReleased(code);
 	}
 
-	// »ñµÃÊó±êXÖá×ø±êÖµ
+	// è·å¾—é¼ æ ‡Xè½´åæ ‡å€¼
 	static float getMouseX();
 
-	// »ñµÃÊó±êYÖá×ø±êÖµ
+	// è·å¾—é¼ æ ‡Yè½´åæ ‡å€¼
 	static float getMouseY();
 
-	// »ñµÃÊó±ê×ø±êÖµ
+	// è·å¾—é¼ æ ‡åæ ‡å€¼
 	static Point getMousePos();
 
-	// »ñµÃÊó±êXÖá×ø±êÔöÁ¿
+	// è·å¾—é¼ æ ‡Xè½´åæ ‡å¢é‡
 	static float getMouseDeltaX();
 
-	// »ñµÃÊó±êYÖá×ø±êÔöÁ¿
+	// è·å¾—é¼ æ ‡Yè½´åæ ‡å¢é‡
 	static float getMouseDeltaY();
 
-	// »ñµÃÊó±êZÖá£¨Êó±ê¹öÂÖ£©×ø±êÔöÁ¿
+	// è·å¾—é¼ æ ‡Zè½´ï¼ˆé¼ æ ‡æ»šè½®ï¼‰åæ ‡å¢é‡
 	static float getMouseDeltaZ();
 
 private:
-	// ³õÊ¼»¯ DirectInput ÒÔ¼°¼üÅÌÊó±êÉè±¸
+	// åˆå§‹åŒ– DirectInput ä»¥åŠé”®ç›˜é¼ æ ‡è®¾å¤‡
 	static bool __init();
 
-	// Ë¢ĞÂÊäÈëĞÅÏ¢
+	// åˆ·æ–°è¾“å…¥ä¿¡æ¯
 	static void __update();
 
-	// Ğ¶ÔØ DirectInput
+	// å¸è½½ DirectInput
 	static void __uninit();
 };
 
+// å‰å‘å£°æ˜
 class TextLayout;
+class GLRenderer;
 
-// äÖÈ¾Æ÷
+// æ¸²æŸ“å™¨
 class Renderer
 {
 	friend class Game;
 	friend class Window;
 
 public:
-	// »ñÈ¡±³¾°É«
+	// è·å–èƒŒæ™¯è‰²
 	static Color getBackgroundColor();
 
-	// ĞŞ¸Ä±³¾°É«
+	// ä¿®æ”¹èƒŒæ™¯è‰²
 	static void setBackgroundColor(
 		Color color
 	);
 
-	// ÏÔÊ¾ FPS
+	// æ˜¾ç¤º FPS
 	static void showFps(
 		bool show = true
 	);
 
-	// ÏÔÊ¾ÉíÌåĞÎ×´
+	// æ˜¾ç¤ºèº«ä½“å½¢çŠ¶
 	static void showBodyShapes(
 		bool show = true
 	);
 
-	// ÉèÖÃ´¹Ö±Í¬²½£¨»áÖØÔØ×ÊÔ´£¬¿ÉÄÜÔì³É¿¨¶Ù£©
+	// è®¾ç½®å‚ç›´åŒæ­¥ï¼ˆä¼šé‡è½½èµ„æºï¼Œå¯èƒ½é€ æˆå¡é¡¿ï¼‰
 	static void setVSync(
 		bool enabled
 	);
 
-	// ÊÇ·ñ¿ªÆôÁË´¹Ö±Í¬²½
+	// æ˜¯å¦å¼€å¯äº†å‚ç›´åŒæ­¥
 	static bool isVSyncEnabled();
 
-	// »ñÈ¡ÏµÍ³ DPI Ëõ·Å
+	// è·å–ç³»ç»Ÿ DPI ç¼©æ”¾
 	static float getDpiScaleX();
 
-	// »ñÈ¡ÏµÍ³ DPI Ëõ·Å
+	// è·å–ç³»ç»Ÿ DPI ç¼©æ”¾
 	static float getDpiScaleY();
 
-	// »ñÈ¡ ID2D1Factory ¶ÔÏó
-	static ID2D1Factory * getID2D1Factory();
+	// è·å– ID2D1Factory å¯¹è±¡ï¼ˆå·²åºŸå¼ƒï¼Œè¿”å›nullptrï¼‰
+	static void* getID2D1Factory();
 
-	// »ñÈ¡ ID2D1HwndRenderTarget ¶ÔÏó
-	static ID2D1HwndRenderTarget * getRenderTarget();
+	// è·å–æ¸²æŸ“ç›®æ ‡å¯¹è±¡ï¼ˆè¿”å›GLRenderTargetæŒ‡é’ˆï¼‰
+	static void* getRenderTarget();
 
-	// »ñÈ¡ ID2D1SolidColorBrush ¶ÔÏó
-	static ID2D1SolidColorBrush * getSolidColorBrush();
+	// è·å– ID2D1SolidColorBrush å¯¹è±¡ï¼ˆå·²åºŸå¼ƒï¼Œè¿”å›nullptrï¼‰
+	static void* getSolidColorBrush();
 
-	// »ñÈ¡ IWICImagingFactory ¶ÔÏó
-	static IWICImagingFactory * getIWICImagingFactory();
+	// è·å– IWICImagingFactory å¯¹è±¡ï¼ˆå·²åºŸå¼ƒï¼Œè¿”å›nullptrï¼‰
+	static void* getIWICImagingFactory();
 
-	// »ñÈ¡ IDWriteFactory ¶ÔÏó
-	static IDWriteFactory * getIDWriteFactory();
+	// è·å– IDWriteFactory å¯¹è±¡ï¼ˆå·²åºŸå¼ƒï¼Œè¿”å›nullptrï¼‰
+	static void* getIDWriteFactory();
 
-	// »ñÈ¡ Miter ÑùÊ½µÄ ID2D1StrokeStyle
-	static ID2D1StrokeStyle * getMiterID2D1StrokeStyle();
+	// è·å– Miter æ ·å¼çš„ ID2D1StrokeStyleï¼ˆå·²åºŸå¼ƒï¼Œè¿”å›nullptrï¼‰
+	static void* getMiterID2D1StrokeStyle();
 
-	// »ñÈ¡ Bevel ÑùÊ½µÄ ID2D1StrokeStyle
-	static ID2D1StrokeStyle * getBevelID2D1StrokeStyle();
+	// è·å– Bevel æ ·å¼çš„ ID2D1StrokeStyleï¼ˆå·²åºŸå¼ƒï¼Œè¿”å›nullptrï¼‰
+	static void* getBevelID2D1StrokeStyle();
 
-	// »ñÈ¡ Round ÑùÊ½µÄ ID2D1StrokeStyle
-	static ID2D1StrokeStyle * getRoundID2D1StrokeStyle();
+	// è·å– Round æ ·å¼çš„ ID2D1StrokeStyleï¼ˆå·²åºŸå¼ƒï¼Œè¿”å›nullptrï¼‰
+	static void* getRoundID2D1StrokeStyle();
 
-	// äÖÈ¾ÎÄ×Ö²¼¾Ö
+	// æ¸²æŸ“æ–‡å­—å¸ƒå±€
 	static void DrawTextLayout(
 		TextLayout* layout,
 		const DrawingStyle& style,
 		const Point& offset = Point(),
-		ID2D1RenderTarget* rt = nullptr,
-		ID2D1SolidColorBrush* brush = nullptr
+		void* rt = nullptr,
+		void* brush = nullptr
 	);
 
-	// Éè±¸ÒÀÀµ×ÊÔ´ÊÇ·ñ¸Õ¸ÕÖØ½¨
+	// è®¾å¤‡ä¾èµ–èµ„æºæ˜¯å¦åˆšåˆšé‡å»º
 	static bool isDeviceResourceRecreated();
 
+	// è·å– OpenGL æ¸²æŸ“å™¨å®ä¾‹ï¼ˆæ–°å¢ï¼‰
+	static GLRenderer* getGLRenderer();
+
 private:
-	// äÖÈ¾ÓÎÏ·»­Ãæ
+	// æ¸²æŸ“æ¸¸æˆç”»é¢
 	static void __render();
 
-	// ´´½¨Éè±¸ÎŞ¹Ø×ÊÔ´
+	// åˆ›å»ºè®¾å¤‡æ— å…³èµ„æº
 	static bool __createDeviceIndependentResources();
 
-	// ´´½¨Éè±¸Ïà¹Ø×ÊÔ´
+	// åˆ›å»ºè®¾å¤‡ç›¸å…³èµ„æº
 	static bool __createDeviceResources();
 
-	// É¾³ıÉè±¸Ïà¹Ø×ÊÔ´
+	// åˆ é™¤è®¾å¤‡ç›¸å…³èµ„æº
 	static void __discardDeviceResources();
 
-	// É¾³ıËùÓĞäÖÈ¾Ïà¹Ø×ÊÔ´
+	// åˆ é™¤æ‰€æœ‰æ¸²æŸ“ç›¸å…³èµ„æº
 	static void __discardResources();
 };
 
 
-// ÈÕÖ¾
+// æ—¥å¿—
 class Logger
 {
 public:
-	// ÆôÓÃÈÕÖ¾¼ÇÂ¼
+	// å¯ç”¨æ—¥å¿—è®°å½•
 	static void enable();
 
-	// ¹Ø±ÕÈÕÖ¾¼ÇÂ¼
+	// å…³é—­æ—¥å¿—è®°å½•
 	static void disable();
 
-	// Êä³öÈÕÖ¾ÏûÏ¢
+	// è¾“å‡ºæ—¥å¿—æ¶ˆæ¯
 	static void messageln(String format, ...);
 
-	// Êä³ö¾¯¸æ
+	// è¾“å‡ºè­¦å‘Š
 	static void warningln(String format, ...);
 
-	// Êä³ö´íÎó
+	// è¾“å‡ºé”™è¯¯
 	static void errorln(String format, ...);
 
-	// ´ò¿ª/¹Ø±Õ¿ØÖÆÌ¨
+	// æ‰“å¼€/å…³é—­æ§åˆ¶å°
 	static void showConsole(bool show = true);
 };
 
 
-// À¬»ø»ØÊÕ×°ÖÃ
+// åƒåœ¾å›æ”¶è£…ç½®
 class GC
 {
 public:
-	// ½«¶ÔÏó·ÅÈë GC ³Ø
+	// å°†å¯¹è±¡æ”¾å…¥ GC æ± 
 	static void trace(
 		Object* pObject
 	);
 
-	// ÇåÀí¶ÔÏó
+	// æ¸…ç†å¯¹è±¡
 	static void clear();
 
-	// ¼ì²é¶ÔÏóÊÇ·ñÔÚ GC ³ØÖĞ
+	// æ£€æŸ¥å¯¹è±¡æ˜¯å¦åœ¨ GC æ± ä¸­
 	static bool isInPool(Object* pObject);
 
-	// GC ³Ø×´Ì¬
+	// GC æ± çŠ¶æ€
 	static bool isClearing();
 
-	// ±£Áô¶ÔÏó
+	// ä¿ç•™å¯¹è±¡
 	template <typename Type>
 	static inline void retain(Type*& p)
 	{
@@ -450,7 +455,7 @@ public:
 		}
 	}
 
-	// ÊÍ·Å¶ÔÏó
+	// é‡Šæ”¾å¯¹è±¡
 	template <typename Type>
 	static inline void release(Type*& p)
 	{
@@ -482,8 +487,8 @@ namespace __gc_helper
 			return newObj;
 		}
 
-		// Ê¹ÓÃ static ±äÁ¿¶ø²»ÊÇ static inline º¯Êı
-		// ÈÃ IntelliSense Õı³£¹¤×÷
+		// ä½¿ç”¨ static å˜é‡è€Œä¸æ˜¯ static inline å‡½æ•°
+		// è®© IntelliSense æ­£å¸¸å·¥ä½œ
 		static GCNewHelper instance;
 	};
 }

@@ -14,7 +14,7 @@ class Node;
 class Sprite;
 
 
-// »ù´¡¶¯×÷
+// åŸºç¡€åŠ¨ä½œ
 class Action :
 	public Object
 {
@@ -28,47 +28,47 @@ public:
 
 	virtual ~Action();
 
-	// »ñÈ¡¶¯×÷ÔËĞĞ×´Ì¬
+	// è·å–åŠ¨ä½œè¿è¡ŒçŠ¶æ€
 	bool isRunning();
 
-	// ¼ÌĞø¶¯×÷
+	// ç»§ç»­åŠ¨ä½œ
 	void resume();
 
-	// ÔİÍ£¶¯×÷
+	// æš‚åœåŠ¨ä½œ
 	void pause();
 
-	// Í£Ö¹¶¯×÷
+	// åœæ­¢åŠ¨ä½œ
 	void stop();
 
-	// »ñÈ¡¶¯×÷µÄ¿½±´
+	// è·å–åŠ¨ä½œçš„æ‹·è´
 	virtual Action * clone() const = 0;
 
-	// »ñÈ¡¶¯×÷µÄµ¹×ª
+	// è·å–åŠ¨ä½œçš„å€’è½¬
 	virtual Action * reverse() const = 0;
 
-	// ÖØÖÃ¶¯×÷
+	// é‡ç½®åŠ¨ä½œ
 	virtual void reset();
 
-	// »ñÈ¡¸Ã¶¯×÷µÄÖ´ĞĞÄ¿±ê
+	// è·å–è¯¥åŠ¨ä½œçš„æ‰§è¡Œç›®æ ‡
 	Node * getTarget() const;
 
-	// Ö´ĞĞ¶¯×÷½áÊøÊ±½«Ä¿±ê½Úµã´Ó¸¸½ÚµãÖĞÒÆ³ı
+	// æ‰§è¡ŒåŠ¨ä½œç»“æŸæ—¶å°†ç›®æ ‡èŠ‚ç‚¹ä»çˆ¶èŠ‚ç‚¹ä¸­ç§»é™¤
 	void removeTargetWhenDone();
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init();
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update();
 
-	// »ñÈ¡¶¯×÷½áÊø×´Ì¬
+	// è·å–åŠ¨ä½œç»“æŸçŠ¶æ€
 	bool _isDone();
 
-	// ÖØÖÃ¶¯×÷Ê±¼ä
+	// é‡ç½®åŠ¨ä½œæ—¶é—´
 	virtual void _resetTime();
 
-	// ¿ªÊ¼¶¯×÷
+	// å¼€å§‹åŠ¨ä½œ
 	void _startWithTarget(
 		Node* target
 	);
@@ -83,27 +83,27 @@ protected:
 };
 
 
-// ³ÖĞø¶¯×÷
+// æŒç»­åŠ¨ä½œ
 class FiniteTimeAction :
 	public Action
 {
 public:
-	// ´´½¨ÌØ¶¨Ê±³¤µÄ³ÖĞø¶¯×÷
+	// åˆ›å»ºç‰¹å®šæ—¶é•¿çš„æŒç»­åŠ¨ä½œ
 	explicit FiniteTimeAction(
 		float duration
 	);
 
-	// ÖØÖÃ¶¯×÷
+	// é‡ç½®åŠ¨ä½œ
 	virtual void reset() override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
-	// ÖØÖÃ¶¯×÷Ê±¼ä
+	// é‡ç½®åŠ¨ä½œæ—¶é—´
 	virtual void _resetTime() override;
 
 protected:
@@ -112,27 +112,27 @@ protected:
 };
 
 
-// Ïà¶ÔÎ»ÒÆ¶¯×÷
+// ç›¸å¯¹ä½ç§»åŠ¨ä½œ
 class MoveBy :
 	public FiniteTimeAction
 {
 public:
 	explicit MoveBy(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		Vector2 vector		/* ÒÆ¶¯¾àÀë */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		Vector2 vector		/* ç§»åŠ¨è·ç¦» */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual MoveBy * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual MoveBy * reverse() const override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
 protected:
@@ -142,20 +142,20 @@ protected:
 };
 
 
-// Î»ÒÆ¶¯×÷
+// ä½ç§»åŠ¨ä½œ
 class MoveTo :
 	public MoveBy
 {
 public:
 	explicit MoveTo(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		Point pos			/* Ä¿µÄ×ø±ê */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		Point pos			/* ç›®çš„åæ ‡ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual MoveTo * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual MoveTo * reverse() const override
 	{
 		E2D_WARNING("reverse() not supported in MoveTo");
@@ -163,7 +163,7 @@ public:
 	}
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
 protected:
@@ -171,29 +171,29 @@ protected:
 };
 
 
-// Ïà¶ÔÌøÔ¾¶¯×÷
+// ç›¸å¯¹è·³è·ƒåŠ¨ä½œ
 class JumpBy :
 	public FiniteTimeAction
 {
 public:
 	explicit JumpBy(
-		float duration,		/* ³ÖĞøÊ±³¤ */
-		const Vector2& vec,		/* ÌøÔ¾¾àÀë */
-		float height,			/* ÌøÔ¾¸ß¶È */
-		int jumps = 1			/* ÌøÔ¾´ÎÊı */
+		float duration,		/* æŒç»­æ—¶é•¿ */
+		const Vector2& vec,		/* è·³è·ƒè·ç¦» */
+		float height,			/* è·³è·ƒé«˜åº¦ */
+		int jumps = 1			/* è·³è·ƒæ¬¡æ•° */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual JumpBy * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual JumpBy * reverse() const override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
 protected:
@@ -205,22 +205,22 @@ protected:
 };
 
 
-// ÌøÔ¾¶¯×÷
+// è·³è·ƒåŠ¨ä½œ
 class JumpTo :
 	public JumpBy
 {
 public:
 	explicit JumpTo(
-		float duration,		/* ³ÖĞøÊ±³¤ */
-		const Point& pos,		/* Ä¿µÄ×ø±ê */
-		float height,			/* ÌøÔ¾¸ß¶È */
-		int jumps = 1			/* ÌøÔ¾´ÎÊı */
+		float duration,		/* æŒç»­æ—¶é•¿ */
+		const Point& pos,		/* ç›®çš„åæ ‡ */
+		float height,			/* è·³è·ƒé«˜åº¦ */
+		int jumps = 1			/* è·³è·ƒæ¬¡æ•° */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual JumpTo * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual JumpTo * reverse() const override
 	{
 		E2D_WARNING("reverse() not supported in JumpTo");
@@ -228,7 +228,7 @@ public:
 	}
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
 protected:
@@ -236,33 +236,33 @@ protected:
 };
 
 
-// Ïà¶ÔËõ·Å¶¯×÷
+// ç›¸å¯¹ç¼©æ”¾åŠ¨ä½œ
 class ScaleBy :
 	public FiniteTimeAction
 {
 public:
 	explicit ScaleBy(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		float scale		/* Ïà¶Ô±ä»¯Öµ */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		float scale		/* ç›¸å¯¹å˜åŒ–å€¼ */
 	);
 
 	explicit ScaleBy(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		float scaleX,		/* ºáÏòËõ·ÅÏà¶Ô±ä»¯Öµ */
-		float scaleY		/* ×İÏòËõ·ÅÏà¶Ô±ä»¯Öµ */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		float scaleX,		/* æ¨ªå‘ç¼©æ”¾ç›¸å¯¹å˜åŒ–å€¼ */
+		float scaleY		/* çºµå‘ç¼©æ”¾ç›¸å¯¹å˜åŒ–å€¼ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual ScaleBy * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual ScaleBy * reverse() const override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
 protected:
@@ -273,26 +273,26 @@ protected:
 };
 
 
-// Ëõ·Å¶¯×÷
+// ç¼©æ”¾åŠ¨ä½œ
 class ScaleTo :
 	public ScaleBy
 {
 public:
 	explicit ScaleTo(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		float scale		/* Ä¿±êÖµ */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		float scale		/* ç›®æ ‡å€¼ */
 	);
 
 	explicit ScaleTo(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		float scaleX,		/* ºáÏòËõ·ÅÄ¿±êÖµ */
-		float scaleY		/* ×İÏòËõ·ÅÄ¿±êÖµ */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		float scaleX,		/* æ¨ªå‘ç¼©æ”¾ç›®æ ‡å€¼ */
+		float scaleY		/* çºµå‘ç¼©æ”¾ç›®æ ‡å€¼ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual ScaleTo * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual ScaleTo * reverse() const override
 	{
 		E2D_WARNING("reverse() not supported in ScaleTo");
@@ -300,7 +300,7 @@ public:
 	}
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
 protected:
@@ -309,27 +309,27 @@ protected:
 };
 
 
-// Í¸Ã÷¶ÈÏà¶Ô½¥±ä¶¯×÷
+// é€æ˜åº¦ç›¸å¯¹æ¸å˜åŠ¨ä½œ
 class OpacityBy :
 	public FiniteTimeAction
 {
 public:
 	explicit OpacityBy(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		float opacity		/* Ïà¶Ô±ä»¯Öµ */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		float opacity		/* ç›¸å¯¹å˜åŒ–å€¼ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual OpacityBy * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual OpacityBy * reverse() const override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
 protected:
@@ -338,20 +338,20 @@ protected:
 };
 
 
-// Í¸Ã÷¶È½¥±ä¶¯×÷
+// é€æ˜åº¦æ¸å˜åŠ¨ä½œ
 class OpacityTo :
 	public OpacityBy
 {
 public:
 	explicit OpacityTo(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		float opacity		/* Ä¿±êÖµ */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		float opacity		/* ç›®æ ‡å€¼ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual OpacityTo * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual OpacityTo * reverse() const override
 	{
 		E2D_WARNING("reverse() not supported in OpacityTo");
@@ -359,7 +359,7 @@ public:
 	}
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
 protected:
@@ -367,14 +367,14 @@ protected:
 };
 
 
-// µ­Èë¶¯×÷
+// æ·¡å…¥åŠ¨ä½œ
 class FadeIn :
 	public OpacityTo
 {
 public:
-	// ´´½¨µ­Èë¶¯×÷
+	// åˆ›å»ºæ·¡å…¥åŠ¨ä½œ
 	explicit FadeIn(
-		float duration		/* ³ÖĞøÊ±³¤ */
+		float duration		/* æŒç»­æ—¶é•¿ */
 	)
 	: OpacityTo(duration, 1) 
 	{
@@ -382,14 +382,14 @@ public:
 };
 
 
-// µ­³ö¶¯×÷
+// æ·¡å‡ºåŠ¨ä½œ
 class FadeOut :
 	public OpacityTo
 {
 public:
-	// ´´½¨µ­³ö¶¯×÷
+	// åˆ›å»ºæ·¡å‡ºåŠ¨ä½œ
 	explicit FadeOut(
-		float duration		/* ³ÖĞøÊ±³¤ */
+		float duration		/* æŒç»­æ—¶é•¿ */
 	)
 	: OpacityTo(duration, 0) 
 	{
@@ -397,27 +397,27 @@ public:
 };
 
 
-// Ïà¶ÔĞı×ª¶¯×÷
+// ç›¸å¯¹æ—‹è½¬åŠ¨ä½œ
 class RotateBy :
 	public FiniteTimeAction
 {
 public:
 	explicit RotateBy(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		float rotation		/* Ïà¶Ô±ä»¯Öµ */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		float rotation		/* ç›¸å¯¹å˜åŒ–å€¼ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual RotateBy * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual RotateBy * reverse() const override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
 protected:
@@ -426,20 +426,20 @@ protected:
 };
 
 
-// Ğı×ª¶¯×÷
+// æ—‹è½¬åŠ¨ä½œ
 class RotateTo :
 	public RotateBy
 {
 public:
 	explicit RotateTo(
-		float duration,	/* ³ÖĞøÊ±³¤ */
-		float rotation		/* Ä¿±êÖµ */
+		float duration,	/* æŒç»­æ—¶é•¿ */
+		float rotation		/* ç›®æ ‡å€¼ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual RotateTo * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual RotateTo * reverse() const override
 	{
 		E2D_WARNING("reverse() not supported in RotateTo");
@@ -447,7 +447,7 @@ public:
 	}
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
 protected:
@@ -455,32 +455,32 @@ protected:
 };
 
 
-// ÑÓÊ±¶¯×÷
+// å»¶æ—¶åŠ¨ä½œ
 class Delay :
 	public Action
 {
 public:
 	explicit Delay(
-		float duration	/* ÑÓ³ÙÊ±³¤£¨Ãë£© */
+		float duration	/* å»¶è¿Ÿæ—¶é•¿ï¼ˆç§’ï¼‰ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual Delay * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual Delay * reverse() const override;
 
-	// ÖØÖÃ¶¯×÷
+	// é‡ç½®åŠ¨ä½œ
 	virtual void reset() override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
-	// ÖØÖÃ¶¯×÷Ê±¼ä
+	// é‡ç½®åŠ¨ä½œæ—¶é—´
 	virtual void _resetTime() override;
 
 protected:
@@ -489,35 +489,35 @@ protected:
 };
 
 
-// Ñ­»·¶¯×÷
+// å¾ªç¯åŠ¨ä½œ
 class Loop :
 	public Action
 {
 public:
 	explicit Loop(
-		Action * action,	/* Ö´ĞĞÑ­»·µÄ¶¯×÷ */
-		int times = -1		/* Ñ­»·´ÎÊı */
+		Action * action,	/* æ‰§è¡Œå¾ªç¯çš„åŠ¨ä½œ */
+		int times = -1		/* å¾ªç¯æ¬¡æ•° */
 	);
 
 	virtual ~Loop();
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual Loop * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual Loop * reverse() const override;
 
-	// ÖØÖÃ¶¯×÷
+	// é‡ç½®åŠ¨ä½œ
 	virtual void reset() override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
-	// ÖØÖÃ¶¯×÷Ê±¼ä
+	// é‡ç½®åŠ¨ä½œæ—¶é—´
 	virtual void _resetTime() override;
 
 protected:
@@ -527,26 +527,26 @@ protected:
 };
 
 
-// »Øµ÷¶¯×÷
+// å›è°ƒåŠ¨ä½œ
 class CallFunc :
 	public Action
 {
 public:
 	explicit CallFunc(
-		const Function<void()>& func /* º¯Êı¶ÔÏó */
+		const Function<void()>& func /* å‡½æ•°å¯¹è±¡ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual CallFunc * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual CallFunc * reverse() const override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
 protected:
@@ -554,7 +554,7 @@ protected:
 };
 
 
-// Ë³Ğò¶¯×÷
+// é¡ºåºåŠ¨ä½œ
 class Sequence :
 	public Action
 {
@@ -562,38 +562,38 @@ public:
 	Sequence();
 
 	explicit Sequence(
-		const std::vector<Action*>& actions	/* ¶¯×÷ÁĞ±í */
+		const std::vector<Action*>& actions	/* åŠ¨ä½œåˆ—è¡¨ */
 	);
 
 	virtual ~Sequence();
 
-	// ÔÚ½áÎ²Ìí¼Ó¶¯×÷
+	// åœ¨ç»“å°¾æ·»åŠ åŠ¨ä½œ
 	void add(
 		Action * action
 	);
 
-	// ÔÚ½áÎ²Ìí¼Ó¶à¸ö¶¯×÷
+	// åœ¨ç»“å°¾æ·»åŠ å¤šä¸ªåŠ¨ä½œ
 	void add(
-		const std::vector<Action*>& actions	/* ¶¯×÷ÁĞ±í */
+		const std::vector<Action*>& actions	/* åŠ¨ä½œåˆ—è¡¨ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual Sequence * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual Sequence * reverse() const;
 
-	// ÖØÖÃ¶¯×÷
+	// é‡ç½®åŠ¨ä½œ
 	virtual void reset() override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
-	// ÖØÖÃ¶¯×÷Ê±¼ä
+	// é‡ç½®åŠ¨ä½œæ—¶é—´
 	virtual void _resetTime() override;
 
 protected:
@@ -602,7 +602,7 @@ protected:
 };
 
 
-// Í¬²½¶¯×÷
+// åŒæ­¥åŠ¨ä½œ
 class Spawn :
 	public Action
 {
@@ -610,38 +610,38 @@ public:
 	Spawn();
 
 	explicit Spawn(
-		const std::vector<Action*>& actions	/* ¶¯×÷ÁĞ±í */
+		const std::vector<Action*>& actions	/* åŠ¨ä½œåˆ—è¡¨ */
 	);
 
 	virtual ~Spawn();
 
-	// ÔÚ½áÎ²Ìí¼Ó¶¯×÷
+	// åœ¨ç»“å°¾æ·»åŠ åŠ¨ä½œ
 	void add(
 		Action * action
 	);
 
-	// ÔÚ½áÎ²Ìí¼Ó¶à¸ö¶¯×÷
+	// åœ¨ç»“å°¾æ·»åŠ å¤šä¸ªåŠ¨ä½œ
 	void add(
-		const std::vector<Action*>& actions	/* ¶¯×÷ÁĞ±í */
+		const std::vector<Action*>& actions	/* åŠ¨ä½œåˆ—è¡¨ */
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual Spawn * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual Spawn * reverse() const;
 
-	// ÖØÖÃ¶¯×÷
+	// é‡ç½®åŠ¨ä½œ
 	virtual void reset() override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
-	// ÖØÖÃ¶¯×÷Ê±¼ä
+	// é‡ç½®åŠ¨ä½œæ—¶é—´
 	virtual void _resetTime() override;
 
 protected:
@@ -649,7 +649,7 @@ protected:
 };
 
 
-// ¹Ø¼üÖ¡
+// å…³é”®å¸§
 class KeyFrame :
 	public Object
 {
@@ -660,25 +660,25 @@ public:
 
 	virtual ~KeyFrame();
 
-	// »ñÈ¡Ö¡Í¼Æ¬
+	// è·å–å¸§å›¾ç‰‡
 	Image* getImage() const;
 
-	// ÉèÖÃÖ¡Í¼Æ¬
+	// è®¾ç½®å¸§å›¾ç‰‡
 	void setImage(Image* image);
 
-	// »ñÈ¡²Ã¼ô¾ØĞÎ
+	// è·å–è£å‰ªçŸ©å½¢
 	Rect getCropRect() const;
 
-	// ÉèÖÃ²Ã¼ô¾ØĞÎ
+	// è®¾ç½®è£å‰ªçŸ©å½¢
 	void setCropRect(const Rect& cropRect);
 
-	// »ñÈ¡¿í¶È
+	// è·å–å®½åº¦
 	float getWidth() const;
 
-	// »ñÈ¡¸ß¶È
+	// è·å–é«˜åº¦
 	float getHeight() const;
 
-	// »ñÈ¡´óĞ¡
+	// è·å–å¤§å°
 	Size getSize() const;
 
 private:
@@ -687,7 +687,7 @@ private:
 };
 
 
-// Ö¡ĞòÁĞ
+// å¸§åºåˆ—
 class FrameSequence :
 	public Object
 {
@@ -695,58 +695,58 @@ public:
 	FrameSequence();
 
 	explicit FrameSequence(
-		const std::vector<KeyFrame*>& frames	/* ¹Ø¼üÖ¡Êı×é */
+		const std::vector<KeyFrame*>& frames	/* å…³é”®å¸§æ•°ç»„ */
 	);
 
 	explicit FrameSequence(
-		float interval							/* Ö¡¼ä¸ô£¨Ãë£© */
+		float interval							/* å¸§é—´éš”ï¼ˆç§’ï¼‰ */
 	);
 
 	explicit FrameSequence(
-		float interval,							/* Ö¡¼ä¸ô£¨Ãë£© */
-		const std::vector<KeyFrame*>& frames	/* ¹Ø¼üÖ¡Êı×é */
+		float interval,							/* å¸§é—´éš”ï¼ˆç§’ï¼‰ */
+		const std::vector<KeyFrame*>& frames	/* å…³é”®å¸§æ•°ç»„ */
 	);
 
 	virtual ~FrameSequence();
 
-	// Ìí¼Ó¹Ø¼üÖ¡
+	// æ·»åŠ å…³é”®å¸§
 	void add(
-		KeyFrame* frame							/* ¹Ø¼üÖ¡ */
+		KeyFrame* frame							/* å…³é”®å¸§ */
 	);
 
-	// Ìí¼Ó¹Ø¼üÖ¡
+	// æ·»åŠ å…³é”®å¸§
 	void add(
-		Image* image							/* ¹Ø¼üÖ¡ */
+		Image* image							/* å…³é”®å¸§ */
 	);
 
-	// Ìí¼Ó¶à¸ö¹Ø¼üÖ¡
+	// æ·»åŠ å¤šä¸ªå…³é”®å¸§
 	void add(
-		const std::vector<KeyFrame*>& frames	/* ¹Ø¼üÖ¡ÁĞ±í */
+		const std::vector<KeyFrame*>& frames	/* å…³é”®å¸§åˆ—è¡¨ */
 	);
 
-	// Ìí¼Ó¶à¸ö¹Ø¼üÖ¡
+	// æ·»åŠ å¤šä¸ªå…³é”®å¸§
 	void add(
-		const std::vector<Image*>& frames		/* ¹Ø¼üÖ¡ÁĞ±í */
+		const std::vector<Image*>& frames		/* å…³é”®å¸§åˆ—è¡¨ */
 	);
 
-	// »ñÈ¡¹Ø¼üÖ¡
+	// è·å–å…³é”®å¸§
 	const std::vector<KeyFrame*>& getFrames() const;
 
-	// »ñÈ¡¹Ø¼üÖ¡
+	// è·å–å…³é”®å¸§
 	std::vector<KeyFrame*>& getFrames();
 
-	// »ñÈ¡Ö¡¼ä¸ô
+	// è·å–å¸§é—´éš”
 	float getInterval() const;
 
-	// ÉèÖÃÃ¿Ò»Ö¡µÄÊ±¼ä¼ä¸ô
+	// è®¾ç½®æ¯ä¸€å¸§çš„æ—¶é—´é—´éš”
 	void setInterval(
-		float interval		/* Ö¡¼ä¸ô£¨Ãë£© */
+		float interval		/* å¸§é—´éš”ï¼ˆç§’ï¼‰ */
 	);
 
-	// »ñÈ¡Ö¡¶¯»­µÄ¿½±´¶ÔÏó
+	// è·å–å¸§åŠ¨ç”»çš„æ‹·è´å¯¹è±¡
 	FrameSequence * clone() const;
 
-	// »ñÈ¡Ö¡¶¯»­µÄµ¹×ª
+	// è·å–å¸§åŠ¨ç”»çš„å€’è½¬
 	FrameSequence * reverse() const;
 
 protected:
@@ -755,7 +755,7 @@ protected:
 };
 
 
-// Ö¡¶¯»­
+// å¸§åŠ¨ç”»
 class Animation :
 	public Action
 {
@@ -768,31 +768,31 @@ public:
 
 	virtual ~Animation();
 
-	// »ñÈ¡¶¯»­
+	// è·å–åŠ¨ç”»
 	virtual FrameSequence * getFrameSequence() const;
 
-	// ÉèÖÃ¶¯»­
+	// è®¾ç½®åŠ¨ç”»
 	virtual void setFrameSequence(
 		FrameSequence * seq
 	);
 
-	// »ñÈ¡¸Ã¶¯×÷µÄ¿½±´¶ÔÏó
+	// è·å–è¯¥åŠ¨ä½œçš„æ‹·è´å¯¹è±¡
 	virtual Animation * clone() const override;
 
-	// »ñÈ¡¸Ã¶¯×÷µÄµ¹×ª
+	// è·å–è¯¥åŠ¨ä½œçš„å€’è½¬
 	virtual Animation * reverse() const override;
 
-	// ÖØÖÃ¶¯×÷
+	// é‡ç½®åŠ¨ä½œ
 	virtual void reset() override;
 
 protected:
-	// ³õÊ¼»¯¶¯×÷
+	// åˆå§‹åŒ–åŠ¨ä½œ
 	virtual void _init() override;
 
-	// ¸üĞÂ¶¯×÷
+	// æ›´æ–°åŠ¨ä½œ
 	virtual void _update() override;
 
-	// ÖØÖÃ¶¯×÷Ê±¼ä
+	// é‡ç½®åŠ¨ä½œæ—¶é—´
 	virtual void _resetTime() override;
 
 protected:

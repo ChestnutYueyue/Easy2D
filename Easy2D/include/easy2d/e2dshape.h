@@ -1,6 +1,8 @@
 #pragma once
 #include <easy2d/e2dbase.h>
+#include <easy2d/e2dmath.h>
 #include <type_traits>
+#include <vector>
 
 namespace easy2d
 {
@@ -10,7 +12,7 @@ class ShapeMaker;
 class ShapeNode;
 class CanvasBrush;
 
-// ĞÎ×´
+// å½¢çŠ¶
 class Shape :
 	public Object
 {
@@ -44,144 +46,164 @@ public:
 	static EllipseType Ellipse;
 	static PolygonType Polygon;
 
-	// ´´½¨Ö±Ïß
+	// åˆ›å»ºç›´çº¿
 	Shape(LineType, Point begin, Point end);
 
-	// ´´½¨¾ØĞÎ
+	// åˆ›å»ºçŸ©å½¢
 	Shape(RectType, const easy2d::Rect& rect);
 
-	// ´´½¨Ô²½Ç¾ØĞÎ
+	// åˆ›å»ºåœ†è§’çŸ©å½¢
 	Shape(
 		RoundedRectType,
-		const easy2d::Rect& rect,	// ¾ØĞÎ
-		const Vector2& radius		// ¾ØĞÎÔ²½Ç°ë¾¶
+		const easy2d::Rect& rect,	// çŸ©å½¢
+		const Vector2& radius		// çŸ©å½¢åœ†è§’åŠå¾„
 	);
 
-	// ´´½¨Ô²ĞÎ
+	// åˆ›å»ºåœ†å½¢
 	Shape(
 		CircleType,
-		const Point& center,	// Ô­µã
-		float radius			// °ë¾¶
+		const Point& center,	// åŸç‚¹
+		float radius			// åŠå¾„
 	);
 
-	// ´´½¨ÍÖÔ²ĞÎ
+	// åˆ›å»ºæ¤­åœ†å½¢
 	Shape(
 		EllipseType,
-		const Point& center,	// Ô­µã
-		const Vector2& radius	// °ë¾¶
+		const Point& center,	// åŸç‚¹
+		const Vector2& radius	// åŠå¾„
 	);
 
-	// ´´½¨¶à±ßĞÎ
+	// åˆ›å»ºå¤šè¾¹å½¢
 	Shape(
 		PolygonType,
-		std::initializer_list<Point> vertices	// ¶à±ßĞÎ¶¥µã
+		std::initializer_list<Point> vertices	// å¤šè¾¹å½¢é¡¶ç‚¹
 	);
 
-	// ´´½¨¶à±ßĞÎ
+	// åˆ›å»ºå¤šè¾¹å½¢
 	Shape(
 		PolygonType,
 		const Point* vertices,
 		int count
 	);
 
-	// »ñÈ¡ÍâÇĞ°üÎ§ºĞ
+	// è·å–å¤–åˆ‡åŒ…å›´ç›’
 	easy2d::Rect getBoundingBox(
-		const Matrix32* transform = nullptr	// Ó¦ÓÃµ½ĞÎ×´ÉÏµÄ¶şÎ¬±ä»»
+		const Matrix32* transform = nullptr	// åº”ç”¨åˆ°å½¢çŠ¶ä¸Šçš„äºŒç»´å˜æ¢
 	) const;
 
-	// ÅĞ¶ÏÍ¼ĞÎÊÇ·ñ°üº¬µã
+	// åˆ¤æ–­å›¾å½¢æ˜¯å¦åŒ…å«ç‚¹
 	bool containsPoint(
-		const Point& point,					// µã
-		const Matrix32* transform = nullptr	// Ó¦ÓÃµ½µãÉÏµÄ¶şÎ¬±ä»»
+		const Point& point,					// ç‚¹
+		const Matrix32* transform = nullptr	// åº”ç”¨åˆ°ç‚¹ä¸Šçš„äºŒç»´å˜æ¢
 	) const;
 
-	// »ñÈ¡Í¼ĞÎÕ¹¿ª³ÉÒ»ÌõÖ±ÏßµÄ³¤¶È
+	// è·å–å›¾å½¢å±•å¼€æˆä¸€æ¡ç›´çº¿çš„é•¿åº¦
 	float getLength() const;
 
-	// ¼ÆËãÍ¼ĞÎÃæ»ı
+	// è®¡ç®—å›¾å½¢é¢ç§¯
 	float computeArea() const;
 
-	// ¼ÆËãÍ¼ĞÎÉÏµãµÄÎ»ÖÃºÍÇĞÏßÏòÁ¿
+	// è®¡ç®—å›¾å½¢ä¸Šç‚¹çš„ä½ç½®å’Œåˆ‡çº¿å‘é‡
 	bool computePointAtLength(
-		float length,		// µãÔÚÍ¼ĞÎÉÏµÄÎ»ÖÃ£¬·¶Î§ [0.0 - 1.0]
-		Point& point,		// µãµÄÎ»ÖÃ
-		Vector2& tangent	// µãµÄÇĞÏßÏòÁ¿
+		float length,		// ç‚¹åœ¨å›¾å½¢ä¸Šçš„ä½ç½®ï¼ŒèŒƒå›´ [0.0 - 1.0]
+		Point& point,		// ç‚¹çš„ä½ç½®
+		Vector2& tangent	// ç‚¹çš„åˆ‡çº¿å‘é‡
 	) const;
 
 protected:
-	Shape(ID2D1Geometry* geo = nullptr);
+	Shape(void* geo = nullptr);
 
 	virtual ~Shape();
 
-	void resetGeometry(ID2D1Geometry* geo);
+	void resetGeometry(void* geo);
 
 protected:
-	ID2D1Geometry* _geo = nullptr;
+	enum class Type
+	{
+		Unknown,
+		Line,
+		Rect,
+		RoundedRect,
+		Circle,
+		Ellipse,
+		Polygon,
+	};
+
+	Type _type;
+	void* _geo;
+	
+	// å½¢çŠ¶æ•°æ®
+	easy2d::Point _begin;
+	easy2d::Point _end;
+	easy2d::Rect _rect;
+	easy2d::Point _center;
+	easy2d::Vector2 _radius;
+	std::vector<easy2d::Point> _vertices;
 };
 
-// ĞÎ×´Éú³ÉÆ÷
+// å½¢çŠ¶ç”Ÿæˆå™¨
 class ShapeMaker : public Object
 {
 	friend Shape;
 
 public:
-	// ĞÎ×´ºÏ²¢·½Ê½
+	// å½¢çŠ¶åˆå¹¶æ–¹å¼
 	enum class CombineMode
 	{
-		Union,      // ²¢¼¯ (A + B)
-		Intersect,  // ½»¼¯ (A + B)
-		Xor,        // ¶Ô³Æ²î¼¯ ((A - B) + (B - A))
-		Exclude     // ²î¼¯ (A - B)
+		Union,      // å¹¶é›† (A + B)
+		Intersect,  // äº¤é›† (A + B)
+		Xor,        // å¯¹ç§°å·®é›† ((A - B) + (B - A))
+		Exclude     // å·®é›† (A - B)
 	};
 
-	// ºÏ²¢ĞÎ×´
+	// åˆå¹¶å½¢çŠ¶
 	static Shape* combine(
 		Shape* shape1,
 		Shape* shape2,
-		CombineMode mode,					// ºÏ²¢·½Ê½
-		const Matrix32* matrix = nullptr	// Ó¦ÓÃµ½ÊäÈëĞÎ×´
+		CombineMode mode,					// åˆå¹¶æ–¹å¼
+		const Matrix32* matrix = nullptr	// åº”ç”¨åˆ°è¾“å…¥å½¢çŠ¶
 	);
 
-	ShapeMaker() = default;
+	ShapeMaker();
 
 	virtual ~ShapeMaker();
 
-	// »ñÈ¡Éú³ÉµÄĞÎ×´
+	// è·å–ç”Ÿæˆçš„å½¢çŠ¶
 	Shape* getShape() const;
 
-	// ¿ªÊ¼Ìí¼ÓÂ·¾¶
+	// å¼€å§‹æ·»åŠ è·¯å¾„
 	void beginPath(
-		const Point& point = Point()	// Â·¾¶ÆğÊ¼µã
+		const Point& point = Point()	// è·¯å¾„èµ·å§‹ç‚¹
 	);
 
-	// ½áÊøÂ·¾¶
+	// ç»“æŸè·¯å¾„
 	void endPath(
-		bool closed = false				// Â·¾¶ÊÇ·ñ±ÕºÏ
+		bool closed = false				// è·¯å¾„æ˜¯å¦é—­åˆ
 	);
 
-	// Ìí¼ÓÒ»ÌõÏß¶Î
+	// æ·»åŠ ä¸€æ¡çº¿æ®µ
 	void addLine(const Point& point);
 
-	// Ìí¼Ó¶àÌõÏß¶Î
+	// æ·»åŠ å¤šæ¡çº¿æ®µ
 	void addLines(std::initializer_list<Point> points);
 
-	// Ìí¼Ó¶àÌõÏß¶Î
+	// æ·»åŠ å¤šæ¡çº¿æ®µ
 	void addLines(const Point* points, int count);
 
-	// Ìí¼ÓÒ»ÌõÈı´Î·½±´Èû¶ûÇúÏß
+	// æ·»åŠ ä¸€æ¡ä¸‰æ¬¡æ–¹è´å¡å°”æ›²çº¿
 	void addBezier(
-		const Point& point1,	// ±´Èû¶ûÇúÏßµÄµÚÒ»¸ö¿ØÖÆµã
-		const Point& point2,	// ±´Èû¶ûÇúÏßµÄµÚ¶ş¸ö¿ØÖÆµã
-		const Point& point3		// ±´Èû¶ûÇúÏßµÄÖÕµã
+		const Point& point1,	// è´å¡å°”æ›²çº¿çš„ç¬¬ä¸€ä¸ªæ§åˆ¶ç‚¹
+		const Point& point2,	// è´å¡å°”æ›²çº¿çš„ç¬¬äºŒä¸ªæ§åˆ¶ç‚¹
+		const Point& point3		// è´å¡å°”æ›²çº¿çš„ç»ˆç‚¹
 	);
 
-	// Ìí¼Ó»¡Ïß
+	// æ·»åŠ å¼§çº¿
 	void addArc(
-		const Point& point,		// ÖÕµã
-		const Size& radius,		// ÍÖÔ²°ë¾¶
-		float rotation,			// ÍÖÔ²Ğı×ª½Ç¶È
-		bool clockwise = true,	// ÊÇ·ñË³Ê±Õë
-		bool smallSize = true	// ÊÇ·ñÈ¡Ğ¡ÓÚ 180¡ã µÄ»¡
+		const Point& point,		// ç»ˆç‚¹
+		const Size& radius,		// æ¤­åœ†åŠå¾„
+		float rotation,			// æ¤­åœ†æ—‹è½¬è§’åº¦
+		bool clockwise = true,	// æ˜¯å¦é¡ºæ—¶é’ˆ
+		bool smallSize = true	// æ˜¯å¦å–å°äº 180Â° çš„å¼§
 	);
 
 protected:
@@ -189,11 +211,13 @@ protected:
 
 	void closeSink();
 
-	ID2D1PathGeometry* getGeometry() const;
+	void* getGeometry() const;
 
 protected:
-	ID2D1PathGeometry* _geo = nullptr;
-	ID2D1GeometrySink* _sink = nullptr;
+	std::vector<Point> _points;
+	bool _pathOpen;
+	void* _geo;
+	void* _sink;
 };
 
 }

@@ -9,11 +9,11 @@
 #pragma once
 
 #ifndef __cplusplus
-#	error ½öÄÜÔÚ C++ »·¾³ÏÂÊ¹ÓÃ Easy2D
+#	error ä»…èƒ½åœ¨ C++ ç¯å¢ƒä¸‹ä½¿ç”¨ Easy2D
 #endif
 
 #if _MSC_VER < 1700
-#	error Easy2D ²»Ö§³Ö Visual Studio 2012 ÒÔÏÂ°æ±¾
+#	error Easy2D ä¸æ”¯æŒ Visual Studio 2012 ä»¥ä¸‹ç‰ˆæœ¬
 #endif
 
 
@@ -30,6 +30,18 @@
 #include <easy2d/e2dtool.h>
 #include <easy2d/e2daction.h>
 #include <easy2d/e2dtransition.h>
+
+// OpenGLæ¸²æŸ“ç»„ä»¶
+#include <easy2d/GLRenderer.h>
+#include <easy2d/GLShader.h>
+#include <easy2d/GLTexture.h>
+#include <easy2d/GLBuffer.h>
+#include <easy2d/GLFrameBuffer.h>
+#include <easy2d/GLTextRenderer.h>
+#include <easy2d/GLDebug.h>
+#include <easy2d/GLStateManager.h>
+#include <easy2d/GLPostProcess.h>
+#include <easy2d/GLFullScreenQuad.h>
 
 #if defined(DEBUG) || defined(_DEBUG)
 #	pragma comment(lib, "libeasy2dd.lib")

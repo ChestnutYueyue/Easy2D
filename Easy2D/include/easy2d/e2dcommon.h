@@ -10,46 +10,46 @@ namespace easy2d
 class Game;
 class Canvas;
 
-// ·½Ïò
+// æ–¹å‘
 enum class Direction : int
 {
-	Up,			/* ÉÏ */
-	Down,		/* ÏÂ */
-	Left,		/* ×ó */
-	Right		/* ÓÒ */
+	Up,			/* ä¸Š */
+	Down,		/* ä¸‹ */
+	Left,		/* å·¦ */
+	Right		/* å³ */
 };
 
 
-// ÏßÌõÏà½»ÑùÊ½
+// çº¿æ¡ç›¸äº¤æ ·å¼
 enum class LineJoin : int
 {
 	None  = -1,
-	Miter = 0,	/* Ğ±ÇĞ */
-	Bevel = 1,	/* Ğ±½Ç */
-	Round = 2	/* Ô²½Ç */
+	Miter = 0,	/* æ–œåˆ‡ */
+	Bevel = 1,	/* æ–œè§’ */
+	Round = 2	/* åœ†è§’ */
 };
 
 
-// ²åÖµÄ£Ê½
-// Ö¸¶¨Î»Í¼ÔÚËõ·ÅºÍĞı×ªÊ±ÏñËØÑÕÉ«µÄ¼ÆËã·½Ê½
+// æ’å€¼æ¨¡å¼
+// æŒ‡å®šä½å›¾åœ¨ç¼©æ”¾å’Œæ—‹è½¬æ—¶åƒç´ é¢œè‰²çš„è®¡ç®—æ–¹å¼
 enum class InterpolationMode
 {
-    Linear,  // Ë«ÏßĞÔ²åÖµ£¬¶ÔÖÜÎ§ËÄ¸öÏñËØ½øĞĞÁ½´ÎÏßĞÔ²åÖµ¼ÆËã£¬ÔÚÍ¼Ïñ·Å´óÊ±¿ÉÄÜ»áÄ£ºı
-    Nearest  // ×îÁÚ½ü²åÖµ£¬È¡×îÁÚ½üµÄÏñËØµãµÄÑÕÉ«Öµ
+    Linear,  // åŒçº¿æ€§æ’å€¼ï¼Œå¯¹å‘¨å›´å››ä¸ªåƒç´ è¿›è¡Œä¸¤æ¬¡çº¿æ€§æ’å€¼è®¡ç®—ï¼Œåœ¨å›¾åƒæ”¾å¤§æ—¶å¯èƒ½ä¼šæ¨¡ç³Š
+    Nearest  // æœ€é‚»è¿‘æ’å€¼ï¼Œå–æœ€é‚»è¿‘çš„åƒç´ ç‚¹çš„é¢œè‰²å€¼
 };
 
 
-// Õ­×Ö·û´®
+// çª„å­—ç¬¦ä¸²
 using ByteString = std::string;
 
-// ¿í×Ö·û´®
+// å®½å­—ç¬¦ä¸²
 using WideString = std::wstring;
 
-// ×Ö·û´®
+// å­—ç¬¦ä¸²
 using String = ByteString;
 
 
-// º¯Êı¶ÔÏó
+// å‡½æ•°å¯¹è±¡
 template <typename _Fty>
 using Function = std::function<_Fty>;
 
@@ -65,20 +65,20 @@ inline void SafeRelease(Interface*& p)
 }
 
 
-// ¸ñÊ½»¯×Ö·û´®
+// æ ¼å¼åŒ–å­—ç¬¦ä¸²
 ByteString FormatString(const char* format, ...);
 
-// ¸ñÊ½»¯×Ö·û´®
+// æ ¼å¼åŒ–å­—ç¬¦ä¸²
 WideString FormatString(const wchar_t* format, ...);
 
-// ¿í×Ö·û´®×ªÕ­×Ö·û´®
+// å®½å­—ç¬¦ä¸²è½¬çª„å­—ç¬¦ä¸²
 ByteString WideToNarrow(const WideString& str);
 
-// Õ­×Ö·û´®×ª¿í×Ö·û´®
+// çª„å­—ç¬¦ä¸²è½¬å®½å­—ç¬¦ä¸²
 WideString NarrowToWide(const ByteString& str);
 
 
-// ÑÕÉ«
+// é¢œè‰²
 class Color
 {
 public:
@@ -150,7 +150,7 @@ public:
 		YellowGreen = 0x9ACD32
 	};
 
-	// Í¸Ã÷É«
+	// é€æ˜è‰²
 	static const Color Transparent;
 
 public:
@@ -161,18 +161,18 @@ public:
 };
 
 
-// »æÍ¼ÑùÊ½
+// ç»˜å›¾æ ·å¼
 struct DrawingStyle
 {
-	// »æÍ¼Ä£Ê½
+	// ç»˜å›¾æ¨¡å¼
 	enum class Mode
 	{
-		Solid,		/* Ìî³ä */
-		Round,		/* ÂÖÀª */
-		Fill,		/* ÂÖÀª + Ìî³ä */
+		Solid,		/* å¡«å…… */
+		Round,		/* è½®å»“ */
+		Fill,		/* è½®å»“ + å¡«å…… */
 	};
 
-	// »æÍ¼ÑùÊ½
+	// ç»˜å›¾æ ·å¼
 	DrawingStyle(
 		Mode mode = Mode::Fill,
 		Color fillColor = Color::White,
@@ -181,28 +181,28 @@ struct DrawingStyle
 		LineJoin lineJoin = LineJoin::None
 	);
 
-	// ´¿É«ÎŞÃè±ßÑùÊ½
+	// çº¯è‰²æ— æè¾¹æ ·å¼
 	DrawingStyle(
 		Color fillColor
 	);
 
-	Mode	 mode;			// »æÍ¼Ä£Ê½
-	Color	 fillColor;		// Ìî³äÉ«
-	Color	 strokeColor;	// Ãè±ßÑÕÉ«
-	float	 strokeWidth;	// Ãè±ß¿í¶È
-	LineJoin lineJoin;		// ÏßÌõÏà½»ÑùÊ½
+	Mode	 mode;			// ç»˜å›¾æ¨¡å¼
+	Color	 fillColor;		// å¡«å……è‰²
+	Color	 strokeColor;	// æè¾¹é¢œè‰²
+	float	 strokeWidth;	// æè¾¹å®½åº¦
+	LineJoin lineJoin;		// çº¿æ¡ç›¸äº¤æ ·å¼
 };
 
 
-// ×ÊÔ´
+// èµ„æº
 class Resource
 {
 public:
-	// ×ÊÔ´µÄ¶ş½øÖÆÊı¾İ
+	// èµ„æºçš„äºŒè¿›åˆ¶æ•°æ®
 	struct Data
 	{
-		void* buffer;	// ×ÊÔ´Êı¾İ
-		int size;	// ×ÊÔ´Êı¾İ´óĞ¡
+		void* buffer;	// èµ„æºæ•°æ®
+		int size;	// èµ„æºæ•°æ®å¤§å°
 
 		Data();
 
@@ -236,17 +236,17 @@ public:
 	};
 
 	Resource(
-		int id,				/* ×ÊÔ´ ID */
-		const String& type	/* ×ÊÔ´ÀàĞÍ */
+		int id,				/* èµ„æº ID */
+		const String& type	/* èµ„æºç±»å‹ */
 	);
 
-	// ¼ÓÔØ×ÊÔ´µÄ¶ş½øÖÆÊı¾İ
+	// åŠ è½½èµ„æºçš„äºŒè¿›åˆ¶æ•°æ®
 	Data loadData() const;
 
-	// »ñÈ¡×ÊÔ´ ID
+	// è·å–èµ„æº ID
 	int getId() const;
 
-	// »ñÈ¡×ÊÔ´ÀàĞÍ
+	// è·å–èµ„æºç±»å‹
 	String getType() const;
 
 	bool operator==(const Resource& other) const { return _id == other._id && _type == other._type; }
@@ -259,7 +259,7 @@ private:
 };
 
 
-// »ù´¡¶ÔÏó
+// åŸºç¡€å¯¹è±¡
 class Object
 {
 public:
@@ -267,27 +267,27 @@ public:
 
 	virtual ~Object();
 
-	// ×Ô¶¯ÊÍ·Å
+	// è‡ªåŠ¨é‡Šæ”¾
 	void autorelease();
 
-	// ÒıÓÃ¼ÆÊı¼ÓÒ»
+	// å¼•ç”¨è®¡æ•°åŠ ä¸€
 	void retain();
 
-	// ÒıÓÃ¼ÆÊı¼õÒ»
+	// å¼•ç”¨è®¡æ•°å‡ä¸€
 	void release();
 
-	// »ñÈ¡ÒıÓÃ¼ÆÊı
+	// è·å–å¼•ç”¨è®¡æ•°
 	int getRefCount() const;
 
-	// »ñÈ¡Ãû³Æ
+	// è·å–åç§°
 	String getName() const;
 
-	// ÉèÖÃÃû³Æ
+	// è®¾ç½®åç§°
 	void setName(
 		const String& name
 	);
 
-	// Ãû³ÆÊÇ·ñÏàÍ¬
+	// åç§°æ˜¯å¦ç›¸åŒ
 	bool isName(
 		const String& name,
 		size_t hashName = 0
@@ -300,7 +300,10 @@ private:
 };
 
 
-// Í¼Æ¬
+// å‰å‘å£°æ˜
+class GLTexture;
+
+// å›¾ç‰‡
 class Image :
 	public Object
 {
@@ -308,89 +311,92 @@ class Image :
 	friend Canvas;
 
 public:
-	// ¼ÓÔØÍ¼Æ¬ÎÄ¼ş
+	// åŠ è½½å›¾ç‰‡æ–‡ä»¶
 	static Image* load(
-		const String& filePath	/* Í¼Æ¬ÎÄ¼şÂ·¾¶ */
+		const String& filePath	/* å›¾ç‰‡æ–‡ä»¶è·¯å¾„ */
 	);
 
-	// ¼ÓÔØÍ¼Æ¬×ÊÔ´
+	// åŠ è½½å›¾ç‰‡èµ„æº
 	static Image* load(
-		const Resource& res		/* Í¼Æ¬×ÊÔ´ */
+		const Resource& res		/* å›¾ç‰‡èµ„æº */
 	);
 
-	// ¼ÓÔØÍ¼Æ¬×ÊÔ´
+	// åŠ è½½å›¾ç‰‡èµ„æº
 	static Image* load(
-		int resNameId,			/* Í¼Æ¬×ÊÔ´Ãû³Æ */
-		const String& resType	/* Í¼Æ¬×ÊÔ´ÀàĞÍ */
+		int resNameId,			/* å›¾ç‰‡èµ„æºåç§° */
+		const String& resType	/* å›¾ç‰‡èµ„æºç±»å‹ */
 	);
 
 	virtual ~Image();
 
-	// »ñÈ¡¿í¶È
+	// è·å–å®½åº¦
 	float getWidth() const;
 
-	// »ñÈ¡¸ß¶È
+	// è·å–é«˜åº¦
 	float getHeight() const;
 
-	// »ñÈ¡´óĞ¡
+	// è·å–å¤§å°
 	Size getSize() const;
 
-	// »ñÈ¡ ID2D1Bitmap ¶ÔÏó
-	ID2D1Bitmap* getBitmap();
+	// è·å– ID2D1Bitmap å¯¹è±¡ï¼ˆå·²åºŸå¼ƒï¼Œè¿”å›nullptrï¼‰
+	void* getBitmap();
 
-	// ÖØÔØ»º´æ
+	// è·å– OpenGL çº¹ç†å¯¹è±¡ï¼ˆæ–°å¢ï¼‰
+	GLTexture* getTexture() const;
+
+	// é‡è½½ç¼“å­˜
 	static void reloadCache();
 
 protected:
-	Image(ID2D1Bitmap* bitmap);
+	Image(GLTexture* texture);
 
-	void resetBitmap(ID2D1Bitmap* bitmap);
+	void resetTexture(GLTexture* texture);
 
-	// Çå¿Õ»º´æ
+	// æ¸…ç©ºç¼“å­˜
 	static void clearCache();
 
 protected:
-	ID2D1Bitmap* _bitmap;
+	GLTexture* _texture;
 };
 
 
-// Êó±ê¼üÖµ
+// é¼ æ ‡é”®å€¼
 struct MouseCode
 {
 	enum Value : int
 	{
-		Left,		/* Êó±ê×ó¼ü */
-		Right,		/* Êó±êÓÒ¼ü */
-		Middle		/* Êó±êÖĞ¼ü */
+		Left,		/* é¼ æ ‡å·¦é”® */
+		Right,		/* é¼ æ ‡å³é”® */
+		Middle		/* é¼ æ ‡ä¸­é”® */
 	};
 };
 
 
-// ¼üÅÌ¼üÖµ
+// é”®ç›˜é”®å€¼
 struct KeyCode
 {
 	enum Value : int
 	{
 		Unknown = 0,
-		Up = VK_UP,				// ·½Ïò¼ü - ÉÏ
-		Left = VK_LEFT,			// ·½Ïò¼ü - ×ó
-		Right = VK_RIGHT,		// ·½Ïò¼ü - ÓÒ
-		Down = VK_DOWN,			// ·½Ïò¼ü - ÏÂ
-		Enter = VK_RETURN,		// »Ø³µ¼ü
-		Space = VK_SPACE,		// ¿Õ¸ñ¼ü
-		Esc = VK_ESCAPE,		// Esc ¼ü
-		Ctrl = VK_CONTROL,		// ÈÎÒâ ctrl ¼ü
-		LCtrl = VK_LCONTROL,	// ×ó ctrl ¼ü
-		RCtrl = VK_RCONTROL,	// ÓÒ ctrl ¼ü
-		Shift = VK_SHIFT,		// ÈÎÒâ shift ¼ü
-		LShift = VK_LSHIFT,		// ×ó shift ¼ü
-		RShift = VK_RSHIFT,		// ÓÒ shift ¼ü
-		Alt = VK_MENU,			// ÈÎÒâ alt ¼ü
-		LAlt = VK_LMENU,		// ×ó alt ¼ü
-		RAlt = VK_RMENU,		// ÓÒ alt ¼ü
-		Tab = VK_TAB,			// Tab ¼ü
-		Delete = VK_DELETE,		// É¾³ı¼ü
-		Back = VK_BACK,			// ÍË¸ñ¼ü
+		Up = VK_UP,				// æ–¹å‘é”® - ä¸Š
+		Left = VK_LEFT,			// æ–¹å‘é”® - å·¦
+		Right = VK_RIGHT,		// æ–¹å‘é”® - å³
+		Down = VK_DOWN,			// æ–¹å‘é”® - ä¸‹
+		Enter = VK_RETURN,		// å›è½¦é”®
+		Space = VK_SPACE,		// ç©ºæ ¼é”®
+		Esc = VK_ESCAPE,		// Esc é”®
+		Ctrl = VK_CONTROL,		// ä»»æ„ ctrl é”®
+		LCtrl = VK_LCONTROL,	// å·¦ ctrl é”®
+		RCtrl = VK_RCONTROL,	// å³ ctrl é”®
+		Shift = VK_SHIFT,		// ä»»æ„ shift é”®
+		LShift = VK_LSHIFT,		// å·¦ shift é”®
+		RShift = VK_RSHIFT,		// å³ shift é”®
+		Alt = VK_MENU,			// ä»»æ„ alt é”®
+		LAlt = VK_LMENU,		// å·¦ alt é”®
+		RAlt = VK_RMENU,		// å³ alt é”®
+		Tab = VK_TAB,			// Tab é”®
+		Delete = VK_DELETE,		// åˆ é™¤é”®
+		Back = VK_BACK,			// é€€æ ¼é”®
 
 		A = 0x41,
 		B,
@@ -419,7 +425,7 @@ struct KeyCode
 		Y,
 		Z,
 
-		Num0 = 0x30,			// Êı×Ö¼ü
+		Num0 = 0x30,			// æ•°å­—é”®
 		Num1,
 		Num2,
 		Num3,
@@ -430,7 +436,7 @@ struct KeyCode
 		Num8,
 		Num9,
 
-		Numpad0 = VK_NUMPAD0,	// Ğ¡¼üÅÌÊı×Ö¼ü
+		Numpad0 = VK_NUMPAD0,	// å°é”®ç›˜æ•°å­—é”®
 		Numpad1,
 		Numpad2,
 		Numpad3,
@@ -457,19 +463,19 @@ struct KeyCode
 };
 
 
-// ÊÂ¼ş
+// äº‹ä»¶
 struct Event
 {
 	enum Type : UINT
 	{
 		Unknown = 0,
 
-		MouseMove,		// Êó±êÒÆ¶¯
-		MouseDown,		// Êó±ê°´ÏÂ
-		MouseUp,		// Êó±êÌ§Æğ
-		MouseWheel,		// Êó±ê¹öÂÖ»¬¶¯
-		KeyDown,		// °´¼ü°´ÏÂ
-		KeyUp,			// °´¼üÌ§Æğ
+		MouseMove,		// é¼ æ ‡ç§»åŠ¨
+		MouseDown,		// é¼ æ ‡æŒ‰ä¸‹
+		MouseUp,		// é¼ æ ‡æŠ¬èµ·
+		MouseWheel,		// é¼ æ ‡æ»šè½®æ»‘åŠ¨
+		KeyDown,		// æŒ‰é”®æŒ‰ä¸‹
+		KeyUp,			// æŒ‰é”®æŠ¬èµ·
 
 		Last = KeyUp,
 	};

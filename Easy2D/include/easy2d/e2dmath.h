@@ -72,12 +72,12 @@ namespace easy2d
 
 	class Size;
 
-	// ×ø±ê
+	// åæ ‡
 	class Point
 	{
 	public:
-		float x;	// X ×ø±ê
-		float y;	// Y ×ø±ê
+		float x;	// X åæ ‡
+		float y;	// Y åæ ‡
 
 	public:
 		Point();
@@ -98,20 +98,20 @@ namespace easy2d
 
 		bool isEmpty() const;
 
-		// ÅĞ¶ÏÁ½µã¼ä¾àÀë
+		// åˆ¤æ–­ä¸¤ç‚¹é—´è·ç¦»
 		static float distance(const Point&, const Point&);
 	};
 
 
-	// ¶şÎ¬ÏòÁ¿
+	// äºŒç»´å‘é‡
 	using Vector2 = Point;
 
-	// ´óĞ¡
+	// å¤§å°
 	class Size
 	{
 	public:
-		float width;	// ¿í¶È
-		float height;	// ¸ß¶È
+		float width;	// å®½åº¦
+		float height;	// é«˜åº¦
 
 	public:
 		Size();
@@ -134,7 +134,7 @@ namespace easy2d
 	};
 
 
-	// ¾ØĞÎ
+	// çŸ©å½¢
 	class Rect
 	{
 	public:
@@ -155,18 +155,18 @@ namespace easy2d
 
 		bool isEmpty() const;
 
-		// ÉèÖÃ¾ØĞÎ
+		// è®¾ç½®çŸ©å½¢
 		void setRect(
 			const Point& pos,
 			const Size& size
 		);
 
-		// ÅĞ¶ÏµãÊÇ·ñÔÚ¾ØĞÎÄÚ
+		// åˆ¤æ–­ç‚¹æ˜¯å¦åœ¨çŸ©å½¢å†…
 		bool containsPoint(
 			const Point& point
 		) const;
 
-		// ÅĞ¶ÏÁ½¾ØĞÎÊÇ·ñÏà½»
+		// åˆ¤æ–­ä¸¤çŸ©å½¢æ˜¯å¦ç›¸äº¤
 		bool intersects(
 			const Rect& rect
 		) const;
@@ -198,7 +198,7 @@ namespace easy2d
 	};
 
 
-	// ¶şÎ¬±ä»»¾ØÕó
+	// äºŒç»´å˜æ¢çŸ©é˜µ
 	template <typename _Lty, typename _Rty>
 	struct MatrixMultiply;
 
@@ -284,7 +284,7 @@ namespace easy2d
 	};
 
 
-	// Ê¹ÓÃÄ£°å±í´ïÊ½ÓÅ»¯¾ØÕó³Ë·¨
+	// ä½¿ç”¨æ¨¡æ¿è¡¨è¾¾å¼ä¼˜åŒ–çŸ©é˜µä¹˜æ³•
 	template <typename _Lty, typename _Rty>
 	struct MatrixMultiply
 	{

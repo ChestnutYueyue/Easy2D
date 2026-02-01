@@ -8,7 +8,7 @@ class Scene;
 class SceneManager;
 
 
-// ³¡¾°¹ı¶É
+// åœºæ™¯è¿‡æ¸¡
 class Transition :
 	public Object
 {
@@ -19,29 +19,29 @@ public:
 
 	virtual ~Transition();
 
-	// ³¡¾°¹ı¶É¶¯»­ÊÇ·ñ½áÊø
+	// åœºæ™¯è¿‡æ¸¡åŠ¨ç”»æ˜¯å¦ç»“æŸ
 	bool isDone();
 
 protected:
-	// ³õÊ¼»¯³¡¾°¹ı¶É¶¯»­
+	// åˆå§‹åŒ–åœºæ™¯è¿‡æ¸¡åŠ¨ç”»
 	virtual void _init(
 		Scene * prev,
 		Scene * next
 	);
 
-	// ¸üĞÂ³¡¾°¹ı¶É¶¯»­
+	// æ›´æ–°åœºæ™¯è¿‡æ¸¡åŠ¨ç”»
 	virtual void _update();
 
-	// ¸üĞÂ³¡¾°¹ı¶É¶¯»­
+	// æ›´æ–°åœºæ™¯è¿‡æ¸¡åŠ¨ç”»
 	virtual void _updateCustom() = 0;
 
-	// äÖÈ¾³¡¾°¹ı¶É¶¯»­
+	// æ¸²æŸ“åœºæ™¯è¿‡æ¸¡åŠ¨ç”»
 	virtual void _render();
 
-	// ÖØÖÃ³¡¾°¹ı¶É¶¯»­
+	// é‡ç½®åœºæ™¯è¿‡æ¸¡åŠ¨ç”»
 	virtual void _reset() = 0;
 
-	// Í£Ö¹³¡¾°¹ı¶É¶¯»­
+	// åœæ­¢åœºæ™¯è¿‡æ¸¡åŠ¨ç”»
 	virtual void _stop();
 
 protected:
@@ -59,18 +59,18 @@ protected:
 };
 
 
-// µ­Èëµ­³ö¹ı¶É
+// æ·¡å…¥æ·¡å‡ºè¿‡æ¸¡
 class FadeTransition :
 	public Transition
 {
 public:
 	explicit FadeTransition(
-		float duration,			/* ¶¯»­³ÖĞøÊ±³¤ */
-		bool sequential = true	/* Ë³Ğò²¥·Åµ­Èëµ­³ö */
+		float duration,			/* åŠ¨ç”»æŒç»­æ—¶é•¿ */
+		bool sequential = true	/* é¡ºåºæ’­æ”¾æ·¡å…¥æ·¡å‡º */
 	);
 
 protected:
-	// ¸üĞÂ¶¯»­
+	// æ›´æ–°åŠ¨ç”»
 	virtual void _updateCustom() override;
 
 	virtual void _init(
@@ -85,17 +85,17 @@ protected:
 };
 
 
-// ºĞ×´¹ı¶É
+// ç›’çŠ¶è¿‡æ¸¡
 class BoxTransition :
 	public Transition
 {
 public:
 	explicit BoxTransition(
-		float duration	/* ¶¯»­³ÖĞøÊ±³¤ */
+		float duration	/* åŠ¨ç”»æŒç»­æ—¶é•¿ */
 	);
 
 protected:
-	// ¸üĞÂ¶¯»­
+	// æ›´æ–°åŠ¨ç”»
 	virtual void _updateCustom() override;
 
 	virtual void _init(
@@ -107,18 +107,18 @@ protected:
 };
 
 
-// ÒÆÈë¹ı¶É
+// ç§»å…¥è¿‡æ¸¡
 class MoveTransition :
 	public Transition
 {
 public:
 	explicit MoveTransition(
-		float moveDuration,					/* ³¡¾°ÒÆ¶¯¶¯»­³ÖĞøÊ±³¤ */
-		Direction direction = Direction::Left	/* ³¡¾°ÒÆ¶¯·½Ïò */
+		float moveDuration,					/* åœºæ™¯ç§»åŠ¨åŠ¨ç”»æŒç»­æ—¶é•¿ */
+		Direction direction = Direction::Left	/* åœºæ™¯ç§»åŠ¨æ–¹å‘ */
 	);
 
 protected:
-	// ¸üĞÂ¶¯»­
+	// æ›´æ–°åŠ¨ç”»
 	virtual void _updateCustom() override;
 
 	virtual void _init(
