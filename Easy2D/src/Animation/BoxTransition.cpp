@@ -20,7 +20,7 @@ void easy2d::BoxTransition::_updateCustom()
 		if (_outScene)
 		{
 			_outScene->setScale(scale, scale);
-			_outScene->setAnchor(Point(0.5f, 0.5f));
+			_outScene->setAnchor(0.5f, 0.5f);
 			_outScene->setPos(Point(_windowSize.width / 2.0f, _windowSize.height / 2.0f));
 		}
 	}
@@ -31,7 +31,7 @@ void easy2d::BoxTransition::_updateCustom()
 		if (_inScene)
 		{
 			_inScene->setScale(scale, scale);
-			_inScene->setAnchor(Point(0.5f, 0.5f));
+			_inScene->setAnchor(0.5f, 0.5f);
 			_inScene->setPos(Point(_windowSize.width / 2.0f, _windowSize.height / 2.0f));
 			_inScene->setOpacity(1.0f);
 		}
