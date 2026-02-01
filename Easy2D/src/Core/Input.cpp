@@ -1,322 +1,367 @@
 #include <unordered_map>
 #include <easy2d/e2dbase.h>
 #include <easy2d/e2dmanager.h>
-#include <dinput.h>
+#include <SDL.h>
 
-
-#define BUFFER_SIZE	256
 
 using namespace easy2d;
 
 namespace
 {
-	IDirectInput8A* s_pDirectInput = nullptr;			// DirectInput 接口对象
-	IDirectInputDevice8A* s_KeyboardDevice = nullptr;	// 键盘设备接口
-	char s_KeyBuffer[BUFFER_SIZE] = { 0 };				// 用于保存键盘按键信息缓冲区
-	char s_KeyRecordBuffer[BUFFER_SIZE] = { 0 };		// 键盘消息二级缓冲区
+	// 键盘状态缓冲区
+	Uint8 s_KeyState[SDL_NUM_SCANCODES] = { 0 };
+	Uint8 s_KeyRecordState[SDL_NUM_SCANCODES] = { 0 };
 
-	IDirectInputDevice8A* s_MouseDevice = nullptr;		// 鼠标设备接口
-	DIMOUSESTATE s_MouseState;							// 鼠标信息存储结构体
-	DIMOUSESTATE s_MouseRecordState;					// 鼠标信息二级缓冲
-	POINT s_MousePosition;								// 鼠标位置存储结构体
+	// 鼠标状态
+	Uint32 s_MouseState = 0;
+	Uint32 s_MouseRecordState = 0;
+	int s_MouseX = 0;
+	int s_MouseY = 0;
+	int s_MouseDeltaX = 0;
+	int s_MouseDeltaY = 0;
+	int s_MouseWheel = 0;
 
-	const std::unordered_map<int, const std::vector<int>> s_KeyboardMapping = {
-		{ KeyCode::Unknown, { 0x00 } },
-		{ KeyCode::Up, { DIK_UP } },
-		{ KeyCode::Left, { DIK_LEFT } },
-		{ KeyCode::Right, { DIK_RIGHT } },
-		{ KeyCode::Down, { DIK_DOWN } },
-		{ KeyCode::Enter, { DIK_RETURN } },
-		{ KeyCode::Space, { DIK_SPACE } },
-		{ KeyCode::Esc, { DIK_ESCAPE } },
-		{ KeyCode::Ctrl, { DIK_LCONTROL, DIK_RCONTROL } },
-		{ KeyCode::LCtrl, { DIK_LCONTROL } },
-		{ KeyCode::RCtrl, { DIK_RCONTROL } },
-		{ KeyCode::Shift, { DIK_LSHIFT, DIK_RSHIFT } },
-		{ KeyCode::LShift, { DIK_LSHIFT } },
-		{ KeyCode::RShift, { DIK_RSHIFT } },
-		{ KeyCode::Alt, { DIK_LMENU, DIK_RMENU } },
-		{ KeyCode::LAlt, { DIK_LMENU } },
-		{ KeyCode::RAlt, { DIK_RMENU } },
-		{ KeyCode::Tab, { DIK_TAB } },
-		{ KeyCode::Delete, { DIK_DELETE } },
-		{ KeyCode::Back, { DIK_BACK } },
+	// SDL键码到Easy2D键码的映射
+	const std::unordered_map<SDL_Keycode, KeyCode::Value> s_SDLToKeyCode = {
+		{ SDLK_UNKNOWN, KeyCode::Unknown },
+		{ SDLK_UP, KeyCode::Up },
+		{ SDLK_DOWN, KeyCode::Down },
+		{ SDLK_LEFT, KeyCode::Left },
+		{ SDLK_RIGHT, KeyCode::Right },
+		{ SDLK_RETURN, KeyCode::Enter },
+		{ SDLK_SPACE, KeyCode::Space },
+		{ SDLK_ESCAPE, KeyCode::Esc },
+		{ SDLK_LCTRL, KeyCode::LCtrl },
+		{ SDLK_RCTRL, KeyCode::RCtrl },
+		{ SDLK_LSHIFT, KeyCode::LShift },
+		{ SDLK_RSHIFT, KeyCode::RShift },
+		{ SDLK_LALT, KeyCode::LAlt },
+		{ SDLK_RALT, KeyCode::RAlt },
+		{ SDLK_TAB, KeyCode::Tab },
+		{ SDLK_DELETE, KeyCode::Delete },
+		{ SDLK_BACKSPACE, KeyCode::Back },
 
-		{ KeyCode::A, { DIK_A } },
-		{ KeyCode::B, { DIK_B } },
-		{ KeyCode::C, { DIK_C } },
-		{ KeyCode::D, { DIK_D } },
-		{ KeyCode::E, { DIK_E } },
-		{ KeyCode::F, { DIK_F } },
-		{ KeyCode::G, { DIK_G } },
-		{ KeyCode::H, { DIK_H } },
-		{ KeyCode::I, { DIK_I } },
-		{ KeyCode::J, { DIK_J } },
-		{ KeyCode::K, { DIK_K } },
-		{ KeyCode::L, { DIK_L } },
-		{ KeyCode::M, { DIK_M } },
-		{ KeyCode::N, { DIK_N } },
-		{ KeyCode::O, { DIK_O } },
-		{ KeyCode::P, { DIK_P } },
-		{ KeyCode::Q, { DIK_Q } },
-		{ KeyCode::R, { DIK_R } },
-		{ KeyCode::S, { DIK_S } },
-		{ KeyCode::T, { DIK_T } },
-		{ KeyCode::U, { DIK_U } },
-		{ KeyCode::V, { DIK_V } },
-		{ KeyCode::W, { DIK_W } },
-		{ KeyCode::X, { DIK_X } },
-		{ KeyCode::Y, { DIK_Y } },
-		{ KeyCode::Z, { DIK_Z } },
+		{ SDLK_a, KeyCode::A },
+		{ SDLK_b, KeyCode::B },
+		{ SDLK_c, KeyCode::C },
+		{ SDLK_d, KeyCode::D },
+		{ SDLK_e, KeyCode::E },
+		{ SDLK_f, KeyCode::F },
+		{ SDLK_g, KeyCode::G },
+		{ SDLK_h, KeyCode::H },
+		{ SDLK_i, KeyCode::I },
+		{ SDLK_j, KeyCode::J },
+		{ SDLK_k, KeyCode::K },
+		{ SDLK_l, KeyCode::L },
+		{ SDLK_m, KeyCode::M },
+		{ SDLK_n, KeyCode::N },
+		{ SDLK_o, KeyCode::O },
+		{ SDLK_p, KeyCode::P },
+		{ SDLK_q, KeyCode::Q },
+		{ SDLK_r, KeyCode::R },
+		{ SDLK_s, KeyCode::S },
+		{ SDLK_t, KeyCode::T },
+		{ SDLK_u, KeyCode::U },
+		{ SDLK_v, KeyCode::V },
+		{ SDLK_w, KeyCode::W },
+		{ SDLK_x, KeyCode::X },
+		{ SDLK_y, KeyCode::Y },
+		{ SDLK_z, KeyCode::Z },
 
-		{ KeyCode::Num0, { DIK_0 } },
-		{ KeyCode::Num1, { DIK_1 } },
-		{ KeyCode::Num2, { DIK_2 } },
-		{ KeyCode::Num3, { DIK_3 } },
-		{ KeyCode::Num4, { DIK_4 } },
-		{ KeyCode::Num5, { DIK_5 } },
-		{ KeyCode::Num6, { DIK_6 } },
-		{ KeyCode::Num7, { DIK_7 } },
-		{ KeyCode::Num8, { DIK_8 } },
-		{ KeyCode::Num9, { DIK_9 } },
+		{ SDLK_0, KeyCode::Num0 },
+		{ SDLK_1, KeyCode::Num1 },
+		{ SDLK_2, KeyCode::Num2 },
+		{ SDLK_3, KeyCode::Num3 },
+		{ SDLK_4, KeyCode::Num4 },
+		{ SDLK_5, KeyCode::Num5 },
+		{ SDLK_6, KeyCode::Num6 },
+		{ SDLK_7, KeyCode::Num7 },
+		{ SDLK_8, KeyCode::Num8 },
+		{ SDLK_9, KeyCode::Num9 },
 
-		{ KeyCode::Numpad0, { DIK_NUMPAD0 } },
-		{ KeyCode::Numpad1, { DIK_NUMPAD1 } },
-		{ KeyCode::Numpad2, { DIK_NUMPAD2 } },
-		{ KeyCode::Numpad3, { DIK_NUMPAD3 } },
-		{ KeyCode::Numpad4, { DIK_NUMPAD4 } },
-		{ KeyCode::Numpad5, { DIK_NUMPAD5 } },
-		{ KeyCode::Numpad6, { DIK_NUMPAD6 } },
-		{ KeyCode::Numpad7, { DIK_NUMPAD7 } },
-		{ KeyCode::Numpad8, { DIK_NUMPAD8 } },
-		{ KeyCode::Numpad9, { DIK_NUMPAD9 } },
+		{ SDLK_KP_0, KeyCode::Numpad0 },
+		{ SDLK_KP_1, KeyCode::Numpad1 },
+		{ SDLK_KP_2, KeyCode::Numpad2 },
+		{ SDLK_KP_3, KeyCode::Numpad3 },
+		{ SDLK_KP_4, KeyCode::Numpad4 },
+		{ SDLK_KP_5, KeyCode::Numpad5 },
+		{ SDLK_KP_6, KeyCode::Numpad6 },
+		{ SDLK_KP_7, KeyCode::Numpad7 },
+		{ SDLK_KP_8, KeyCode::Numpad8 },
+		{ SDLK_KP_9, KeyCode::Numpad9 },
 
-		{ KeyCode::F1, { DIK_F1 } },
-		{ KeyCode::F2, { DIK_F2 } },
-		{ KeyCode::F3, { DIK_F3 } },
-		{ KeyCode::F4, { DIK_F4 } },
-		{ KeyCode::F5, { DIK_F5 } },
-		{ KeyCode::F6, { DIK_F6 } },
-		{ KeyCode::F7, { DIK_F7 } },
-		{ KeyCode::F8, { DIK_F8 } },
-		{ KeyCode::F9, { DIK_F9 } },
-		{ KeyCode::F10, { DIK_F10 } },
-		{ KeyCode::F11, { DIK_F11 } },
-		{ KeyCode::F12, { DIK_F12 } },
+		{ SDLK_F1, KeyCode::F1 },
+		{ SDLK_F2, KeyCode::F2 },
+		{ SDLK_F3, KeyCode::F3 },
+		{ SDLK_F4, KeyCode::F4 },
+		{ SDLK_F5, KeyCode::F5 },
+		{ SDLK_F6, KeyCode::F6 },
+		{ SDLK_F7, KeyCode::F7 },
+		{ SDLK_F8, KeyCode::F8 },
+		{ SDLK_F9, KeyCode::F9 },
+		{ SDLK_F10, KeyCode::F10 },
+		{ SDLK_F11, KeyCode::F11 },
+		{ SDLK_F12, KeyCode::F12 },
+	};
+
+	// Easy2D键码到SDL扫描码的映射
+	const std::unordered_map<KeyCode::Value, std::vector<SDL_Scancode>> s_KeyCodeToSDL = {
+		{ KeyCode::Unknown, { SDL_SCANCODE_UNKNOWN } },
+		{ KeyCode::Up, { SDL_SCANCODE_UP } },
+		{ KeyCode::Left, { SDL_SCANCODE_LEFT } },
+		{ KeyCode::Right, { SDL_SCANCODE_RIGHT } },
+		{ KeyCode::Down, { SDL_SCANCODE_DOWN } },
+		{ KeyCode::Enter, { SDL_SCANCODE_RETURN } },
+		{ KeyCode::Space, { SDL_SCANCODE_SPACE } },
+		{ KeyCode::Esc, { SDL_SCANCODE_ESCAPE } },
+		{ KeyCode::Ctrl, { SDL_SCANCODE_LCTRL, SDL_SCANCODE_RCTRL } },
+		{ KeyCode::LCtrl, { SDL_SCANCODE_LCTRL } },
+		{ KeyCode::RCtrl, { SDL_SCANCODE_RCTRL } },
+		{ KeyCode::Shift, { SDL_SCANCODE_LSHIFT, SDL_SCANCODE_RSHIFT } },
+		{ KeyCode::LShift, { SDL_SCANCODE_LSHIFT } },
+		{ KeyCode::RShift, { SDL_SCANCODE_RSHIFT } },
+		{ KeyCode::Alt, { SDL_SCANCODE_LALT, SDL_SCANCODE_RALT } },
+		{ KeyCode::LAlt, { SDL_SCANCODE_LALT } },
+		{ KeyCode::RAlt, { SDL_SCANCODE_RALT } },
+		{ KeyCode::Tab, { SDL_SCANCODE_TAB } },
+		{ KeyCode::Delete, { SDL_SCANCODE_DELETE } },
+		{ KeyCode::Back, { SDL_SCANCODE_BACKSPACE } },
+
+		{ KeyCode::A, { SDL_SCANCODE_A } },
+		{ KeyCode::B, { SDL_SCANCODE_B } },
+		{ KeyCode::C, { SDL_SCANCODE_C } },
+		{ KeyCode::D, { SDL_SCANCODE_D } },
+		{ KeyCode::E, { SDL_SCANCODE_E } },
+		{ KeyCode::F, { SDL_SCANCODE_F } },
+		{ KeyCode::G, { SDL_SCANCODE_G } },
+		{ KeyCode::H, { SDL_SCANCODE_H } },
+		{ KeyCode::I, { SDL_SCANCODE_I } },
+		{ KeyCode::J, { SDL_SCANCODE_J } },
+		{ KeyCode::K, { SDL_SCANCODE_K } },
+		{ KeyCode::L, { SDL_SCANCODE_L } },
+		{ KeyCode::M, { SDL_SCANCODE_M } },
+		{ KeyCode::N, { SDL_SCANCODE_N } },
+		{ KeyCode::O, { SDL_SCANCODE_O } },
+		{ KeyCode::P, { SDL_SCANCODE_P } },
+		{ KeyCode::Q, { SDL_SCANCODE_Q } },
+		{ KeyCode::R, { SDL_SCANCODE_R } },
+		{ KeyCode::S, { SDL_SCANCODE_S } },
+		{ KeyCode::T, { SDL_SCANCODE_T } },
+		{ KeyCode::U, { SDL_SCANCODE_U } },
+		{ KeyCode::V, { SDL_SCANCODE_V } },
+		{ KeyCode::W, { SDL_SCANCODE_W } },
+		{ KeyCode::X, { SDL_SCANCODE_X } },
+		{ KeyCode::Y, { SDL_SCANCODE_Y } },
+		{ KeyCode::Z, { SDL_SCANCODE_Z } },
+
+		{ KeyCode::Num0, { SDL_SCANCODE_0 } },
+		{ KeyCode::Num1, { SDL_SCANCODE_1 } },
+		{ KeyCode::Num2, { SDL_SCANCODE_2 } },
+		{ KeyCode::Num3, { SDL_SCANCODE_3 } },
+		{ KeyCode::Num4, { SDL_SCANCODE_4 } },
+		{ KeyCode::Num5, { SDL_SCANCODE_5 } },
+		{ KeyCode::Num6, { SDL_SCANCODE_6 } },
+		{ KeyCode::Num7, { SDL_SCANCODE_7 } },
+		{ KeyCode::Num8, { SDL_SCANCODE_8 } },
+		{ KeyCode::Num9, { SDL_SCANCODE_9 } },
+
+		{ KeyCode::Numpad0, { SDL_SCANCODE_KP_0 } },
+		{ KeyCode::Numpad1, { SDL_SCANCODE_KP_1 } },
+		{ KeyCode::Numpad2, { SDL_SCANCODE_KP_2 } },
+		{ KeyCode::Numpad3, { SDL_SCANCODE_KP_3 } },
+		{ KeyCode::Numpad4, { SDL_SCANCODE_KP_4 } },
+		{ KeyCode::Numpad5, { SDL_SCANCODE_KP_5 } },
+		{ KeyCode::Numpad6, { SDL_SCANCODE_KP_6 } },
+		{ KeyCode::Numpad7, { SDL_SCANCODE_KP_7 } },
+		{ KeyCode::Numpad8, { SDL_SCANCODE_KP_8 } },
+		{ KeyCode::Numpad9, { SDL_SCANCODE_KP_9 } },
+
+		{ KeyCode::F1, { SDL_SCANCODE_F1 } },
+		{ KeyCode::F2, { SDL_SCANCODE_F2 } },
+		{ KeyCode::F3, { SDL_SCANCODE_F3 } },
+		{ KeyCode::F4, { SDL_SCANCODE_F4 } },
+		{ KeyCode::F5, { SDL_SCANCODE_F5 } },
+		{ KeyCode::F6, { SDL_SCANCODE_F6 } },
+		{ KeyCode::F7, { SDL_SCANCODE_F7 } },
+		{ KeyCode::F8, { SDL_SCANCODE_F8 } },
+		{ KeyCode::F9, { SDL_SCANCODE_F9 } },
+		{ KeyCode::F10, { SDL_SCANCODE_F10 } },
+		{ KeyCode::F11, { SDL_SCANCODE_F11 } },
+		{ KeyCode::F12, { SDL_SCANCODE_F12 } },
 	};
 }
 
 bool Input::__init()
 {
-	ZeroMemory(s_KeyBuffer, sizeof(s_KeyBuffer));
-	ZeroMemory(s_KeyRecordBuffer, sizeof(s_KeyRecordBuffer));
-	ZeroMemory(&s_MouseState, sizeof(s_MouseState));
-	ZeroMemory(&s_MouseRecordState, sizeof(s_MouseRecordState));
+	// 初始化SDL输入子系统（视频子系统已在Window中初始化）
+	// SDL输入处理集成在事件循环中，无需额外初始化
+	memset(s_KeyState, 0, sizeof(s_KeyState));
+	memset(s_KeyRecordState, 0, sizeof(s_KeyRecordState));
+	s_MouseState = 0;
+	s_MouseRecordState = 0;
+	s_MouseX = 0;
+	s_MouseY = 0;
+	s_MouseDeltaX = 0;
+	s_MouseDeltaY = 0;
+	s_MouseWheel = 0;
 
-	// 初始化接口对象
-	HRESULT hr = DirectInput8Create(
-		HINST_THISCOMPONENT,
-		DIRECTINPUT_VERSION,
-		IID_IDirectInput8,
-		(void**)&s_pDirectInput,
-		nullptr
-	);
-
-	if (SUCCEEDED(hr))
-	{
-		// 初始化键盘设备
-		hr = s_pDirectInput->CreateDevice(
-			GUID_SysKeyboard,
-			&s_KeyboardDevice,
-			nullptr
-		);
-
-		if (SUCCEEDED(hr))
-		{
-			s_KeyboardDevice->SetCooperativeLevel(
-				Window::getHWnd(),
-				DISCL_FOREGROUND | DISCL_NONEXCLUSIVE
-			);
-			s_KeyboardDevice->SetDataFormat(
-				&c_dfDIKeyboard);
-			s_KeyboardDevice->Acquire();
-			s_KeyboardDevice->Poll();
-		}
-		else
-		{
-			E2D_WARNING("Keyboard not found!");
-			return false;
-		}
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		// 初始化鼠标设备
-		hr = s_pDirectInput->CreateDevice(GUID_SysMouse, &s_MouseDevice, nullptr);
-
-		if (SUCCEEDED(hr))
-		{
-			s_MouseDevice->SetCooperativeLevel(Window::getHWnd(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE);
-			s_MouseDevice->SetDataFormat(&c_dfDIMouse);
-			s_MouseDevice->Acquire();
-			s_MouseDevice->Poll();
-		}
-		else
-		{
-			E2D_WARNING("MouseCode not found!");
-			return false;
-		}
-	}
-
-	return SUCCEEDED(hr);
+	return true;
 }
 
 void Input::__uninit()
 {
-	if (s_KeyboardDevice)
-		s_KeyboardDevice->Unacquire();
-	if (s_MouseDevice)
-		s_MouseDevice->Unacquire();
-
-	SafeRelease(s_MouseDevice);
-	SafeRelease(s_KeyboardDevice);
-	SafeRelease(s_pDirectInput);
+	// SDL输入无需显式卸载
 }
 
 void easy2d::Input::__update()
 {
-	if (s_KeyboardDevice)
-	{
-		HRESULT hr = s_KeyboardDevice->Poll();
-		if (FAILED(hr))
-		{
-			hr = s_KeyboardDevice->Acquire();
-			while (hr == DIERR_INPUTLOST)
-				hr = s_KeyboardDevice->Acquire();
-		}
-		else
-		{
-			for (int i = 0; i < BUFFER_SIZE; ++i)
-				s_KeyRecordBuffer[i] = s_KeyBuffer[i];
+	// 保存上一帧的键盘状态
+	memcpy(s_KeyRecordState, s_KeyState, sizeof(s_KeyState));
 
-			s_KeyboardDevice->GetDeviceState(sizeof(s_KeyBuffer), (void**)& s_KeyBuffer);
-		}
-	}
+	// 获取当前键盘状态
+	const Uint8* currentKeyState = SDL_GetKeyboardState(nullptr);
+	memcpy(s_KeyState, currentKeyState, SDL_NUM_SCANCODES);
 
-	if (s_MouseDevice)
-	{
-		HRESULT hr = s_MouseDevice->Poll();
-		if (FAILED(hr))
-		{
-			hr = s_MouseDevice->Acquire();
-			while (hr == DIERR_INPUTLOST)
-				hr = s_MouseDevice->Acquire();
-		}
-		else
-		{
-			s_MouseRecordState = s_MouseState;
-			s_MouseDevice->GetDeviceState(sizeof(s_MouseState), (void**)& s_MouseState);
-		}
-	}
+	// 保存上一帧的鼠标状态
+	s_MouseRecordState = s_MouseState;
 
-	GetCursorPos(&s_MousePosition);
-	ScreenToClient(Window::getHWnd(), &s_MousePosition);
+	// 获取当前鼠标状态
+	s_MouseState = SDL_GetMouseState(&s_MouseX, &s_MouseY);
+
+	// 获取相对鼠标移动
+	SDL_GetRelativeMouseState(&s_MouseDeltaX, &s_MouseDeltaY);
 }
 
 bool Input::isDown(KeyCode::Value key)
 {
-	const auto& diks = s_KeyboardMapping.at(key);
-	if (diks.size() == 1)
-	{
-		const auto dik = diks[0];
-		return (s_KeyBuffer[dik] & 0x80) != 0;
-	}
+	auto it = s_KeyCodeToSDL.find(key);
+	if (it == s_KeyCodeToSDL.end())
+		return false;
 
-	for (auto dik : diks)
-		if (s_KeyBuffer[dik] & 0x80)
+	for (auto scancode : it->second)
+	{
+		if (s_KeyState[scancode])
 			return true;
+	}
 	return false;
 }
 
 bool Input::isPressed(KeyCode::Value key)
 {
-	const auto& diks = s_KeyboardMapping.at(key);
-	if (diks.size() == 1)
-	{
-		const auto dik = diks[0];
-		return (s_KeyBuffer[dik] & 0x80) && !(s_KeyRecordBuffer[dik] & 0x80);
-	}
+	auto it = s_KeyCodeToSDL.find(key);
+	if (it == s_KeyCodeToSDL.end())
+		return false;
 
-	for (auto dik : diks)
-		if ((s_KeyBuffer[dik] & 0x80) && !(s_KeyRecordBuffer[dik] & 0x80))
+	for (auto scancode : it->second)
+	{
+		if (s_KeyState[scancode] && !s_KeyRecordState[scancode])
 			return true;
+	}
 	return false;
 }
 
 bool Input::isReleased(KeyCode::Value key)
 {
-	const auto& diks = s_KeyboardMapping.at(key);
-	if (diks.size() == 1)
-	{
-		const auto dik = diks[0];
-		return !(s_KeyBuffer[dik] & 0x80) && (s_KeyRecordBuffer[dik] & 0x80);
-	}
+	auto it = s_KeyCodeToSDL.find(key);
+	if (it == s_KeyCodeToSDL.end())
+		return false;
 
-	for (auto dik : diks)
-		if (!(s_KeyBuffer[dik] & 0x80) && (s_KeyRecordBuffer[dik] & 0x80))
+	for (auto scancode : it->second)
+	{
+		if (!s_KeyState[scancode] && s_KeyRecordState[scancode])
 			return true;
+	}
 	return false;
 }
 
 bool easy2d::Input::isDown(MouseCode::Value code)
 {
-	if (s_MouseState.rgbButtons[static_cast<int>(code)] & 0x80)
-		return true;
-	return false;
+	Uint32 buttonMask = 0;
+	switch (code)
+	{
+	case MouseCode::Left:
+		buttonMask = SDL_BUTTON_LMASK;
+		break;
+	case MouseCode::Right:
+		buttonMask = SDL_BUTTON_RMASK;
+		break;
+	case MouseCode::Middle:
+		buttonMask = SDL_BUTTON_MMASK;
+		break;
+	default:
+		return false;
+	}
+	return (s_MouseState & buttonMask) != 0;
 }
 
 bool easy2d::Input::isPressed(MouseCode::Value code)
 {
-	if ((s_MouseState.rgbButtons[static_cast<int>(code)] & 0x80) && 
-		!(s_MouseRecordState.rgbButtons[static_cast<int>(code)] & 0x80))
-		return true;
-	return false;
+	Uint32 buttonMask = 0;
+	switch (code)
+	{
+	case MouseCode::Left:
+		buttonMask = SDL_BUTTON_LMASK;
+		break;
+	case MouseCode::Right:
+		buttonMask = SDL_BUTTON_RMASK;
+		break;
+	case MouseCode::Middle:
+		buttonMask = SDL_BUTTON_MMASK;
+		break;
+	default:
+		return false;
+	}
+	return ((s_MouseState & buttonMask) != 0) && ((s_MouseRecordState & buttonMask) == 0);
 }
 
 bool easy2d::Input::isReleased(MouseCode::Value code)
 {
-	if (!(s_MouseState.rgbButtons[static_cast<int>(code)] & 0x80) && 
-		(s_MouseRecordState.rgbButtons[static_cast<int>(code)] & 0x80))
-		return true;
-	return false;
+	Uint32 buttonMask = 0;
+	switch (code)
+	{
+	case MouseCode::Left:
+		buttonMask = SDL_BUTTON_LMASK;
+		break;
+	case MouseCode::Right:
+		buttonMask = SDL_BUTTON_RMASK;
+		break;
+	case MouseCode::Middle:
+		buttonMask = SDL_BUTTON_MMASK;
+		break;
+	default:
+		return false;
+	}
+	return ((s_MouseState & buttonMask) == 0) && ((s_MouseRecordState & buttonMask) != 0);
 }
 
 float Input::getMouseX()
 {
-	return (float)s_MousePosition.x;
+	return static_cast<float>(s_MouseX);
 }
 
 float Input::getMouseY()
 {
-	return (float)s_MousePosition.y;
+	return static_cast<float>(s_MouseY);
 }
 
 Point Input::getMousePos()
 {
-	return Point((float)s_MousePosition.x, (float)s_MousePosition.y);
+	return Point(static_cast<float>(s_MouseX), static_cast<float>(s_MouseY));
 }
 
 float Input::getMouseDeltaX()
 {
-	return (float)s_MouseState.lX;
+	return static_cast<float>(s_MouseDeltaX);
 }
 
 float Input::getMouseDeltaY()
 {
-	return (float)s_MouseState.lY;
+	return static_cast<float>(s_MouseDeltaY);
 }
 
 float Input::getMouseDeltaZ()
 {
-	return (float)s_MouseState.lZ;
+	// SDL2中鼠标滚轮通过事件处理，这里返回0
+	// 如需支持滚轮增量，需要在Window的事件处理中记录
+	return 0.0f;
 }

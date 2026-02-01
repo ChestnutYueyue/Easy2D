@@ -8,6 +8,11 @@
 #include "GLFrameBuffer.h"
 #include "GLBuffer.h"
 
+// 前向声明SDL类型
+struct SDL_Window;
+
+typedef void* SDL_GLContext;
+
 namespace easy2d
 {
 
@@ -19,7 +24,7 @@ class Text;
 
 /**
  * @brief OpenGL渲染器
- * 
+ *
  * 替代D2D1的Renderer类，提供完整的OpenGL渲染功能
  */
 class GLRenderer
@@ -32,12 +37,12 @@ public:
 
     /**
      * @brief 初始化渲染器
-     * @param hwnd 窗口句柄
+     * @param window SDL窗口指针
      * @param width 窗口宽度
      * @param height 窗口高度
      * @return 是否初始化成功
      */
-    bool initialize(HWND hwnd, int width, int height);
+    bool initialize(SDL_Window* window, int width, int height);
 
     /**
      * @brief 关闭渲染器
@@ -293,7 +298,7 @@ private:
     /**
      * @brief 初始化OpenGL上下文
      */
-    bool initializeGLContext(HWND hwnd);
+    bool initializeGLContext(SDL_Window* window);
 
     /**
      * @brief 销毁OpenGL上下文
@@ -321,10 +326,9 @@ private:
     void discardDeviceResources();
 
 private:
-    // Windows相关
-    HWND _hwnd = nullptr;           // 窗口句柄
-    HDC _hdc = nullptr;             // 设备上下文
-    HGLRC _hglrc = nullptr;         // OpenGL渲染上下文
+    // SDL相关
+    SDL_Window* _window = nullptr;           // SDL窗口指针
+    SDL_GLContext _glContext = nullptr;      // OpenGL渲染上下文
 
     // 窗口尺寸
     int _windowWidth = 0;

@@ -1,6 +1,9 @@
 #include <easy2d/e2dbase.h>
 #include <easy2d/e2dmanager.h>
 #include <easy2d/e2dtool.h>
+#include <easy2d/GLRenderer.h>
+#include <SDL.h>
+#include <cstdio>  // for std::remove
 
 
 // 控制游戏终止
@@ -30,35 +33,32 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 
 	if (singleton)
 	{
-		// 创建进程互斥体
-		String fullMutexName = "Easy2DApp-" + s_sUniqueName;
-		HANDLE hMutex = ::CreateMutexA(nullptr, TRUE, fullMutexName.c_str());
-
-		if (hMutex == nullptr)
+		// 使用文件锁实现单例检测
+		String lockFileName = "Easy2DApp-" + s_sUniqueName + ".lock";
+		SDL_RWops* lockFile = SDL_RWFromFile(lockFileName.c_str(), "r");
+		if (lockFile != nullptr)
 		{
-			E2D_WARNING("CreateMutex Failed!");
-		}
-		else if (::GetLastError() == ERROR_ALREADY_EXISTS)
-		{
-			// 如果程序已经存在并且正在运行，弹窗提示
-			Window::error("游戏已在其他窗口中打开！", "提示");
-			// 关闭进程互斥体
-			::CloseHandle(hMutex);
+			// 文件已存在，说明程序已在运行
+			SDL_RWclose(lockFile);
+			// 弹窗提示
+			// SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "提示", "游戏已在其他窗口中打开！", nullptr);
+			E2D_ERROR("游戏已在其他窗口中打开！");
+			SDL_Quit();
 			return false;
 		}
+		// 创建锁文件
+		lockFile = SDL_RWFromFile(lockFileName.c_str(), "w");
+		if (lockFile)
+		{
+			SDL_RWwrite(lockFile, "1", 1, 1);
+			SDL_RWclose(lockFile);
+		}
 	}
 
-	// 初始化 COM 组件
-	if (FAILED(CoInitialize(nullptr)))
+	// 初始化SDL
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0)
 	{
-		E2D_ERROR("初始化 COM 组件失败");
-		return false;
-	}
-
-	// 创建设备无关资源
-	if (!Renderer::__createDeviceIndependentResources())
-	{
-		E2D_ERROR("渲染器设备无关资源创建失败");
+		E2D_ERROR("SDL_Init Failed: %s", SDL_GetError());
 		return false;
 	}
 
@@ -66,28 +66,34 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 	if (!Window::__init(title, width, height))
 	{
 		E2D_ERROR("初始化窗口失败");
+		SDL_Quit();
 		return false;
 	}
 
-	// 创建设备相关资源
-	if (!Renderer::__createDeviceResources())
+	// 初始化OpenGL渲染器
+	SDL_Window* sdlWindow = Window::getSDLWindow();
+	if (!E2D_GL_RENDERER.initialize(sdlWindow, width, height))
 	{
-		E2D_ERROR("渲染器设备相关资源创建失败");
+		E2D_ERROR("初始化OpenGL渲染器失败");
+		Window::__uninit();
+		SDL_Quit();
 		return false;
 	}
 
-	// 初始化 DirectInput
+	// 初始化输入系统
 	if (!Input::__init())
 	{
-		E2D_ERROR("初始化 DirectInput 失败");
+		E2D_ERROR("初始化输入系统失败");
+		E2D_GL_RENDERER.shutdown();
+		Window::__uninit();
+		SDL_Quit();
 		return false;
 	}
 
 	// 初始化播放器
 	if (!Music::__init())
 	{
-		E2D_ERROR("初始化 XAudio2 失败");
-		return false;
+		E2D_ERROR("初始化miniaudio失败");
 	}
 
 	// 初始化Path
@@ -112,10 +118,10 @@ void easy2d::Game::start(int fpsLimit)
 
 	// 初始化场景管理器
 	SceneManager::__init();
+
 	// 显示窗口
-	::ShowWindow(Window::getHWnd(), SW_SHOWNORMAL);
-	// 刷新窗口内容
-	::UpdateWindow(Window::getHWnd());
+	SDL_ShowWindow(Window::getSDLWindow());
+
 	// 初始化计时
 	Time::__init(fpsLimit);
 
@@ -125,6 +131,7 @@ void easy2d::Game::start(int fpsLimit)
 	{
 		// 处理窗口消息
 		Window::__poll();
+
 		// 刷新时间
 		Time::__updateNow();
 
@@ -135,7 +142,12 @@ void easy2d::Game::start(int fpsLimit)
 			Timer::__update();			// 更新定时器
 			ActionManager::__update();	// 更新动作管理器
 			SceneManager::__update();	// 更新场景内容
-			Renderer::__render();		// 渲染游戏画面
+
+			// 渲染游戏画面
+			E2D_GL_RENDERER.beginFrame();
+			E2D_GL_RENDERER.renderScene(E2D_GL_RENDERER.isDeviceResourceRecreated());
+			E2D_GL_RENDERER.endFrame();
+
 			GC::clear();				// 清理内存
 
 			Time::__updateLast();		// 刷新时间信息
@@ -208,12 +220,16 @@ void easy2d::Game::destroy()
 	Music::__uninit();
 	// 关闭输入
 	Input::__uninit();
-	// 回收渲染相关资源
-	Renderer::__discardResources();
+	// 关闭OpenGL渲染器
+	E2D_GL_RENDERER.shutdown();
 	// 销毁窗口
 	Window::__uninit();
+	// 关闭SDL
+	SDL_Quit();
 
-	CoUninitialize();
+	// 删除单例锁文件
+	String lockFileName = "Easy2DApp-" + s_sUniqueName + ".lock";
+	std::remove(lockFileName.c_str());
 
 	s_bInitialized = false;
 

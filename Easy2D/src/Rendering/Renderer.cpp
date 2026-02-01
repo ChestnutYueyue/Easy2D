@@ -4,6 +4,7 @@
 #include <easy2d/e2dtext.h>
 #include <easy2d/GLRenderer.h>
 #include <easy2d/GLTexture.h>
+#include <SDL.h>
 
 namespace easy2d
 {
@@ -17,7 +18,7 @@ public:
         return new (std::nothrow) TextRenderer();
     }
 
-    void Prepare(GLRenderer* renderer, const Color& fillColor, bool hasOutline, 
+    void Prepare(GLRenderer* renderer, const Color& fillColor, bool hasOutline,
                  const Color& outlineColor, float outlineWidth, LineJoin lineJoin)
     {
         _renderer = renderer;
@@ -55,7 +56,7 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 {
     // OpenGL不需要像D2D1那样创建设备无关资源
     // 所有资源都在GLRenderer::initialize中创建
-    
+
     // 创建文本渲染器
     s_pTextRenderer = TextRenderer::Create();
     if (!s_pTextRenderer)
@@ -69,22 +70,33 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 
 bool easy2d::Renderer::__createDeviceResources()
 {
-    // 获取窗口句柄和尺寸
-    HWND hWnd = Window::getHWnd();
-    
-    RECT rc;
-    GetClientRect(hWnd, &rc);
-    int width = rc.right - rc.left;
-    int height = rc.bottom - rc.top;
+    // 获取SDL窗口和尺寸
+    SDL_Window* window = Window::getSDLWindow();
+    if (!window)
+    {
+        E2D_ERROR("Window not created");
+        return false;
+    }
+
+    int width, height;
+    SDL_GetWindowSize(window, &width, &height);
 
     // 获取DPI缩放
-    HDC hdc = ::GetDC(hWnd);
-    s_fDpiScaleX = (float)::GetDeviceCaps(hdc, LOGPIXELSX);
-    s_fDpiScaleY = (float)::GetDeviceCaps(hdc, LOGPIXELSY);
-    ::ReleaseDC(hWnd, hdc);
+    int displayIndex = SDL_GetWindowDisplayIndex(window);
+    float dpi;
+    if (SDL_GetDisplayDPI(displayIndex, &dpi, nullptr, nullptr) == 0)
+    {
+        s_fDpiScaleX = dpi;
+        s_fDpiScaleY = dpi;
+    }
+    else
+    {
+        s_fDpiScaleX = 96.0f;
+        s_fDpiScaleY = 96.0f;
+    }
 
     // 初始化OpenGL渲染器
-    if (!E2D_GL_RENDERER.initialize(hWnd, width, height))
+    if (!E2D_GL_RENDERER.initialize(window, width, height))
     {
         E2D_ERROR("Failed to initialize GLRenderer");
         return false;
@@ -113,7 +125,7 @@ void easy2d::Renderer::__discardDeviceResources()
 void easy2d::Renderer::__discardResources()
 {
     __discardDeviceResources();
-    
+
     // 删除文本渲染器
     if (s_pTextRenderer)
     {
@@ -249,7 +261,6 @@ void* easy2d::Renderer::getIDWriteFactory()
 void easy2d::Renderer::DrawTextLayout(TextLayout* layout, const DrawingStyle& style, const Point& offset, void* rt, void* brush)
 {
     // 使用OpenGL渲染文本
-    // TODO: 实现完整的文本渲染
     E2D_GL_RENDERER.drawTextLayout(layout, offset, style);
 }
 

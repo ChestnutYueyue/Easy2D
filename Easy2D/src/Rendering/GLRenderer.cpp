@@ -6,16 +6,8 @@
 #include <easy2d/e2dtext.h>
 #include <easy2d/e2dshape.h>
 #include <easy2d/GLTextRenderer.h>
-
-// WGL 扩展常量定义
-#define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
-#define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092
-#define WGL_CONTEXT_PROFILE_MASK_ARB 0x9126
-#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
-
-// WGL 扩展函数指针类型
-typedef HGLRC (WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC, HGLRC, const int*);
-typedef BOOL (WINAPI* PFNWGLSWAPINTERVALEXTPROC)(int);
+#include <SDL.h>
+#include <SDL_opengl.h>
 
 namespace easy2d
 {
@@ -26,19 +18,19 @@ GLRenderer& GLRenderer::getInstance()
     return instance;
 }
 
-bool GLRenderer::initialize(HWND hwnd, int width, int height)
+bool GLRenderer::initialize(SDL_Window* window, int width, int height)
 {
     if (_initialized)
     {
         return true;
     }
 
-    _hwnd = hwnd;
+    _window = window;
     _windowWidth = width;
     _windowHeight = height;
 
     // 初始化OpenGL上下文
-    if (!initializeGLContext(hwnd))
+    if (!initializeGLContext(window))
     {
         E2D_ERROR("Failed to initialize OpenGL context");
         return false;
@@ -92,10 +84,18 @@ bool GLRenderer::initialize(HWND hwnd, int width, int height)
     setProjection(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
 
     // 获取DPI缩放
-    HDC hdc = GetDC(hwnd);
-    _dpiScaleX = static_cast<float>(GetDeviceCaps(hdc, LOGPIXELSX));
-    _dpiScaleY = static_cast<float>(GetDeviceCaps(hdc, LOGPIXELSY));
-    ReleaseDC(hwnd, hdc);
+    int displayIndex = SDL_GetWindowDisplayIndex(window);
+    float dpi;
+    if (SDL_GetDisplayDPI(displayIndex, &dpi, nullptr, nullptr) == 0)
+    {
+        _dpiScaleX = dpi;
+        _dpiScaleY = dpi;
+    }
+    else
+    {
+        _dpiScaleX = 96.0f;
+        _dpiScaleY = 96.0f;
+    }
 
     _initialized = true;
     E2D_LOG("GLRenderer initialized successfully");
@@ -146,137 +146,47 @@ void GLRenderer::shutdown()
     E2D_LOG("GLRenderer shutdown");
 }
 
-bool GLRenderer::initializeGLContext(HWND hwnd)
+bool GLRenderer::initializeGLContext(SDL_Window* window)
 {
-    // 获取设备上下文
-    _hdc = GetDC(hwnd);
-    if (!_hdc)
+    // 设置OpenGL属性
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+
+    // 创建OpenGL上下文
+    _glContext = SDL_GL_CreateContext(window);
+    if (!_glContext)
     {
-        E2D_ERROR("Failed to get device context");
+        E2D_ERROR("Failed to create OpenGL context: %s", SDL_GetError());
         return false;
-    }
-
-    // 设置像素格式描述符
-    PIXELFORMATDESCRIPTOR pfd = {};
-    pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
-    pfd.nVersion = 1;
-    pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-    pfd.iPixelType = PFD_TYPE_RGBA;
-    pfd.cColorBits = 32;
-    pfd.cDepthBits = 24;
-    pfd.cStencilBits = 8;
-    pfd.iLayerType = PFD_MAIN_PLANE;
-
-    // 选择像素格式
-    int pixelFormat = ChoosePixelFormat(_hdc, &pfd);
-    if (pixelFormat == 0)
-    {
-        E2D_ERROR("Failed to choose pixel format");
-        ReleaseDC(hwnd, _hdc);
-        _hdc = nullptr;
-        return false;
-    }
-
-    // 设置像素格式
-    if (!SetPixelFormat(_hdc, pixelFormat, &pfd))
-    {
-        E2D_ERROR("Failed to set pixel format");
-        ReleaseDC(hwnd, _hdc);
-        _hdc = nullptr;
-        return false;
-    }
-
-    // 创建临时渲染上下文
-    HGLRC tempContext = wglCreateContext(_hdc);
-    if (!tempContext)
-    {
-        E2D_ERROR("Failed to create temporary OpenGL context");
-        ReleaseDC(hwnd, _hdc);
-        _hdc = nullptr;
-        return false;
-    }
-
-    // 使临时上下文当前
-    wglMakeCurrent(_hdc, tempContext);
-
-    // 加载wgl扩展（需要临时上下文）
-    // 注意：这里我们使用GLAD加载的OpenGL 3.3+，所以需要创建核心配置文件
-
-    // 定义OpenGL 3.3核心配置文件属性
-    int attribs[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB, 3,
-        WGL_CONTEXT_MINOR_VERSION_ARB, 3,
-        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        0
-    };
-
-    // 创建现代OpenGL上下文（如果支持）
-    HGLRC modernContext = nullptr;
-    PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = 
-        (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-    
-    if (wglCreateContextAttribsARB)
-    {
-        modernContext = wglCreateContextAttribsARB(_hdc, 0, attribs);
-    }
-
-    // 删除临时上下文
-    wglMakeCurrent(nullptr, nullptr);
-    wglDeleteContext(tempContext);
-
-    if (modernContext)
-    {
-        _hglrc = modernContext;
-    }
-    else
-    {
-        // 回退到传统上下文
-        _hglrc = wglCreateContext(_hdc);
-        if (!_hglrc)
-        {
-            E2D_ERROR("Failed to create OpenGL context");
-            ReleaseDC(hwnd, _hdc);
-            _hdc = nullptr;
-            return false;
-        }
     }
 
     // 使上下文当前
-    if (!wglMakeCurrent(_hdc, _hglrc))
+    if (SDL_GL_MakeCurrent(window, _glContext) != 0)
     {
-        E2D_ERROR("Failed to make OpenGL context current");
-        wglDeleteContext(_hglrc);
-        _hglrc = nullptr;
-        ReleaseDC(hwnd, _hdc);
-        _hdc = nullptr;
+        E2D_ERROR("Failed to make OpenGL context current: %s", SDL_GetError());
+        SDL_GL_DeleteContext(_glContext);
+        _glContext = nullptr;
         return false;
     }
 
     // 启用垂直同步
-    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = 
-        (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-    if (wglSwapIntervalEXT)
-    {
-        wglSwapIntervalEXT(_vSyncEnabled ? 1 : 0);
-    }
+    SDL_GL_SetSwapInterval(_vSyncEnabled ? 1 : 0);
 
     return true;
 }
 
 void GLRenderer::destroyGLContext()
 {
-    if (_hglrc)
+    if (_glContext)
     {
-        wglMakeCurrent(nullptr, nullptr);
-        wglDeleteContext(_hglrc);
-        _hglrc = nullptr;
+        SDL_GL_DeleteContext(_glContext);
+        _glContext = nullptr;
     }
-
-    if (_hdc && _hwnd)
-    {
-        ReleaseDC(_hwnd, _hdc);
-        _hdc = nullptr;
-    }
+    _window = nullptr;
 }
 
 bool GLRenderer::initializeResources()
@@ -336,9 +246,9 @@ void GLRenderer::endFrame()
     }
 
     // 交换缓冲区
-    if (_hdc)
+    if (_window)
     {
-        SwapBuffers(_hdc);
+        SDL_GL_SwapWindow(_window);
     }
 
     // 更新FPS统计
@@ -636,11 +546,9 @@ void GLRenderer::showBodyShapes(bool show)
 void GLRenderer::setVSync(bool enabled)
 {
     _vSyncEnabled = enabled;
-    PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = 
-        (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
-    if (wglSwapIntervalEXT)
+    if (_window)
     {
-        wglSwapIntervalEXT(enabled ? 1 : 0);
+        SDL_GL_SetSwapInterval(enabled ? 1 : 0);
     }
 }
 

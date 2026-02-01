@@ -11,7 +11,7 @@ build/
 output/
 build-win7/
 output-win7/
-
+logs/
 # vs2010
 ipch/
 *.opensdf

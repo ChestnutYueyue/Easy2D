@@ -1,7 +1,6 @@
 #include <easy2d/e2dbase.h>
 #include <iostream>
 #include <fstream>
-#include <sstream>
 
 // spdlog 头文件
 #include <spdlog/spdlog.h>

@@ -2,6 +2,8 @@
 #include <easy2d/e2dmacros.h>
 #include <easy2d/e2dcommon.h>
 
+// 前向声明SDL类型
+struct SDL_Window;
 
 // Base Classes
 
@@ -80,9 +82,14 @@ public:
 		const String& title	/* 窗口标题 */
 	);
 
-	// 设置窗口图标
+	// 设置窗口图标（从资源ID加载，SDL2中已废弃）
 	static void setIcon(
 		int iconID
+	);
+
+	// 设置窗口图标（从文件路径加载，SDL2推荐方式）
+	static void setIcon(
+		const String& filePath
 	);
 
 	// 设置鼠标指针样式
@@ -115,8 +122,11 @@ public:
 	// 获取窗口大小
 	static Size getSize();
 
-	// 获取窗口句柄
-	static HWND getHWnd();
+	// 获取SDL窗口指针
+	static SDL_Window* getSDLWindow();
+
+	// 获取原生窗口句柄（Windows下为HWND）
+	static void* getNativeWindowHandle();
 
 	// 是否允许响应输入法
 	static void setTypewritingEnable(
@@ -158,8 +168,7 @@ private:
 	// 更新指针
 	static void __updateCursor();
 
-	// Win32 窗口消息回调程序
-	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+
 };
 
 

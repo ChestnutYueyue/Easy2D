@@ -1,13 +1,14 @@
 #include <easy2d/e2dbase.h>
 #include <easy2d/e2dmanager.h>
 #include <easy2d/e2dnode.h>
-#include <Windowsx.h>
-#include <imm.h>
 #include <easy2d/GLRenderer.h>
+#include <SDL.h>
+#include <SDL_syswm.h>
+#include <stb_image.h>
 
 
-// 窗口句柄
-static HWND s_HWnd = nullptr;
+// SDL窗口句柄
+static SDL_Window* s_Window = nullptr;
 static easy2d::Window::Cursor s_currentCursor = easy2d::Window::Cursor::Normal;
 
 namespace easy2d
@@ -81,99 +82,181 @@ static easy2d::CustomCursor s_customCursor;
 
 bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 {
-	// 注册窗口类
-	WNDCLASSEXA wcex	= { 0 };
-	wcex.cbSize			= sizeof(WNDCLASSEX);
-	wcex.lpszClassName	= "Easy2DApp";
-	wcex.hIcon			= nullptr;
-	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= Window::WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= HINST_THISCOMPONENT;
-	wcex.hbrBackground	= nullptr;
-	wcex.lpszMenuName	= nullptr;
-	wcex.hCursor		= ::LoadCursor(HINST_THISCOMPONENT, IDC_ARROW);
+	// 初始化SDL视频子系统
+	if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
+	{
+		Window::error("SDL_Init Video Failed!");
+		return false;
+	}
 
-	RegisterClassExA(&wcex);
-
-	// 计算窗口大小
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW &~ WS_MAXIMIZEBOX &~ WS_THICKFRAME;
-	RECT wr = { 0, 0, static_cast<LONG>(nWidth), static_cast<LONG>(nHeight) };
-	::AdjustWindowRectEx(&wr, dwStyle, FALSE, NULL);
-	// 获取新的宽高
-	nWidth = static_cast<int>(wr.right - wr.left);
-	nHeight = static_cast<int>(wr.bottom - wr.top);
-
-	// 获取屏幕分辨率
-	int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
-
-	// 创建窗口
-	s_HWnd = ::CreateWindowExA(
-		NULL,
-		"Easy2DApp",
+	// 创建SDL窗口
+	s_Window = SDL_CreateWindow(
 		title.c_str(),
-		dwStyle,
-		(screenWidth - nWidth) / 2, (screenHeight - nHeight) / 2, 
-		nWidth, nHeight,
-		nullptr,
-		nullptr,
-		HINST_THISCOMPONENT,
-		nullptr
+		SDL_WINDOWPOS_CENTERED,
+		SDL_WINDOWPOS_CENTERED,
+		nWidth,
+		nHeight,
+		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
 	);
 
-	HRESULT hr = s_HWnd ? S_OK : E_FAIL;
-
-	if (SUCCEEDED(hr))
-	{
-		// 禁用输入法
-		Window::setTypewritingEnable(false);
-		// 禁用控制台关闭按钮
-		HWND consoleHWnd = ::GetConsoleWindow();
-		if (consoleHWnd)
-		{
-			HMENU hmenu = ::GetSystemMenu(consoleHWnd, FALSE);
-			::RemoveMenu(hmenu, SC_CLOSE, MF_BYCOMMAND);
-		}
-	}
-	else
-	{
-		::UnregisterClassA("Easy2DApp", HINST_THISCOMPONENT);
-	}
-
-	if (FAILED(hr))
+	if (!s_Window)
 	{
 		Window::error("Create Window Failed!");
+		SDL_QuitSubSystem(SDL_INIT_VIDEO);
+		return false;
 	}
 
-	return SUCCEEDED(hr);
+	// 禁用最大化按钮和边框调整（保持与原Win32行为一致）
+	SDL_SetWindowResizable(s_Window, SDL_FALSE);
+
+	return true;
 }
 
 void easy2d::Window::__uninit()
 {
 	s_customCursor.clear();
-	// 关闭控制台
-	if (::GetConsoleWindow())
+
+	// 销毁SDL窗口
+	if (s_Window)
 	{
-		::FreeConsole();
+		SDL_DestroyWindow(s_Window);
+		s_Window = nullptr;
 	}
-	// 关闭窗口
-	if (s_HWnd)
-	{
-		::DestroyWindow(s_HWnd);
-		s_HWnd = nullptr;
-	}
+
+	// 关闭SDL视频子系统
+	SDL_QuitSubSystem(SDL_INIT_VIDEO);
 }
 
 void easy2d::Window::__poll()
 {
-	static MSG msg;
-
-	while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+	SDL_Event event;
+	while (SDL_PollEvent(&event))
 	{
-		::TranslateMessage(&msg);
-		::DispatchMessage(&msg);
+		switch (event.type)
+		{
+		case SDL_QUIT:
+		{
+			easy2d::Scene* pCurrentScene = easy2d::SceneManager::getCurrentScene();
+			if (!pCurrentScene || pCurrentScene->onCloseWindow())
+			{
+				easy2d::Game::quit();
+			}
+		}
+		break;
+
+		case SDL_KEYDOWN:
+		{
+			KeyCode::Value vk = static_cast<KeyCode::Value>(event.key.keysym.sym);
+			KeyDownEvent evt(vk, event.key.repeat);
+			SceneManager::dispatch(&evt);
+		}
+		break;
+
+		case SDL_KEYUP:
+		{
+			KeyCode::Value vk = static_cast<KeyCode::Value>(event.key.keysym.sym);
+			KeyUpEvent evt(vk, event.key.repeat);
+			SceneManager::dispatch(&evt);
+		}
+		break;
+
+		case SDL_MOUSEBUTTONDOWN:
+		{
+			MouseCode::Value btn = MouseCode::Left;
+			if (event.button.button == SDL_BUTTON_LEFT) btn = MouseCode::Left;
+			else if (event.button.button == SDL_BUTTON_RIGHT) btn = MouseCode::Right;
+			else if (event.button.button == SDL_BUTTON_MIDDLE) btn = MouseCode::Middle;
+
+			MouseDownEvent evt(
+				static_cast<float>(event.button.x),
+				static_cast<float>(event.button.y),
+				btn
+			);
+			SceneManager::dispatch(&evt);
+		}
+		break;
+
+		case SDL_MOUSEBUTTONUP:
+		{
+			MouseCode::Value btn = MouseCode::Left;
+			if (event.button.button == SDL_BUTTON_LEFT) btn = MouseCode::Left;
+			else if (event.button.button == SDL_BUTTON_RIGHT) btn = MouseCode::Right;
+			else if (event.button.button == SDL_BUTTON_MIDDLE) btn = MouseCode::Middle;
+
+			MouseUpEvent evt(
+				static_cast<float>(event.button.x),
+				static_cast<float>(event.button.y),
+				btn
+			);
+			SceneManager::dispatch(&evt);
+		}
+		break;
+
+		case SDL_MOUSEMOTION:
+		{
+			MouseMoveEvent evt(
+				static_cast<float>(event.motion.x),
+				static_cast<float>(event.motion.y)
+			);
+			SceneManager::dispatch(&evt);
+		}
+		break;
+
+		case SDL_MOUSEWHEEL:
+		{
+			int mouseX, mouseY;
+			SDL_GetMouseState(&mouseX, &mouseY);
+			MouseWheelEvent evt(
+				static_cast<float>(mouseX),
+				static_cast<float>(mouseY),
+				static_cast<float>(event.wheel.y)
+			);
+			SceneManager::dispatch(&evt);
+		}
+		break;
+
+		case SDL_WINDOWEVENT:
+		{
+			switch (event.window.event)
+			{
+			case SDL_WINDOWEVENT_SIZE_CHANGED:
+			{
+				int width = event.window.data1;
+				int height = event.window.data2;
+				auto glRenderer = Renderer::getGLRenderer();
+				if (glRenderer) glRenderer->resize(width, height);
+			}
+			break;
+
+			case SDL_WINDOWEVENT_CLOSE:
+			{
+				easy2d::Scene* pCurrentScene = easy2d::SceneManager::getCurrentScene();
+				if (!pCurrentScene || pCurrentScene->onCloseWindow())
+				{
+					easy2d::Game::quit();
+				}
+			}
+			break;
+
+			case SDL_WINDOWEVENT_FOCUS_GAINED:
+				// 窗口获得焦点
+				break;
+
+			case SDL_WINDOWEVENT_FOCUS_LOST:
+				// 窗口失去焦点
+				break;
+
+			case SDL_WINDOWEVENT_MINIMIZED:
+				// 窗口最小化
+				break;
+
+			case SDL_WINDOWEVENT_RESTORED:
+				// 窗口恢复
+				break;
+			}
+		}
+		break;
+		}
 	}
 }
 
@@ -182,46 +265,39 @@ void easy2d::Window::__updateCursor()
 	s_customCursor.update(s_currentCursor);
 	if (s_customCursor)
 	{
-		::SetCursor(NULL); // 保证不显示默认指针
+		SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
 		return;
 	}
 
-	LPCWSTR pCursorName = nullptr;
+	SDL_SystemCursor cursorType = SDL_SYSTEM_CURSOR_ARROW;
 	switch (s_currentCursor)
 	{
 	case Cursor::Normal:
-		pCursorName = IDC_ARROW;
+		cursorType = SDL_SYSTEM_CURSOR_ARROW;
 		break;
 
 	case Cursor::Hand:
-		pCursorName = IDC_HAND;
+		cursorType = SDL_SYSTEM_CURSOR_HAND;
 		break;
 
 	case Cursor::No:
-		pCursorName = IDC_NO;
+		cursorType = SDL_SYSTEM_CURSOR_NO;
 		break;
 
 	case Cursor::Wait:
-		pCursorName = IDC_WAIT;
+		cursorType = SDL_SYSTEM_CURSOR_WAIT;
 		break;
 
 	case Cursor::ArrowWait:
-		pCursorName = IDC_APPSTARTING;
+		cursorType = SDL_SYSTEM_CURSOR_WAITARROW;
 		break;
 
 	default:
+		cursorType = SDL_SYSTEM_CURSOR_ARROW;
 		break;
 	}
 
-	if (pCursorName)
-	{
-		HCURSOR hCursor = ::LoadCursor(nullptr, pCursorName);
-		::SetCursor(hCursor);
-	}
-	else
-	{
-		::SetCursor(NULL);
-	}
+	SDL_SetCursor(SDL_CreateSystemCursor(cursorType));
 }
 
 float easy2d::Window::getWidth()
@@ -236,61 +312,121 @@ float easy2d::Window::getHeight()
 
 easy2d::Size easy2d::Window::getSize()
 {
-	if (s_HWnd)
+	if (s_Window)
 	{
-		// 获取客户区大小
-		tagRECT rcClient;
-		::GetClientRect(s_HWnd, &rcClient);
-		return Size(float(rcClient.right - rcClient.left), float(rcClient.bottom - rcClient.top));
+		int width, height;
+		SDL_GetWindowSize(s_Window, &width, &height);
+		return Size(static_cast<float>(width), static_cast<float>(height));
 	}
 	return Size();
 }
 
-HWND easy2d::Window::getHWnd()
+SDL_Window* easy2d::Window::getSDLWindow()
 {
-	return s_HWnd;
+	return s_Window;
+}
+
+void* easy2d::Window::getNativeWindowHandle()
+{
+	if (!s_Window) return nullptr;
+
+	SDL_SysWMinfo info;
+	SDL_VERSION(&info.version);
+	if (SDL_GetWindowWMInfo(s_Window, &info))
+	{
+#ifdef SDL_VIDEO_DRIVER_WINDOWS
+		return info.info.win.window;
+#else
+		return nullptr;
+#endif
+	}
+	return nullptr;
 }
 
 void easy2d::Window::setSize(int width, int height)
 {
-	// 计算窗口大小
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW &~ WS_MAXIMIZEBOX &~ WS_THICKFRAME;
-	RECT wr = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
-	::AdjustWindowRectEx(&wr, dwStyle, FALSE, NULL);
-	// 获取新的宽高
-	width = static_cast<int>(wr.right - wr.left);
-	height = static_cast<int>(wr.bottom - wr.top);
-	// 获取屏幕分辨率
-	int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
-	// 当输入的窗口大小比分辨率大时，给出警告
-	if (screenWidth < width || screenHeight < height)
-		E2D_WARNING("The window is larger than screen!");
-	// 取最小值
-	width = std::min(width, screenWidth);
-	height = std::min(height, screenHeight);
-	// 修改窗口大小，并设置窗口在屏幕居中
-	::MoveWindow(s_HWnd, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, TRUE);
+	if (s_Window)
+	{
+		SDL_SetWindowSize(s_Window, width, height);
+	}
 }
 
 void easy2d::Window::setTitle(const String& title)
 {
-	// 设置窗口标题
-	::SetWindowTextA(s_HWnd, title.c_str());
+	if (s_Window)
+	{
+		SDL_SetWindowTitle(s_Window, title.c_str());
+	}
 }
 
 void easy2d::Window::setIcon(int iconID)
 {
-	HINSTANCE hInstance = ::GetModuleHandleA(nullptr);
-	HICON hIcon = (HICON)::LoadImageA(hInstance, MAKEINTRESOURCEA(iconID), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
-	// 设置窗口的图标
-	::SendMessageA(s_HWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-	::SendMessageA(s_HWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+	// SDL2设置图标需要加载表面数据
+	// 资源ID方式在SDL2中不直接支持，建议使用setIcon(const String& filePath)
+	E2D_WARNING("Window::setIcon(int) is deprecated in SDL2 mode, use setIcon(const String&) instead");
+}
+
+void easy2d::Window::setIcon(const String& filePath)
+{
+	if (!s_Window)
+	{
+		E2D_ERROR("Window not created, cannot set icon");
+		return;
+	}
+
+	// 使用stb_image加载图片
+	int width, height, channels;
+	unsigned char* pixels = stbi_load(filePath.c_str(), &width, &height, &channels, 4);
+
+	if (!pixels)
+	{
+		E2D_ERROR("Failed to load icon image: %s", filePath.c_str());
+		return;
+	}
+
+	// 将RGBA数据转换为ARGB格式（SDL需要）
+	unsigned char* argbPixels = new unsigned char[width * height * 4];
+	for (int i = 0; i < width * height; ++i)
+	{
+		argbPixels[i * 4 + 0] = pixels[i * 4 + 3]; // A
+		argbPixels[i * 4 + 1] = pixels[i * 4 + 0]; // R
+		argbPixels[i * 4 + 2] = pixels[i * 4 + 1]; // G
+		argbPixels[i * 4 + 3] = pixels[i * 4 + 2]; // B
+	}
+
+	// 创建SDL_Surface
+	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(
+		argbPixels,
+		width,
+		height,
+		32,
+		width * 4,
+		0x00FF0000, // R mask
+		0x0000FF00, // G mask
+		0x000000FF, // B mask
+		0xFF000000  // A mask
+	);
+
+	if (surface)
+	{
+		SDL_SetWindowIcon(s_Window, surface);
+		SDL_FreeSurface(surface);
+		E2D_LOG("Window icon set successfully: %s", filePath.c_str());
+	}
+	else
+	{
+		E2D_ERROR("Failed to create SDL_Surface for icon: %s", SDL_GetError());
+	}
+
+	// 清理
+	delete[] argbPixels;
+	stbi_image_free(pixels);
 }
 
 void easy2d::Window::setCursor(Cursor cursor)
 {
 	s_currentCursor = cursor;
+	__updateCursor();
 }
 
 void easy2d::Window::setCustomCursor(Node* cursor)
@@ -314,229 +450,40 @@ easy2d::Node* easy2d::Window::getCustomCursor()
 
 easy2d::String easy2d::Window::getTitle()
 {
-	char wszTitle[MAX_PATH] = { 0 };
-	::GetWindowTextA(s_HWnd, wszTitle, MAX_PATH);
-	return wszTitle;
+	if (s_Window)
+	{
+		return SDL_GetWindowTitle(s_Window);
+	}
+	return "";
 }
 
 void easy2d::Window::setTypewritingEnable(bool enable)
 {
-	static HIMC hImc = nullptr;
-
+	// SDL2中输入法管理由SDL_StartTextInput/SDL_StopTextInput处理
 	if (enable)
 	{
-		if (hImc != nullptr)
-		{
-			::ImmAssociateContext(Window::getHWnd(), hImc);
-			hImc = nullptr;
-		}
+		SDL_StartTextInput();
 	}
 	else
 	{
-		if (hImc == nullptr)
-		{
-			hImc = ::ImmAssociateContext(Window::getHWnd(), nullptr);
-		}
+		SDL_StopTextInput();
 	}
 }
 
-void easy2d::Window::info(const String & text, const String & title)
+void easy2d::Window::info(const String& text, const String& title)
 {
-	::MessageBoxA(s_HWnd, text.c_str(), title.c_str(), MB_ICONINFORMATION | MB_OK);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_INFORMATION, title.c_str(), text.c_str(), s_Window);
 	Game::reset();
 }
 
 void easy2d::Window::warning(const String& text, const String& title)
 {
-	::MessageBoxA(s_HWnd, text.c_str(), title.c_str(), MB_ICONWARNING | MB_OK);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, title.c_str(), text.c_str(), s_Window);
 	Game::reset();
 }
 
-void easy2d::Window::error(const String & text, const String & title)
+void easy2d::Window::error(const String& text, const String& title)
 {
-	::MessageBoxA(s_HWnd, text.c_str(), title.c_str(), MB_ICONERROR | MB_OK);
+	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, title.c_str(), text.c_str(), s_Window);
 	Game::reset();
-}
-
-easy2d::KeyCode::Value GetMappedKeyCode(WPARAM wParam, LPARAM lParam)
-{
-	using easy2d::KeyCode;
-	KeyCode::Value vk = KeyCode::Value(wParam);
-	bool extended = (HIWORD(lParam) & KF_EXTENDED) == KF_EXTENDED;
-	BYTE scancode = LOBYTE(HIWORD(lParam));
-
-	switch (vk) {
-	case VK_SHIFT:
-		vk = KeyCode::Value(MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX));
-		break;
-	case VK_CONTROL:
-		vk = extended ? KeyCode::RCtrl : KeyCode::LCtrl;
-		break;
-	case VK_MENU:
-		vk = extended ? KeyCode::RAlt : KeyCode::LAlt;
-		break;
-	default:
-		// not a key we map from generic to left/right specialized
-		//  just return it.
-		break;
-	}
-	return vk;
-}
-
-LRESULT easy2d::Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	LRESULT result = 0;
-	bool hasHandled = false;
-
-	switch (message)
-	{
-
-	case WM_KEYDOWN:
-	case WM_SYSKEYDOWN:
-	{
-		KeyCode::Value vk = KeyCode::Value(wParam);
-		KeyDownEvent evt(vk, int(lParam & 0xFF));
-		SceneManager::dispatch(&evt);
-
-		KeyCode::Value newVk = GetMappedKeyCode(wParam, lParam);
-		if (vk != newVk)
-		{
-			KeyDownEvent evt(newVk, int(lParam & 0xFF));
-			SceneManager::dispatch(&evt);
-		}
-	}
-	break;
-
-	case WM_KEYUP:
-	case WM_SYSKEYUP:
-	{
-		KeyCode::Value vk = KeyCode::Value(wParam);
-		KeyUpEvent evt(vk, int(lParam & 0xFF));
-		SceneManager::dispatch(&evt);
-
-		KeyCode::Value newVk = GetMappedKeyCode(wParam, lParam);
-		if (vk != newVk)
-		{
-			KeyUpEvent evt(newVk, int(lParam & 0xFF));
-			SceneManager::dispatch(&evt);
-		}
-	}
-	break;
-
-	case WM_LBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_RBUTTONUP:
-	{
-		MouseCode::Value btn = MouseCode::Left;
-		if (message == WM_LBUTTONUP) { btn = MouseCode::Left; }
-		else if (message == WM_RBUTTONUP) { btn = MouseCode::Right; }
-		else if (message == WM_MBUTTONUP) { btn = MouseCode::Middle; }
-
-		MouseUpEvent evt(
-			static_cast<float>(GET_X_LPARAM(lParam)),
-			static_cast<float>(GET_Y_LPARAM(lParam)),
-			btn
-		);
-		SceneManager::dispatch(&evt);
-	}
-	break;
-
-	case WM_LBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-	{
-		MouseCode::Value btn = MouseCode::Left;
-		if (message == WM_LBUTTONDOWN) { btn = MouseCode::Left; }
-		else if (message == WM_RBUTTONDOWN) { btn = MouseCode::Right; }
-		else if (message == WM_MBUTTONDOWN) { btn = MouseCode::Middle; }
-
-		MouseDownEvent evt(
-			static_cast<float>(GET_X_LPARAM(lParam)),
-			static_cast<float>(GET_Y_LPARAM(lParam)),
-			btn
-		);
-		SceneManager::dispatch(&evt);
-	}
-	break;
-
-	case WM_MOUSEMOVE:
-	{
-		MouseMoveEvent evt(
-			static_cast<float>(GET_X_LPARAM(lParam)),
-			static_cast<float>(GET_Y_LPARAM(lParam))
-		);
-		SceneManager::dispatch(&evt);
-	}
-	break;
-
-	case WM_MOUSEWHEEL:
-	{
-		MouseWheelEvent evt(
-			static_cast<float>(GET_X_LPARAM(lParam)),
-			static_cast<float>(GET_Y_LPARAM(lParam)),
-			GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA
-		);
-		SceneManager::dispatch(&evt);
-	}
-	break;
-
-	// 处理窗口大小变化消息
-	case WM_SIZE:
-	{
-		UINT width = LOWORD(lParam);
-	UINT height = HIWORD(lParam);
-	// 如果程序接收到一个 WM_SIZE 消息，这个方法将调整渲染
-	// 目标适当。它可能会调用失败，但是这里可以忽略有可能的
-	// 错误，因为这个错误将在下一次调用 EndDraw 时产生
-	auto glRenderer = Renderer::getGLRenderer();
-	if (glRenderer) glRenderer->resize(static_cast<int>(width), static_cast<int>(height));
-}
-	break;
-
-	// 处理分辨率变化消息
-	case WM_DISPLAYCHANGE:
-	{
-		// 重绘客户区
-		InvalidateRect(hWnd, nullptr, FALSE);
-	}
-	result = 0;
-	hasHandled = true;
-	break;
-
-	case WM_SETCURSOR:
-	{
-		Window::__updateCursor();
-	}
-	break;
-
-	// 窗口关闭消息
-	case WM_CLOSE:
-	{
-		easy2d::Scene * pCurrentScene = easy2d::SceneManager::getCurrentScene();
-		if (!pCurrentScene || pCurrentScene->onCloseWindow())
-		{
-			easy2d::Game::quit();
-		}
-	}
-	result = 0;
-	hasHandled = true;
-	break;
-
-	// 窗口销毁消息
-	case WM_DESTROY:
-	{
-		PostQuitMessage(0);
-	}
-	result = 1;
-	hasHandled = true;
-	break;
-
-	}
-
-	if (!hasHandled)
-	{
-		result = DefWindowProcA(hWnd, message, wParam, lParam);
-	}
-
-	return result;
 }

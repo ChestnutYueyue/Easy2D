@@ -151,7 +151,7 @@ easy2d::String easy2d::Path::getSaveFilePath(const String& title, const String& 
 	OPENFILENAMEA ofn = { 0 };
 	char strFilename[MAX_PATH] = { 0 };					// 用于接收文件名
 	ofn.lStructSize = sizeof(OPENFILENAME);				// 结构体大小
-	ofn.hwndOwner = Window::getHWnd();					// 窗口句柄
+	ofn.hwndOwner = (HWND)Window::getNativeWindowHandle();	// 窗口句柄
 	ofn.lpstrFilter = "所有文件\0*.*\0\0";				// 设置过滤
 	ofn.nFilterIndex = 1;								// 过滤器索引
 	ofn.lpstrFile = strFilename;						// 接收返回的文件路径和文件名

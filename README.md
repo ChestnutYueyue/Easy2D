@@ -160,6 +160,7 @@ mindmap
 | 🔊 **音频系统** | WAV音频播放、音量控制 | `Audio`, `Music`, `SoundEffect` |
 | 🖱️ **GUI系统** | 按钮、菜单、事件响应 | `Button`, `Menu`, `EventListener` |
 | 💾 **数据存储** | 本地数据持久化、配置文件 | `UserDefault`, `FileUtils` |
+| 📝 **日志系统** | 多级别日志、文件记录、调试输出 | `Logger`, `LogLevel` |
 
 ---
 
@@ -494,6 +495,64 @@ sprite->runAction(repeat);
 ---
 
 ## 🔧 进阶主题
+
+### 日志系统
+
+Easy2D 集成了 **spdlog** 作为日志后端，提供高性能、功能丰富的日志记录功能。
+
+#### 日志级别
+
+| 级别 | 宏 | 说明 | 输出位置 |
+|:---:|:---|:---|:---|
+| Trace | `E2D_TRACE` | 最详细的追踪信息 | 仅Debug模式 |
+| Debug | `E2D_DEBUG_LOG` | 调试信息 | 仅Debug模式 |
+| Info | `E2D_LOG` | 普通信息 | 仅Debug模式 |
+| Warning | `E2D_WARNING` | 警告信息 | 控制台+文件 |
+| Error | `E2D_ERROR` | 错误信息 | 控制台+文件 |
+| Critical | `E2D_CRITICAL` | 严重错误 | 控制台+文件 |
+
+#### 使用示例
+
+```cpp
+// 追踪信息（仅Debug模式输出）
+E2D_TRACE("Entering function: %s", __FUNCTION__);
+
+// 调试信息（仅Debug模式输出）
+E2D_DEBUG_LOG("Player position: x=%f, y=%f", x, y);
+
+// 普通信息（仅Debug模式输出）
+E2D_LOG("Game initialized successfully");
+
+// 警告信息（始终输出）
+E2D_WARNING("Texture not found: %s", textureName);
+
+// 错误信息（始终输出）
+E2D_ERROR("Failed to load shader");
+
+// 严重错误（始终输出）
+E2D_CRITICAL("Out of memory!");
+
+// 断言（仅Debug模式）
+E2D_ASSERT(ptr != nullptr, "Pointer should not be null");
+
+// 运行时设置日志级别
+Logger::setLevel(LogLevel::Warn);  // 只显示警告及以上
+```
+
+#### 日志输出
+
+日志同时输出到以下位置：
+- **控制台窗口**：彩色输出，带时间戳
+- **日志文件**：`logs/easy2d.log`，自动轮转（5MB分割，保留3个备份）
+- **VS调试窗口**：在Visual Studio中调试时可见
+
+#### 日志格式
+
+```
+[2024-01-15 10:30:25.123] [info] Easy2D Game initializing...
+[2024-01-15 10:30:25.456] [warn] Texture not found: player.png
+[2024-01-15 10:30:25.789] [error] Shader compilation failed
+```
 
 ### 自定义节点
 
