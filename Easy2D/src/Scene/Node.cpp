@@ -574,6 +574,14 @@ void easy2d::Node::setAnchor(float anchorX, float anchorY)
 	_anchor.y = std::max(std::min(float(anchorY), 1.0f), 0.0f);
 	_dirtyTransform = true;
 }
+void easy2d::Node::setAnchor(const Point& anchor)
+{
+	if (_anchor.x == anchor.x && _anchor.y == anchor.y)
+		return;
+	_anchor.x = std::max(std::min(float(anchor.x), 1.0f), 0.0f);
+	_anchor.y = std::max(std::min(float(anchor.y), 1.0f), 0.0f);
+	_dirtyTransform = true;
+}
 
 void easy2d::Node::setWidth(float width)
 {

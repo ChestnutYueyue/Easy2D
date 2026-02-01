@@ -10,32 +10,60 @@ easy2d::FadeTransition::FadeTransition(float duration, bool sequential)
 void easy2d::FadeTransition::_init(Scene * prev, Scene * next)
 {
 	Transition::_init(prev, next);
-	_outLayerParam.opacity = 1;
-	_inLayerParam.opacity = 0;
+	// 初始化场景透明度
+	if (_outScene)
+	{
+		_outScene->setOpacity(1.0f);
+	}
+	if (_inScene)
+	{
+		_inScene->setOpacity(0.0f);
+	}
 }
 
 void easy2d::FadeTransition::_updateCustom()
 {
 	if (_sequential)
 	{
-		if (_delta < 0.5)
+		if (_delta < 0.5f)
 		{
-			_outLayerParam.opacity = 1 - float(_delta) * 2;
-			_inLayerParam.opacity = 0;
+			// 第一阶段：旧场景淡出
+			if (_outScene)
+			{
+				_outScene->setOpacity(1.0f - _delta * 2.0f);
+			}
+			if (_inScene)
+			{
+				_inScene->setOpacity(0.0f);
+			}
 		}
 		else
 		{
-			_outLayerParam.opacity = 0;
-			_inLayerParam.opacity = float(_delta - 0.5) * 2;
+			// 第二阶段：新场景淡入
+			if (_outScene)
+			{
+				_outScene->setOpacity(0.0f);
+			}
+			if (_inScene)
+			{
+				_inScene->setOpacity((_delta - 0.5f) * 2.0f);
+			}
 		}
 	}
 	else
 	{
-		_outLayerParam.opacity = float(1 - _delta);
-		_inLayerParam.opacity = float(_delta);
+		// 同时淡入淡出
+		if (_outScene)
+		{
+			_outScene->setOpacity(1.0f - _delta);
+		}
+		if (_inScene)
+		{
+			_inScene->setOpacity(_delta);
+		}
 	}
 
-	if (_delta >= 1)
+	if (_delta >= 1.0f)
 	{
 		this->_stop();
 	}
@@ -43,4 +71,13 @@ void easy2d::FadeTransition::_updateCustom()
 
 void easy2d::FadeTransition::_reset()
 {
+	// 重置场景透明度
+	if (_outScene)
+	{
+		_outScene->setOpacity(1.0f);
+	}
+	if (_inScene)
+	{
+		_inScene->setOpacity(1.0f);
+	}
 }

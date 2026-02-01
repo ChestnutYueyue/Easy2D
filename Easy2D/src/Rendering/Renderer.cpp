@@ -227,59 +227,16 @@ float easy2d::Renderer::getDpiScaleY()
     return s_fDpiScaleY;
 }
 
-// 以下D2D1特定接口已废弃，返回nullptr或默认值以兼容旧代码
-void* easy2d::Renderer::getID2D1Factory()
-{
-    E2D_WARNING("getID2D1Factory is deprecated in OpenGL mode");
-    return nullptr;
-}
-
 void* easy2d::Renderer::getRenderTarget()
 {
     // 返回GLRenderer实例作为渲染目标标识
     return E2D_GL_RENDERER.getRenderTarget();
 }
 
-void* easy2d::Renderer::getSolidColorBrush()
-{
-    E2D_WARNING("getSolidColorBrush is deprecated in OpenGL mode");
-    return nullptr;
-}
-
-void* easy2d::Renderer::getIWICImagingFactory()
-{
-    E2D_WARNING("getIWICImagingFactory is deprecated in OpenGL mode");
-    return nullptr;
-}
-
-void* easy2d::Renderer::getIDWriteFactory()
-{
-    E2D_WARNING("getIDWriteFactory is deprecated in OpenGL mode");
-    return nullptr;
-}
-
 void easy2d::Renderer::DrawTextLayout(TextLayout* layout, const DrawingStyle& style, const Point& offset, void* rt, void* brush)
 {
     // 使用OpenGL渲染文本
     E2D_GL_RENDERER.drawTextLayout(layout, offset, style);
-}
-
-void* easy2d::Renderer::getMiterID2D1StrokeStyle()
-{
-    E2D_WARNING("getMiterID2D1StrokeStyle is deprecated in OpenGL mode");
-    return nullptr;
-}
-
-void* easy2d::Renderer::getBevelID2D1StrokeStyle()
-{
-    E2D_WARNING("getBevelID2D1StrokeStyle is deprecated in OpenGL mode");
-    return nullptr;
-}
-
-void* easy2d::Renderer::getRoundID2D1StrokeStyle()
-{
-    E2D_WARNING("getRoundID2D1StrokeStyle is deprecated in OpenGL mode");
-    return nullptr;
 }
 
 // 获取GLRenderer实例（新增接口）

@@ -3,29 +3,22 @@
 #include <easy2d/GLTextRenderer.h>
 
 easy2d::TextLayout::TextLayout()
-	: _textFormat(nullptr)
-	, _textLayout(nullptr)
-	, _size()
+	: _size()
 	, _text()
 	, _style()
 {
 }
 
 easy2d::TextLayout::TextLayout(const String& text, const TextStyle& style)
-	: _textFormat(nullptr)
-	, _textLayout(nullptr)
-	, _size()
+	: _size()
 	, _text(text)
 	, _style(style)
 {
-	_recreateFormat();
 	_recreateLayout();
 }
 
 easy2d::TextLayout::~TextLayout()
 {
-	_textFormat = nullptr;
-	_textLayout = nullptr;
 }
 
 const easy2d::String& easy2d::TextLayout::getText() const
@@ -199,22 +192,13 @@ void easy2d::TextLayout::reset(const String& text, const TextStyle& style)
 	_recreateLayout();
 }
 
-void easy2d::TextLayout::_recreateFormat()
-{
-	// OpenGL模式下不需要创建格式对象
-	_textFormat = nullptr;
-}
-
 void easy2d::TextLayout::_recreateLayout()
 {
-	_textLayout = nullptr;
-	
 	if (_text.empty())
 	{
 		_size = Size{};
 		return;
 	}
-	
 	// 使用GLTextRenderer计算文本尺寸
 	GLTextRenderer& textRenderer = GLTextRenderer::getInstance();
 	_size = textRenderer.calculateTextSize(_text, _style);

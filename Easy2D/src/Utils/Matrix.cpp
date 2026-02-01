@@ -110,20 +110,13 @@ glm::mat3 Matrix32::toMat3() const
 
 glm::mat4 Matrix32::toMat4() const
 {
-    return glm::mat4(
-        _11, _12, 0.0f, 0.0f,
-        _21, _22, 0.0f, 0.0f,
-        0.0f, 0.0f, 1.0f, 0.0f,
-        _31, _32, 0.0f, 1.0f
-    );
+	return glm::mat4(
+		_11, _12, 0.0f, 0.0f,
+		_21, _22, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		_31, _32, 0.0f, 1.0f
+	);
 }
-
-#ifndef E2D_NO_DIRECT2D
-D2D1::Matrix3x2F const& Matrix32::toD2DMatrix() const
-{
-    return reinterpret_cast<D2D1::Matrix3x2F const&>(*this);
-}
-#endif
 
 // 静态方法
 Matrix32 Matrix32::translation(float x, float y)

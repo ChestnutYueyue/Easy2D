@@ -11,19 +11,12 @@ easy2d::Transition::Transition(float duration)
 	, _delta(0)
 	, _outScene(nullptr)
 	, _inScene(nullptr)
-	, _outLayer(nullptr)
-	, _inLayer(nullptr)
-	, _outLayerParam()
-	, _inLayerParam()
 {
 	_duration = std::max(duration, 0.0f);
 }
 
 easy2d::Transition::~Transition()
 {
-	SafeRelease(_outLayer);
-	SafeRelease(_inLayer);
-
 	GC::release(_outScene);
 	GC::release(_inScene);
 }
