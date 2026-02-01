@@ -479,19 +479,42 @@ public:
 class GC
 {
 public:
-	// 将对象放入 GC 池
+	// 将对象放入 GC 池（新生代）
 	static void trace(
+		Object* pObject
+	);
+
+	// 将对象放入老年代（用于长期存活的对象）
+	static void tracePersistent(
 		Object* pObject
 	);
 
 	// 清理对象
 	static void clear();
 
+	// 强制完整GC（清理所有代）
+	static void forceFullCollect();
+
 	// 检查对象是否在 GC 池中
 	static bool isInPool(Object* pObject);
 
 	// GC 池状态
 	static bool isClearing();
+
+	// 获取 GC 池中对象总数
+	static size_t getPoolSize();
+
+	// 获取新生代对象数量
+	static size_t getYoungPoolSize();
+
+	// 获取老年代对象数量
+	static size_t getOldPoolSize();
+
+	// 设置是否启用分代GC
+	static void setGenerationalEnabled(bool enabled);
+
+	// 是否启用了分代GC
+	static bool isGenerationalEnabled();
 
 	// 保留对象
 	template <typename Type>

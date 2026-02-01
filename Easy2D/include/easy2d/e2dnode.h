@@ -4,6 +4,8 @@
 #include <easy2d/e2dtext.h>
 #include <easy2d/e2dlistener.h>
 #include <vector>
+#include <unordered_set>
+#include <cstdint>
 
 namespace easy2d 
 {
@@ -477,31 +479,60 @@ private:
 	void __clearParents();
 
 protected:
-	bool		_visible;
-	bool		_autoUpdate;
-	bool		_needSort;
-	bool		_showBodyShape;
-	bool		_removed;
-	int			_order;
-	float		_rotation;
-	float		_displayOpacity;
-	float		_realOpacity;
+	// 子节点容器
+	std::vector<Node*>	_children;
+	
+	// 监听器容器 - 使用vector保持顺序，unordered_set快速去重
+	std::vector<ListenerBase*> _listeners;
+	std::unordered_set<ListenerBase*> _listenerSet;
+	bool _listenersDirty = false;
+
+	// 矩阵成员（24字节）
+	mutable Matrix32	_transform;
+	mutable Matrix32	_inverseTransform;
+
+	// 指针成员（8字节）
+	Scene*		_parentScene;
+	Node*		_parent;
+	Shape*		_body;
+
+	// Point/Size/Vector2成员（8字节）
 	Point		_pos;
 	Size		_size;
 	Vector2		_scale;
 	Vector2		_skewAngle;
 	Point		_anchor;
-	Scene*		_parentScene;
-	Node*		_parent;
-	Shape*		_body;
 
-	std::vector<Node*>	_children;
-	std::vector<ListenerBase*> _listeners;
+	// float成员（4字节）
+	float		_rotation;
+	float		_displayOpacity;
+	float		_realOpacity;
 
-	mutable bool		_dirtyTransform;
-	mutable Matrix32	_transform;
-	mutable bool		_dirtyInverseTransform;
-	mutable Matrix32	_inverseTransform;
+	// int成员（4字节）
+	int			_order;
+
+	// bool标志位使用位域压缩到1字节
+	// 注意：mutable允许在const方法中修改脏标记
+	union {
+		struct {
+			uint8_t _visible : 1;
+			uint8_t _autoUpdate : 1;
+			uint8_t _needSort : 1;
+			uint8_t _showBodyShape : 1;
+			uint8_t _removed : 1;
+			mutable uint8_t _dirtyTransform : 1;
+			mutable uint8_t _dirtyInverseTransform : 1;
+			uint8_t _reserved : 1;  // 保留位
+		};
+		uint8_t _flags;
+	};
+
+public:
+	// 获取标志位（用于调试）
+	uint8_t getFlags() const { return _flags; }
+	
+	// 预分配子节点空间，避免频繁扩容
+	void reserveChildren(size_t capacity);
 };
 
 

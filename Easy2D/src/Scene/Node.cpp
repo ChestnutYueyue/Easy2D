@@ -11,28 +11,37 @@ static float s_fDefaultAnchorX = 0;
 static float s_fDefaultAnchorY = 0;
 
 easy2d::Node::Node()
-	: _visible(true)
-	, _autoUpdate(true)
-	, _needSort(false)
-	, _showBodyShape(false)
-	, _removed(false)
-	, _order(0)
-	, _rotation(0)
-	, _displayOpacity(1.0f)
-	, _realOpacity(1.0f)
+	: _children()
+	, _listeners()
+	, _transform()
+	, _inverseTransform()
+	, _parentScene(nullptr)
+	, _parent(nullptr)
+	, _body(nullptr)
 	, _pos()
 	, _size()
 	, _scale(1.0f, 1.0f)
 	, _skewAngle()
 	, _anchor(s_fDefaultAnchorX, s_fDefaultAnchorY)
-	, _parentScene(nullptr)
-	, _parent(nullptr)
-	, _body(nullptr)
-	, _dirtyTransform(false)
-	, _transform()
-	, _dirtyInverseTransform(false)
-	, _inverseTransform()
+	, _rotation(0)
+	, _displayOpacity(1.0f)
+	, _realOpacity(1.0f)
+	, _order(0)
+	, _flags(0)
 {
+	// 使用位域初始化标志位
+	_visible = true;
+	_autoUpdate = true;
+	_needSort = false;
+	_showBodyShape = false;
+	_removed = false;
+	_dirtyTransform = false;
+	_dirtyInverseTransform = false;
+}
+
+void easy2d::Node::reserveChildren(size_t capacity)
+{
+	_children.reserve(capacity);
 }
 
 easy2d::Node::~Node()
@@ -251,16 +260,47 @@ void easy2d::Node::_updateInverseTransform() const
 
 void easy2d::Node::_sortChildren()
 {
-	if (_needSort)
+	if (!_needSort)
+		return;
+
+	// 优化：对于少量子节点或已接近有序的数组，使用插入排序
+	// 对于一般情况，使用std::sort（内省排序）
+	const size_t n = _children.size();
+	
+	if (n <= 1)
 	{
+		_needSort = false;
+		return;
+	}
+	
+	// 小数组使用插入排序（缓存友好，常数小）
+	if (n <= 16)
+	{
+		for (size_t i = 1; i < n; ++i)
+		{
+			Node* key = _children[i];
+			int keyOrder = key->getOrder();
+			size_t j = i;
+			
+			while (j > 0 && _children[j - 1]->getOrder() > keyOrder)
+			{
+				_children[j] = _children[j - 1];
+				--j;
+			}
+			_children[j] = key;
+		}
+	}
+	else
+	{
+		// 大数组使用标准排序
 		std::sort(
 			std::begin(_children),
 			std::end(_children),
 			[](Node* n1, Node* n2) { return n1->getOrder() < n2->getOrder(); }
 		);
-
-		_needSort = false;
 	}
+
+	_needSort = false;
 }
 
 void easy2d::Node::_updateOpacity()
@@ -887,8 +927,8 @@ void easy2d::Node::addListener(ListenerBase* listener)
 {
 	if (listener)
 	{
-		auto iter = std::find(_listeners.begin(), _listeners.end(), listener);
-		if (iter == _listeners.end())
+		// 使用unordered_set进行O(1)去重检查
+		if (_listenerSet.insert(listener).second)
 		{
 			GC::retain(listener);
 			_listeners.push_back(listener);
@@ -900,11 +940,12 @@ void easy2d::Node::removeListener(ListenerBase* listener)
 {
 	if (listener)
 	{
-		auto iter = std::find(_listeners.begin(), _listeners.end(), listener);
-		if (iter != _listeners.end())
+		// 使用unordered_set进行O(1)查找
+		if (_listenerSet.erase(listener))
 		{
-			GC::release(listener);
-			_listeners.erase(iter);
+			// 标记为脏，延迟从vector中移除
+			_listenersDirty = true;
+			listener->done();
 		}
 	}
 }
@@ -977,16 +1018,37 @@ void easy2d::Node::removeAllListeners()
 
 void easy2d::Node::__updateListeners()
 {
-	if (_listeners.empty())
+	if (_listeners.empty() && !_listenersDirty)
 		return;
 
+	// 如果有延迟删除的监听器，执行清理
+	if (_listenersDirty)
+	{
+		for (auto it = _listeners.begin(); it != _listeners.end(); )
+		{
+			auto listener = *it;
+			if (listener->isDone())
+			{
+				GC::release(listener);
+				_listenerSet.erase(listener);
+				it = _listeners.erase(it);
+			}
+			else
+			{
+				++it;
+			}
+		}
+		_listenersDirty = false;
+	}
+
+	// 清理已停止的监听器
 	for (size_t i = 0; i < _listeners.size(); )
 	{
 		auto listener = _listeners[i];
-		// 清除已停止的监听器
 		if (listener->isDone())
 		{
 			GC::release(listener);
+			_listenerSet.erase(listener);
 			_listeners.erase(_listeners.begin() + i);
 		}
 		else
@@ -1016,6 +1078,8 @@ void easy2d::Node::__clearListeners()
 		GC::release(listener);
 	}
 	_listeners.clear();
+	_listenerSet.clear();
+	_listenersDirty = false;
 }
 
 easy2d::Shape* easy2d::Node::getBodyShape() const
