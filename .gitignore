@@ -2,7 +2,11 @@ Win32/
 x64/
 Debug/
 Release/
-
+.xmake/
+.vscode/
+.trae/
+.cache/
+GreedyMonster-Easy2D/
 build/
 output/
 build-win7/
@@ -13,7 +17,7 @@ ipch/
 *.opensdf
 *.sdf
 *.suo
-
+*.json
 *.user
 *.lnk
 .vs
