@@ -21,6 +21,11 @@
 #	define WIN32_LEAN_AND_MEAN
 #endif
 
+// Prevent min/max macro conflicts
+#ifndef NOMINMAX
+#	define NOMINMAX
+#endif
+
 #ifndef DIRECTINPUT_VERSION
 #	define DIRECTINPUT_VERSION 0x0800
 #endif

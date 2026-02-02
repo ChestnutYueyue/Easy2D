@@ -1,4 +1,5 @@
 #include <easy2d/e2dmath.h>
+#include <algorithm>
 
 easy2d::Matrix32::Matrix32()
 	: _11(1.f), _12(0.f)
