@@ -34,11 +34,11 @@ void easy2d::SceneManager::enter(Scene * scene, Transition * transition /* = nul
 		return;
 	}
 
-	// ±£´æÏÂÒ»³¡¾°µÄÖ¸Õë
+	// ä¿å­˜ä¸‹ä¸€åœºæ™¯çš„æŒ‡é’ˆ
 	s_pNextScene = scene;
 	s_pNextScene->retain();
 	
-	// ÉèÖÃÇĞ»»³¡¾°¶¯×÷
+	// è®¾ç½®åˆ‡æ¢åœºæ™¯åŠ¨ä½œ
 	if (transition)
 	{
 		if (s_pTransition)
@@ -60,21 +60,21 @@ void easy2d::SceneManager::enter(Scene * scene, Transition * transition /* = nul
 
 void easy2d::SceneManager::back(Transition * transition /* = nullptr */)
 {
-	// Õ»Îª¿ÕÊ±£¬µ÷ÓÃ·µ»Ø³¡¾°º¯ÊıÊ§°Ü
+	// æ ˆä¸ºç©ºæ—¶ï¼Œè°ƒç”¨è¿”å›åœºæ™¯å‡½æ•°å¤±è´¥
 	if (s_SceneStack.size() == 0) E2D_WARNING("Scene stack is empty!");
 	if (s_SceneStack.size() == 0) return;
 
-	// ´ÓÕ»¶¥È¡³ö³¡¾°Ö¸Õë£¬×÷ÎªÏÂÒ»³¡¾°
+	// ä»æ ˆé¡¶å–å‡ºåœºæ™¯æŒ‡é’ˆï¼Œä½œä¸ºä¸‹ä¸€åœºæ™¯
 	s_pNextScene = s_SceneStack.top();
 	s_SceneStack.pop();
 
-	// ·µ»ØÉÏÒ»³¡¾°Ê±£¬²»±£´æµ±Ç°³¡¾°
+	// è¿”å›ä¸Šä¸€åœºæ™¯æ—¶ï¼Œä¸ä¿å­˜å½“å‰åœºæ™¯
 	if (s_pCurrScene)
 	{
 		s_bSaveCurrScene = false;
 	}
 
-	// ÉèÖÃÇĞ»»³¡¾°¶¯×÷
+	// è®¾ç½®åˆ‡æ¢åœºæ™¯åŠ¨ä½œ
 	if (transition)
 	{
 		s_pTransition = transition;
@@ -87,7 +87,7 @@ void easy2d::SceneManager::back(Transition * transition /* = nullptr */)
 void easy2d::SceneManager::clear()
 {
 	clearDispatcherList();
-	// Çå¿Õ³¡¾°Õ»
+	// æ¸…ç©ºåœºæ™¯æ ˆ
 	while (s_SceneStack.size())
 	{
 		auto temp = s_SceneStack.top();
@@ -125,7 +125,7 @@ void easy2d::SceneManager::__update()
 
 	if (s_pTransition == nullptr)
 	{
-		// ¸üĞÂ³¡¾°ÄÚÈİ
+		// æ›´æ–°åœºæ™¯å†…å®¹
 		if (s_pCurrScene)
 		{
 			s_pCurrScene->_update();
@@ -133,7 +133,7 @@ void easy2d::SceneManager::__update()
 	}
 	else
 	{
-		// ¸üĞÂ³¡¾°¶¯×÷
+		// æ›´æ–°åœºæ™¯åŠ¨ä½œ
 		s_pTransition->_update();
 
 		if (s_pTransition->isDone())
@@ -147,13 +147,13 @@ void easy2d::SceneManager::__update()
 		}
 	}
 
-	// ÏÂÒ»³¡¾°Ö¸Õë²»Îª¿ÕÊ±£¬ÇĞ»»³¡¾°
+	// ä¸‹ä¸€åœºæ™¯æŒ‡é’ˆä¸ä¸ºç©ºæ—¶ï¼Œåˆ‡æ¢åœºæ™¯
 	if (s_pNextScene)
 	{
-		// Ö´ĞĞµ±Ç°³¡¾°µÄ onExit º¯Êı
+		// æ‰§è¡Œå½“å‰åœºæ™¯çš„ onExit å‡½æ•°
 		s_pCurrScene->onExit();
 
-		// ÈôÒª±£´æµ±Ç°³¡¾°£¬°ÑËü·ÅÈëÕ»ÖĞ
+		// è‹¥è¦ä¿å­˜å½“å‰åœºæ™¯ï¼ŒæŠŠå®ƒæ”¾å…¥æ ˆä¸­
 		if (s_bSaveCurrScene)
 		{
 			s_SceneStack.push(s_pCurrScene);
@@ -163,11 +163,11 @@ void easy2d::SceneManager::__update()
 			GC::release(s_pCurrScene);
 		}
 
-		// Ö´ĞĞÏÂÒ»³¡¾°µÄ onEnter º¯Êı
+		// æ‰§è¡Œä¸‹ä¸€åœºæ™¯çš„ onEnter å‡½æ•°
 		s_pNextScene->onEnter();
 
-		s_pCurrScene = s_pNextScene;		// ÇĞ»»³¡¾°
-		s_pNextScene = nullptr;				// ÏÂÒ»³¡¾°ÖÃ¿Õ
+		s_pCurrScene = s_pNextScene;		// åˆ‡æ¢åœºæ™¯
+		s_pNextScene = nullptr;				// ä¸‹ä¸€åœºæ™¯ç½®ç©º
 	}
 }
 
@@ -179,7 +179,7 @@ void easy2d::SceneManager::__render(bool showBodyShape)
 	}
 	else
 	{
-		// »æÖÆµ±Ç°³¡¾°
+		// ç»˜åˆ¶å½“å‰åœºæ™¯
 		if (s_pCurrScene)
 		{
 			s_pCurrScene->_render();
@@ -193,7 +193,7 @@ void easy2d::SceneManager::__render(bool showBodyShape)
 
 bool easy2d::SceneManager::__init()
 {
-	// ÈôÓÎÏ·³õÊ¼»¯Ê±³¡¾°²»Îª¿Õ£¬½øÈë¸Ã³¡¾°
+	// è‹¥æ¸¸æˆåˆå§‹åŒ–æ—¶åœºæ™¯ä¸ä¸ºç©ºï¼Œè¿›å…¥è¯¥åœºæ™¯
 	if (s_pNextScene)
 	{
 		s_pCurrScene = s_pNextScene;
@@ -201,7 +201,7 @@ bool easy2d::SceneManager::__init()
 		s_pNextScene = nullptr;
 	}
 
-	// ¸üĞÂ³¡¾°ÄÚÈİ
+	// æ›´æ–°åœºæ™¯å†…å®¹
 	SceneManager::__update();
 
 	return true;

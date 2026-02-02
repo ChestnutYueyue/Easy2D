@@ -211,7 +211,7 @@ HRESULT LoadBitmapFromFile(ID2D1Bitmap** ppBitmap, const easy2d::String& filePat
 
 	HRESULT hr = S_OK;
 
-	// ´´½¨½âÂëÆ÷
+	// åˆ›å»ºè§£ç å™¨
 	IWICBitmapDecoder* pDecoder = nullptr;
 	hr = Renderer::getIWICImagingFactory()->CreateDecoderFromFilename(
 		wFilePath.c_str(),
@@ -224,21 +224,21 @@ HRESULT LoadBitmapFromFile(ID2D1Bitmap** ppBitmap, const easy2d::String& filePat
 	IWICBitmapFrameDecode* pSource = nullptr;
 	if (SUCCEEDED(hr))
 	{
-		// ´´½¨³õÊ¼»¯¿ò¼Ü
+		// åˆ›å»ºåˆå§‹åŒ–æ¡†æ¶
 		hr = pDecoder->GetFrame(0, &pSource);
 	}
 
 	IWICFormatConverter* pConverter = nullptr;
 	if (SUCCEEDED(hr))
 	{
-		// ´´½¨Í¼Æ¬¸ñÊ½×ª»»Æ÷
+		// åˆ›å»ºå›¾ç‰‡æ ¼å¼è½¬æ¢å™¨
 		// (DXGI_FORMAT_B8G8R8A8_UNORM + D2D1_ALPHA_MODE_PREMULTIPLIED).
 		hr = Renderer::getIWICImagingFactory()->CreateFormatConverter(&pConverter);
 	}
 
 	if (SUCCEEDED(hr))
 	{
-		// Í¼Æ¬¸ñÊ½×ª»»³É 32bbpPBGRA
+		// å›¾ç‰‡æ ¼å¼è½¬æ¢æˆ 32bbpPBGRA
 		hr = pConverter->Initialize(
 			pSource,
 			GUID_WICPixelFormat32bppPBGRA,
@@ -258,7 +258,7 @@ HRESULT LoadBitmapFromFile(ID2D1Bitmap** ppBitmap, const easy2d::String& filePat
 		);
 	}
 
-	// ÊÍ·ÅÏà¹Ø×ÊÔ´
+	// é‡Šæ”¾ç›¸å…³èµ„æº
 	SafeRelease(pDecoder);
 	SafeRelease(pSource);
 	SafeRelease(pConverter);
@@ -273,13 +273,13 @@ HRESULT LoadBitmapFromResource(ID2D1Bitmap** ppBitmap, const easy2d::Resource& r
 	IWICStream* pStream = nullptr;
 	if (SUCCEEDED(hr))
 	{
-		// ´´½¨ WIC Á÷
+		// åˆ›å»º WIC æµ
 		hr = Renderer::getIWICImagingFactory()->CreateStream(&pStream);
 	}
 
 	if (SUCCEEDED(hr))
 	{
-		// ³õÊ¼»¯Á÷
+		// åˆå§‹åŒ–æµ
 		hr = pStream->InitializeFromMemory(
 			reinterpret_cast<BYTE*>(resData.buffer),
 			static_cast<DWORD>(resData.size)
@@ -289,7 +289,7 @@ HRESULT LoadBitmapFromResource(ID2D1Bitmap** ppBitmap, const easy2d::Resource& r
 	IWICBitmapDecoder* pDecoder = nullptr;
 	if (SUCCEEDED(hr))
 	{
-		// ´´½¨Á÷µÄ½âÂëÆ÷
+		// åˆ›å»ºæµçš„è§£ç å™¨
 		hr = Renderer::getIWICImagingFactory()->CreateDecoderFromStream(
 			pStream,
 			nullptr,
@@ -301,21 +301,21 @@ HRESULT LoadBitmapFromResource(ID2D1Bitmap** ppBitmap, const easy2d::Resource& r
 	IWICBitmapFrameDecode* pSource = nullptr;
 	if (SUCCEEDED(hr))
 	{
-		// ´´½¨³õÊ¼»¯¿ò¼Ü
+		// åˆ›å»ºåˆå§‹åŒ–æ¡†æ¶
 		hr = pDecoder->GetFrame(0, &pSource);
 	}
 
 	IWICFormatConverter* pConverter = nullptr;
 	if (SUCCEEDED(hr))
 	{
-		// ´´½¨Í¼Æ¬¸ñÊ½×ª»»Æ÷
+		// åˆ›å»ºå›¾ç‰‡æ ¼å¼è½¬æ¢å™¨
 		// (DXGI_FORMAT_B8G8R8A8_UNORM + D2D1_ALPHA_MODE_PREMULTIPLIED).
 		hr = Renderer::getIWICImagingFactory()->CreateFormatConverter(&pConverter);
 	}
 
 	if (SUCCEEDED(hr))
 	{
-		// Í¼Æ¬¸ñÊ½×ª»»³É 32bppPBGRA
+		// å›¾ç‰‡æ ¼å¼è½¬æ¢æˆ 32bppPBGRA
 		hr = pConverter->Initialize(
 			pSource,
 			GUID_WICPixelFormat32bppPBGRA,
@@ -335,7 +335,7 @@ HRESULT LoadBitmapFromResource(ID2D1Bitmap** ppBitmap, const easy2d::Resource& r
 		);
 	}
 
-	// ÊÍ·ÅÏà¹Ø×ÊÔ´
+	// é‡Šæ”¾ç›¸å…³èµ„æº
 	SafeRelease(pDecoder);
 	SafeRelease(pSource);
 	SafeRelease(pStream);

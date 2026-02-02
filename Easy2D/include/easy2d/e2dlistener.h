@@ -6,32 +6,32 @@ namespace easy2d
 
 class Node;
 
-// ÊÂ¼ş¼àÌıÆ÷»ùÀà
+// äº‹ä»¶ç›‘å¬å™¨åŸºç±»
 class ListenerBase
 	: public Object
 {
 	friend class Node;
 
 public:
-	// Æô¶¯¼àÌı
+	// å¯åŠ¨ç›‘å¬
 	void start();
 
-	// Í£Ö¹¼àÌı
+	// åœæ­¢ç›‘å¬
 	void stop();
 
-	// »ñÈ¡¼àÌıÆ÷ÔËĞĞ×´Ì¬
+	// è·å–ç›‘å¬å™¨è¿è¡ŒçŠ¶æ€
 	bool isRunning() const;
 
-	// ÓÎÏ·ÔİÍ£Ê±ÈÔÈ»ÔËĞĞ
+	// æ¸¸æˆæš‚åœæ—¶ä»ç„¶è¿è¡Œ
 	void ignoreGamePaused();
 
 protected:
 	ListenerBase();
 
-	// ´¦ÀíÊÂ¼ş
+	// å¤„ç†äº‹ä»¶
 	virtual void handle(Node* target, Event* evt) = 0;
 
-	// ÏÂÒ»´Î´¦ÀíÊ±ÒÆ³ı¸Ã¼àÌıÆ÷
+	// ä¸‹ä¸€æ¬¡å¤„ç†æ—¶ç§»é™¤è¯¥ç›‘å¬å™¨
 	void done();
 
 private:
@@ -46,7 +46,7 @@ protected:
 };
 
 
-// ÊÂ¼ş¼àÌıÆ÷
+// äº‹ä»¶ç›‘å¬å™¨
 class Listener
 	: public ListenerBase
 {
@@ -63,13 +63,13 @@ public:
 		bool paused = false
 	);
 
-	// ÉèÖÃ¼àÌı»Øµ÷º¯Êı
+	// è®¾ç½®ç›‘å¬å›è°ƒå‡½æ•°
 	void setCallback(
 		const Callback& func
 	);
 
 protected:
-	// ´¦ÀíÊÂ¼ş
+	// å¤„ç†äº‹ä»¶
 	virtual void handle(Node* target, Event* evt) override;
 
 protected:
@@ -77,17 +77,17 @@ protected:
 };
 
 
-// °´Å¥ÊÂ¼ş
+// æŒ‰é’®äº‹ä»¶
 enum class ButtonEvent
 {
-	MouseEntered,  // Êó±ê¸¡ÓÚ°´Å¥ÉÏ
-	MouseExited,   // Êó±ê´Ó°´Å¥ÉÏÒÆ³ö
-	Pressed,       // Êó±ê°´ÏÂ
-	Clicked,       // Êó±êµã»÷
+	MouseEntered,  // é¼ æ ‡æµ®äºæŒ‰é’®ä¸Š
+	MouseExited,   // é¼ æ ‡ä»æŒ‰é’®ä¸Šç§»å‡º
+	Pressed,       // é¼ æ ‡æŒ‰ä¸‹
+	Clicked,       // é¼ æ ‡ç‚¹å‡»
 };
 
 
-// °´Å¥ÊÂ¼ş¼àÌıÆ÷»ùÀà
+// æŒ‰é’®äº‹ä»¶ç›‘å¬å™¨åŸºç±»
 class ButtonListenerBase
 	: public ListenerBase
 {
@@ -104,7 +104,7 @@ protected:
 };
 
 
-// °´Å¥ÊÂ¼ş¼àÌıÆ÷
+// æŒ‰é’®äº‹ä»¶ç›‘å¬å™¨
 class ButtonListener
 	: public ButtonListenerBase
 {
@@ -117,13 +117,13 @@ public:
 		const Callback& func
 	);
 
-	// ÉèÖÃ¼àÌı»Øµ÷º¯Êı
+	// è®¾ç½®ç›‘å¬å›è°ƒå‡½æ•°
 	void setCallback(
 		const Callback& func
 	);
 
 protected:
-	// ´¦ÀíÊÂ¼ş
+	// å¤„ç†äº‹ä»¶
 	virtual void handle(Node* target, ButtonEvent evt) override;
 
 protected:
@@ -131,7 +131,7 @@ protected:
 };
 
 
-// ¿ª¹Ø°´Å¥ÊÂ¼ş¼àÌıÆ÷
+// å¼€å…³æŒ‰é’®äº‹ä»¶ç›‘å¬å™¨
 class ToggleButtonListener
 	: public ButtonListenerBase
 {
@@ -145,22 +145,22 @@ public:
 		const Callback& func
 	);
 
-	// ÉèÖÃ¼àÌı»Øµ÷º¯Êı
+	// è®¾ç½®ç›‘å¬å›è°ƒå‡½æ•°
 	void setCallback(
 		const Callback& func
 	);
 
-	// »ñÈ¡¿ª¹Ø×´Ì¬
+	// è·å–å¼€å…³çŠ¶æ€
 	bool getState() const;
 
-	// ÉèÖÃ¿ª¹Ø×´Ì¬
+	// è®¾ç½®å¼€å…³çŠ¶æ€
 	void setState(bool state);
 
-	// ÇĞ»»¿ª¹Ø×´Ì¬
+	// åˆ‡æ¢å¼€å…³çŠ¶æ€
 	void toggle();
 
 protected:
-	// ´¦ÀíÊÂ¼ş
+	// å¤„ç†äº‹ä»¶
 	virtual void handle(Node* target, ButtonEvent evt) override;
 
 protected:

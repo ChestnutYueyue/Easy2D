@@ -9,11 +9,11 @@
 #pragma once
 
 #ifndef __cplusplus
-#	error ½öÄÜÔÚ C++ »·¾³ÏÂÊ¹ÓÃ Easy2D
+#	error ä»…èƒ½åœ¨ C++ ç¯å¢ƒä¸‹ä½¿ç”¨ Easy2D
 #endif
 
 #if _MSC_VER < 1700
-#	error Easy2D ²»Ö§³Ö Visual Studio 2012 ÒÔÏÂ°æ±¾
+#	error Easy2D ä¸æ”¯æŒ Visual Studio 2012 ä»¥ä¸‹ç‰ˆæœ¬
 #endif
 
 

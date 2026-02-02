@@ -4,21 +4,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
-// Music with XAudio2
+// Music with miniaudio
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include <xaudio2.h>
-#include <mfapi.h>
-#include <mfidl.h>
-#include <mfreadwrite.h>
-#include <shlwapi.h>
-
-#pragma comment(lib, "xaudio2.lib")
-#pragma comment(lib, "Mfplat.lib")
-#pragma comment(lib, "Mfreadwrite.lib")
-#pragma comment(lib, "Shlwapi.lib")
-
+#define MINIAUDIO_IMPLEMENTATION
+#include <easy2d/miniaudio.h>
 
 #ifndef SAFE_DELETE
 #define SAFE_DELETE(p)       { if (p) { delete (p);     (p)=nullptr; } }
@@ -30,8 +21,7 @@
 
 namespace
 {
-	IXAudio2* s_pXAudio2 = nullptr;
-	IXAudio2MasteringVoice* s_pMasteringVoice = nullptr;
+	ma_engine* s_pEngine = nullptr;
 }
 
 
@@ -41,9 +31,9 @@ inline bool TraceError(char* sPrompt)
 	return false;
 }
 
-inline bool TraceError(char* sPrompt, HRESULT hr)
+inline bool TraceError(char* sPrompt, ma_result result)
 {
-	E2D_WARNING("%s (%#X)", sPrompt, hr);
+	E2D_WARNING("%s (%d)", sPrompt, result);
 	return false;
 }
 
@@ -82,36 +72,26 @@ public:
 	);
 
 private:
-	HRESULT _loadMediaFile(
-		String const& file_path
-	);
-
-	HRESULT _loadMediaResource(
-		LPVOID buffer,
-		DWORD bufferSize
-	);
-
-	HRESULT _readSource(
-		IMFSourceReader* reader
-	);
-
-private:
 	bool _opened;
 	mutable bool _playing;
-	BYTE* _waveData;
-	DWORD _waveDataSize;
-	WAVEFORMATEX* _wfx;
-	IXAudio2SourceVoice* _voice;
+	int _loopCount;
+	ma_sound _sound;
+	ma_decoder _decoder;
+	void* _pResourceData;
+	size_t _resourceDataSize;
+
+	bool _initSoundFromDecoder();
 };
 
 easy2d::Music::Media::Media()
 	: _opened(false)
 	, _playing(false)
-	, _wfx(nullptr)
-	, _waveData(nullptr)
-	, _waveDataSize(0)
-	, _voice(nullptr)
+	, _loopCount(0)
+	, _pResourceData(nullptr)
+	, _resourceDataSize(0)
 {
+	memset(&_sound, 0, sizeof(_sound));
+	memset(&_decoder, 0, sizeof(_decoder));
 }
 
 easy2d::Music::Media::~Media()
@@ -119,47 +99,71 @@ easy2d::Music::Media::~Media()
 	close();
 }
 
+bool easy2d::Music::Media::_initSoundFromDecoder()
+{
+	if (!s_pEngine)
+	{
+		E2D_WARNING("Engine not initialized!");
+		return false;
+	}
+
+	// ä½¿ç”¨ decoder åˆ›å»º sound
+	ma_result result = ma_sound_init_from_data_source(
+		s_pEngine,
+		&_decoder,
+		MA_SOUND_FLAG_DECODE,
+		nullptr,
+		&_sound
+	);
+
+	if (result != MA_SUCCESS)
+	{
+		return TraceError("Failed to create sound from decoder", result);
+	}
+
+	return true;
+}
+
 bool easy2d::Music::Media::open(const easy2d::String& filePath)
 {
 	if (_opened)
 	{
-		E2D_WARNING("MusicInfo can be opened only once!");
+		E2D_WARNING("Music can be opened only once!");
 		return false;
 	}
 
 	if (filePath.empty())
 	{
-		E2D_WARNING("MusicInfo::open Invalid file name.");
+		E2D_WARNING("Music::open Invalid file name.");
 		return false;
 	}
 
 	String actualFilePath = Path::searchForFile(filePath);
 	if (actualFilePath.empty())
 	{
-		E2D_WARNING("MusicInfo::open File not found.");
+		E2D_WARNING("Music::open File not found.");
 		return false;
 	}
 
-	if (!s_pXAudio2)
+	if (!s_pEngine)
 	{
-		E2D_WARNING("IXAudio2 nullptr pointer error!");
+		E2D_WARNING("Engine not initialized!");
 		return false;
 	}
 
-	if (FAILED(_loadMediaFile(actualFilePath)))
-	{
-		TraceError("Failed to read WAV data");
-		SAFE_DELETE_ARRAY(_waveData);
-		return false;
-	}
+	// ä½¿ç”¨ miniaudio ç›´æ¥ä»æ–‡ä»¶åˆ›å»º sound
+	ma_result result = ma_sound_init_from_file(
+		s_pEngine,
+		actualFilePath.c_str(),
+		MA_SOUND_FLAG_DECODE,
+		nullptr,
+		nullptr,
+		&_sound
+	);
 
-	// ´´½¨ÒôÔ´
-	HRESULT hr;
-	if (FAILED(hr = s_pXAudio2->CreateSourceVoice(&_voice, _wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, nullptr)))
+	if (result != MA_SUCCESS)
 	{
-		TraceError("Create source voice error", hr);
-		SAFE_DELETE_ARRAY(_waveData);
-		return false;
+		return TraceError("Failed to load sound file", result);
 	}
 
 	_opened = true;
@@ -176,13 +180,13 @@ bool easy2d::Music::Media::open(int resNameId, const easy2d::String& resType)
 
 	if (_opened)
 	{
-		E2D_WARNING("MusicInfo can be opened only once!");
+		E2D_WARNING("Music can be opened only once!");
 		return false;
 	}
 
-	if (!s_pXAudio2)
+	if (!s_pEngine)
 	{
-		E2D_WARNING("IXAudio2 nullptr pointer error!");
+		E2D_WARNING("Engine not initialized!");
 		return false;
 	}
 
@@ -198,19 +202,35 @@ bool easy2d::Music::Media::open(int resNameId, const easy2d::String& resType)
 	if (nullptr == (pvRes = LockResource(hResData)))
 		return TraceError("LockResource");
 
-	if (FAILED(_loadMediaResource(pvRes, dwSize)))
+	// å¤åˆ¶èµ„æºæ•°æ®åˆ°å†…å­˜ä¸­
+	_pResourceData = new (std::nothrow) BYTE[dwSize];
+	if (!_pResourceData)
 	{
-		TraceError("Failed to read WAV data");
-		SAFE_DELETE_ARRAY(_waveData);
+		E2D_WARNING("Low memory");
 		return false;
 	}
+	memcpy(_pResourceData, pvRes, dwSize);
+	_resourceDataSize = dwSize;
 
-	// ´´½¨ÒôÔ´
-	HRESULT hr;
-	if (FAILED(hr = s_pXAudio2->CreateSourceVoice(&_voice, _wfx, 0, XAUDIO2_DEFAULT_FREQ_RATIO, nullptr)))
+	// åˆå§‹åŒ– decoder
+	ma_result result = ma_decoder_init_memory(
+		_pResourceData,
+		_resourceDataSize,
+		nullptr,
+		&_decoder
+	);
+
+	if (result != MA_SUCCESS)
 	{
-		TraceError("Create source voice error", hr);
-		SAFE_DELETE_ARRAY(_waveData);
+		SAFE_DELETE_ARRAY(_pResourceData);
+		return TraceError("Failed to init decoder", result);
+	}
+
+	// ä» decoder åˆ›å»º sound
+	if (!_initSoundFromDecoder())
+	{
+		ma_decoder_uninit(&_decoder);
+		SAFE_DELETE_ARRAY(_pResourceData);
 		return false;
 	}
 
@@ -223,385 +243,129 @@ bool easy2d::Music::Media::play(int nLoopCount)
 {
 	if (!_opened)
 	{
-		E2D_WARNING("MusicInfo::play Failed: MusicInfo must be opened first!");
+		E2D_WARNING("Music::play Failed: Music must be opened first!");
 		return false;
 	}
 
-	if (_voice == nullptr)
-	{
-		E2D_WARNING("MusicInfo::play Failed: IXAudio2SourceVoice Null pointer exception!");
-		return false;
-	}
+	_loopCount = nLoopCount;
 
+	// å¦‚æœæ­£åœ¨æ’­æ”¾ï¼Œå…ˆåœæ­¢
 	if (_playing)
 	{
 		stop();
 	}
 
-	nLoopCount = min(nLoopCount, XAUDIO2_LOOP_INFINITE - 1);
-	nLoopCount = (nLoopCount < 0) ? XAUDIO2_LOOP_INFINITE : nLoopCount;
+	// è®¾ç½®å¾ªç¯
+	ma_bool32 isLooping = (nLoopCount < 0 || nLoopCount > 1) ? MA_TRUE : MA_FALSE;
+	ma_sound_set_looping(&_sound, isLooping);
 
-	// Ìá½» wave Ñù±¾Êı¾İ
-	XAUDIO2_BUFFER buffer = { 0 };
-	buffer.pAudioData = _waveData;
-	buffer.Flags = XAUDIO2_END_OF_STREAM;
-	buffer.AudioBytes = _waveDataSize;
-	buffer.LoopCount = nLoopCount;
-
-	HRESULT hr;
-	if (FAILED(hr = _voice->SubmitSourceBuffer(&buffer)))
+	// å¼€å§‹æ’­æ”¾
+	ma_result result = ma_sound_start(&_sound);
+	if (result == MA_SUCCESS)
 	{
-		TraceError("Submitting source buffer error", hr);
-		_voice->DestroyVoice();
-		SAFE_DELETE_ARRAY(_waveData);
-		return false;
-	}
-
-	if (SUCCEEDED(hr = _voice->Start(0)))
-	{
-		// ²¥·Å³É¹¦£¬±£ÁôÕâ¸ö¶ÔÏó
 		_playing = true;
+		return true;
 	}
 
-	return SUCCEEDED(hr);
+	return TraceError("Failed to start sound", result);
 }
 
 void easy2d::Music::Media::pause()
 {
-	if (_voice)
+	if (_opened)
 	{
-		if (SUCCEEDED(_voice->Stop()))
-		{
-			_playing = false;
-		}
+		ma_sound_stop(&_sound);
+		_playing = false;
 	}
 }
 
 void easy2d::Music::Media::resume()
 {
-	if (_voice)
+	if (_opened)
 	{
-		if (SUCCEEDED(_voice->Start()))
-		{
-			_playing = true;
-		}
+		ma_sound_start(&_sound);
+		_playing = true;
 	}
 }
 
 void easy2d::Music::Media::stop()
 {
-	if (_voice)
+	if (_opened)
 	{
-		if (SUCCEEDED(_voice->Stop()))
-		{
-			_voice->ExitLoop();
-			_voice->FlushSourceBuffers();
-			_playing = false;
-		}
+		ma_sound_stop(&_sound);
+		ma_sound_seek_to_pcm_frame(&_sound, 0);
+		_playing = false;
 	}
 }
 
 void easy2d::Music::Media::close()
 {
-	if (_voice)
+	if (_opened)
 	{
-		_voice->Stop();
-		_voice->FlushSourceBuffers();
-		_voice->DestroyVoice();
-		_voice = nullptr;
+		ma_sound_uninit(&_sound);
+		memset(&_sound, 0, sizeof(_sound));
+
+		// å¦‚æœæ˜¯ä»èµ„æºåŠ è½½çš„ï¼Œæ¸…ç† decoder å’Œèµ„æºæ•°æ®
+		if (_decoder.data.memory.pData != nullptr)
+		{
+			ma_decoder_uninit(&_decoder);
+			memset(&_decoder, 0, sizeof(_decoder));
+		}
+
+		SAFE_DELETE_ARRAY(_pResourceData);
+		_resourceDataSize = 0;
+
+		_opened = false;
+		_playing = false;
 	}
-
-	if (_wfx)
-	{
-		::CoTaskMemFree(_wfx);
-		_wfx = nullptr;
-	}
-
-	SAFE_DELETE_ARRAY(_waveData);
-
-	_opened = false;
-	_playing = false;
 }
 
 bool easy2d::Music::Media::isPlaying() const
 {
-	if (_opened && _voice)
+	if (_opened)
 	{
-		XAUDIO2_VOICE_STATE state;
-		_voice->GetState(&state);
-
-		if (state.BuffersQueued == 0)
+		// æ£€æŸ¥æ˜¯å¦è¿˜åœ¨æ’­æ”¾
+		if (ma_sound_is_playing(&_sound))
 		{
-			_playing = false;
+			return true;
 		}
-		return _playing;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-bool easy2d::Music::Media::setVolume(float volume)
-{
-	if (_voice)
-	{
-		return SUCCEEDED(_voice->SetVolume(float(volume)));
+		_playing = false;
 	}
 	return false;
 }
 
-HRESULT easy2d::Music::Media::_loadMediaFile(String const& file_path)
+bool easy2d::Music::Media::setVolume(float volume)
 {
-	HRESULT hr = S_OK;
-
-	WideString file_path_w = NarrowToWide(file_path);
-
-	IMFSourceReader* reader = nullptr;
-
-	hr = MFCreateSourceReaderFromURL(
-		file_path_w.c_str(),
-		nullptr,
-		&reader
-	);
-
-	if (SUCCEEDED(hr))
+	if (_opened)
 	{
-		hr = _readSource(reader);
+		// miniaudio éŸ³é‡èŒƒå›´æ˜¯ 0.0 åˆ° 1.0
+		float linearVolume = max(0.0f, min(1.0f, volume));
+		ma_sound_set_volume(&_sound, linearVolume);
+		return true;
 	}
-
-	SafeRelease(reader);
-	return hr;
-}
-
-HRESULT easy2d::Music::Media::_loadMediaResource(LPVOID buffer, DWORD bufferSize)
-{
-	HRESULT	hr = S_OK;
-
-	IStream* stream = nullptr;
-	IMFByteStream* byte_stream = nullptr;
-	IMFSourceReader* reader = nullptr;
-
-	stream = SHCreateMemStream(
-		static_cast<const BYTE*>(buffer),
-		static_cast<UINT32>(bufferSize)
-	);
-
-	if (stream == nullptr)
-	{
-		E2D_WARNING("SHCreateMemStream failed");
-		return E_OUTOFMEMORY;
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = MFCreateMFByteStreamOnStream(stream, &byte_stream);
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = MFCreateSourceReaderFromByteStream(
-			byte_stream,
-			nullptr,
-			&reader
-		);
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = _readSource(reader);
-	}
-
-	SafeRelease(stream);
-	SafeRelease(byte_stream);
-	SafeRelease(reader);
-	return hr;
-}
-
-HRESULT easy2d::Music::Media::_readSource(IMFSourceReader* reader)
-{
-	HRESULT hr = S_OK;
-	DWORD max_stream_size = 0;
-
-	IMFMediaType* partial_type = nullptr;
-	IMFMediaType* uncompressed_type = nullptr;
-
-	hr = MFCreateMediaType(&partial_type);
-
-	if (SUCCEEDED(hr))
-	{
-		hr = partial_type->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = partial_type->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
-	}
-
-	// ÉèÖÃ source reader µÄÃ½ÌåÀàĞÍ£¬Ëü½«Ê¹ÓÃºÏÊÊµÄ½âÂëÆ÷È¥½âÂëÕâ¸öÒôÆµ
-	if (SUCCEEDED(hr))
-	{
-		hr = reader->SetCurrentMediaType(
-			(DWORD)MF_SOURCE_READER_FIRST_AUDIO_STREAM,
-			0,
-			partial_type
-		);
-	}
-
-	// ´Ó IMFMediaType ÖĞ»ñÈ¡ WAVEFORMAT ½á¹¹
-	if (SUCCEEDED(hr))
-	{
-		hr = reader->GetCurrentMediaType(
-			(DWORD)MF_SOURCE_READER_FIRST_AUDIO_STREAM,
-			&uncompressed_type
-		);
-	}
-
-	// Ö¸¶¨ÒôÆµÁ÷
-	if (SUCCEEDED(hr))
-	{
-		hr = reader->SetStreamSelection(
-			(DWORD)MF_SOURCE_READER_FIRST_AUDIO_STREAM,
-			true
-		);
-	}
-
-	// »ñÈ¡ WAVEFORMAT Êı¾İ
-	if (SUCCEEDED(hr))
-	{
-		UINT32 size = 0;
-		hr = MFCreateWaveFormatExFromMFMediaType(
-			uncompressed_type,
-			&_wfx,
-			&size,
-			(DWORD)MFWaveFormatExConvertFlag_Normal
-		);
-	}
-
-	// ¹ÀËãÒôÆµÁ÷´óĞ¡
-	if (SUCCEEDED(hr))
-	{
-		PROPVARIANT prop;
-		PropVariantInit(&prop);
-
-		hr = reader->GetPresentationAttribute(
-			(DWORD)MF_SOURCE_READER_MEDIASOURCE,
-			MF_PD_DURATION,
-			&prop
-		);
-
-		LONGLONG duration = prop.uhVal.QuadPart;
-		max_stream_size = static_cast<DWORD>(
-			(duration * _wfx->nAvgBytesPerSec) / 10000000 + 1
-			);
-		PropVariantClear(&prop);
-	}
-
-	// ¶ÁÈ¡ÒôÆµÊı¾İ
-	if (SUCCEEDED(hr))
-	{
-		DWORD flags = 0;
-		DWORD position = 0;
-		BYTE* data = new (std::nothrow) BYTE[max_stream_size];
-
-		IMFSample* sample = nullptr;
-		IMFMediaBuffer* buffer = nullptr;
-
-		if (data == nullptr)
-		{
-			E2D_WARNING("Low memory");
-			hr = E_OUTOFMEMORY;
-		}
-		else
-		{
-			while (true)
-			{
-				hr = reader->ReadSample(
-					(DWORD)MF_SOURCE_READER_FIRST_AUDIO_STREAM,
-					0,
-					nullptr,
-					&flags,
-					nullptr,
-					&sample
-				);
-
-				if (flags & MF_SOURCE_READERF_ENDOFSTREAM) { break; }
-
-				if (sample == nullptr) { continue; }
-
-				if (SUCCEEDED(hr))
-				{
-					hr = sample->ConvertToContiguousBuffer(&buffer);
-
-					if (SUCCEEDED(hr))
-					{
-						BYTE* audio_data = nullptr;
-						DWORD sample_buffer_length = 0;
-
-						hr = buffer->Lock(
-							&audio_data,
-							nullptr,
-							&sample_buffer_length
-						);
-
-						if (SUCCEEDED(hr) && sample_buffer_length <= max_stream_size)
-						{
-							for (DWORD i = 0; i < sample_buffer_length; i++)
-							{
-								data[position++] = audio_data[i];
-							}
-							hr = buffer->Unlock();
-						}
-					}
-					buffer = nullptr;
-				}
-				sample = nullptr;
-
-				if (FAILED(hr)) { break; }
-			}
-
-			if (SUCCEEDED(hr))
-			{
-				_waveData = data;
-				_waveDataSize = position;
-			}
-			else
-			{
-				delete[] data;
-				data = nullptr;
-			}
-		}
-
-		SafeRelease(sample);
-		SafeRelease(buffer);
-	}
-
-	SafeRelease(partial_type);
-	SafeRelease(uncompressed_type);
-	return hr;
+	return false;
 }
 
 bool easy2d::Music::__init()
 {
-	HRESULT hr;
-
-	if (FAILED(hr = MFStartup(MF_VERSION, MFSTARTUP_FULL)))
+	if (s_pEngine)
 	{
-		TraceError("Failed to startup MediaFoundation device", hr);
+		return true; // å·²ç»åˆå§‹åŒ–
+	}
+
+	s_pEngine = new (std::nothrow) ma_engine();
+	if (!s_pEngine)
+	{
+		E2D_WARNING("Failed to allocate engine");
 		return false;
 	}
 
-	if (FAILED(hr = XAudio2Create(&s_pXAudio2, 0)))
+	ma_result result = ma_engine_init(nullptr, s_pEngine);
+	if (result != MA_SUCCESS)
 	{
-		TraceError("Failed to init XAudio2 engine", hr);
-		return false;
-	}
-
-	if (FAILED(hr = s_pXAudio2->CreateMasteringVoice(&s_pMasteringVoice)))
-	{
-		TraceError("Failed to create mastering voice", hr);
-		SafeRelease(s_pXAudio2);
-		return false;
+		delete s_pEngine;
+		s_pEngine = nullptr;
+		return TraceError("Failed to init engine", result);
 	}
 
 	return true;
@@ -609,14 +373,12 @@ bool easy2d::Music::__init()
 
 void easy2d::Music::__uninit()
 {
-	if (s_pMasteringVoice)
+	if (s_pEngine)
 	{
-		s_pMasteringVoice->DestroyVoice();
+		ma_engine_uninit(s_pEngine);
+		delete s_pEngine;
+		s_pEngine = nullptr;
 	}
-
-	SafeRelease(s_pXAudio2);
-
-	MFShutdown();
 }
 
 #else
@@ -760,7 +522,7 @@ bool easy2d::Music::Media::play(int nLoopCount)
 	MCI_PLAY_PARMS mciPlay = { 0 };
 	mciPlay.dwCallback = reinterpret_cast<DWORD_PTR>(_wnd);
 
-	// ²¥·ÅÉùÒô
+	// æ’­æ”¾å£°éŸ³
 	MCIERROR mciError = mciSendCommandA(
 		_dev,
 		MCI_PLAY,
@@ -824,12 +586,12 @@ bool easy2d::Music::Media::setVolume(float volume)
 
 void easy2d::Music::Media::_sendCommand(int nCommand, DWORD_PTR param1, DWORD_PTR parma2)
 {
-	// ¿ÕÉè±¸Ê±ºöÂÔÕâ´Î²Ù×÷
+	// ç©ºè®¾å¤‡æ—¶å¿½ç•¥è¿™æ¬¡æ“ä½œ
 	if (!_dev)
 	{
 		return;
 	}
-	// Ïòµ±Ç°Éè±¸·¢ËÍ²Ù×÷
+	// å‘å½“å‰è®¾å¤‡å‘é€æ“ä½œ
 	mciSendCommandA(_dev, nCommand, param1, parma2);
 }
 

@@ -240,9 +240,25 @@ void easy2d::TextLayout::_recreateFormat()
 	}
 	else
 	{
-		// ÉèÖÃÎÄ×Ö¶ÔÆë·½Ê½
-		_textFormat->SetTextAlignment(DWRITE_TEXT_ALIGNMENT(_style.alignment));
-		// ÉèÖÃĞĞ¼ä¾à
+		// è®¾ç½®æ–‡å­—å¯¹é½æ–¹å¼
+		DWRITE_TEXT_ALIGNMENT dwriteAlignment;
+		switch (_style.alignment)
+		{
+		case TextAlign::Left:
+			dwriteAlignment = DWRITE_TEXT_ALIGNMENT_LEADING;
+			break;
+		case TextAlign::Right:
+			dwriteAlignment = DWRITE_TEXT_ALIGNMENT_TRAILING;
+			break;
+		case TextAlign::Center:
+			dwriteAlignment = DWRITE_TEXT_ALIGNMENT_CENTER;
+			break;
+		default:
+			dwriteAlignment = DWRITE_TEXT_ALIGNMENT_LEADING;
+			break;
+		}
+		_textFormat->SetTextAlignment(dwriteAlignment);
+		// è®¾ç½®è¡Œé—´è·
 		if (_style.lineSpacing == 0.0)
 		{
 			_textFormat->SetLineSpacing(DWRITE_LINE_SPACING_METHOD_DEFAULT, 0, 0);
@@ -255,7 +271,7 @@ void easy2d::TextLayout::_recreateFormat()
 				float(_style.lineSpacing) * 0.8f
 			);
 		}
-		// ´ò¿ªÎÄ±¾×Ô¶¯»»ĞĞÊ±£¬ÉèÖÃ»»ĞĞÊôĞÔ
+		// æ‰“å¼€æ–‡æœ¬è‡ªåŠ¨æ¢è¡Œæ—¶ï¼Œè®¾ç½®æ¢è¡Œå±æ€§
 		if (_style.wrapping)
 		{
 			_textFormat->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
@@ -271,7 +287,7 @@ void easy2d::TextLayout::_recreateLayout()
 {
 	SafeRelease(_textLayout);
 
-	// ÎÄ±¾Îª¿Õ×Ö·û´®Ê±£¬ÖØÖÃÊôĞÔ
+	// æ–‡æœ¬ä¸ºç©ºå­—ç¬¦ä¸²æ—¶ï¼Œé‡ç½®å±æ€§
 	if (_text.empty())
 	{
 		_size = Size{};
@@ -287,9 +303,9 @@ void easy2d::TextLayout::_recreateLayout()
 	WideString content = NarrowToWide(_text);
 	UINT32 length = (UINT32)content.length();
 
-	// ´´½¨ TextLayout
+	// åˆ›å»º TextLayout
 	HRESULT hr;
-	// ¶ÔÎÄ±¾×Ô¶¯»»ĞĞÇé¿öÏÂ½øĞĞ´¦Àí
+	// å¯¹æ–‡æœ¬è‡ªåŠ¨æ¢è¡Œæƒ…å†µä¸‹è¿›è¡Œå¤„ç†
 	if (_style.wrapping)
 	{
 		hr = Renderer::getIDWriteFactory()->CreateTextLayout(
@@ -302,25 +318,25 @@ void easy2d::TextLayout::_recreateLayout()
 		);
 		if (_textLayout)
 		{
-			// »ñÈ¡ÎÄ±¾²¼¾ÖµÄ¿í¶ÈºÍ¸ß¶È
+			// è·å–æ–‡æœ¬å¸ƒå±€çš„å®½åº¦å’Œé«˜åº¦
 			DWRITE_TEXT_METRICS metrics;
 			_textLayout->GetMetrics(&metrics);
-			// ÖØÉèÎÄ±¾¿í¸ß
+			// é‡è®¾æ–‡æœ¬å®½é«˜
 			_size = Size(metrics.layoutWidth, metrics.height);
 		}
 	}
 	else
 	{
 		hr = Renderer::getIDWriteFactory()->CreateTextLayout(content.c_str(), length, _textFormat, 0, 0, &_textLayout);
-		// Îª·ÀÖ¹ÎÄ±¾¶ÔÆëÎÊÌâ£¬¸ù¾İ¸Õ²Å´´½¨µÄ layout ¿í¶ÈÖØĞÂ´´½¨Ëü
+		// ä¸ºé˜²æ­¢æ–‡æœ¬å¯¹é½é—®é¢˜ï¼Œæ ¹æ®åˆšæ‰åˆ›å»ºçš„ layout å®½åº¦é‡æ–°åˆ›å»ºå®ƒ
 		if (_textLayout)
 		{
-			// »ñÈ¡ÎÄ±¾²¼¾ÖµÄ¿í¶ÈºÍ¸ß¶È
+			// è·å–æ–‡æœ¬å¸ƒå±€çš„å®½åº¦å’Œé«˜åº¦
 			DWRITE_TEXT_METRICS metrics;
 			_textLayout->GetMetrics(&metrics);
-			// ÖØÉèÎÄ±¾¿í¸ß
+			// é‡è®¾æ–‡æœ¬å®½é«˜
 			_size = Size(metrics.width, metrics.height);
-			// ÖØĞÂ´´½¨ layout
+			// é‡æ–°åˆ›å»º layout
 			SafeRelease(_textLayout);
 			hr = Renderer::getIDWriteFactory()->CreateTextLayout(content.c_str(), length, _textFormat, _size.width, 0, &_textLayout);
 		}
@@ -333,7 +349,7 @@ void easy2d::TextLayout::_recreateLayout()
 		return;
 	}
 
-	// Ìí¼ÓÏÂ»®ÏßºÍÉ¾³ıÏß
+	// æ·»åŠ ä¸‹åˆ’çº¿å’Œåˆ é™¤çº¿
 	DWRITE_TEXT_RANGE range = { 0, length };
 	if (_style.hasUnderline)
 	{

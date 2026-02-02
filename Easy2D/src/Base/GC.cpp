@@ -6,10 +6,10 @@
 //
 easy2d::__gc_helper::GCNewHelper easy2d::__gc_helper::GCNewHelper::instance;
 
-// GC �ͷųص�ʵ�ֻ��ƣ�
-// Object ���е����ü�����¼�˶���ʹ�õĴ�����������Ϊ 0 ʱ��GC ���Զ��ͷ��������
-// ���е� Object ����Ӧ�ڱ�ʹ��ʱ������ Text ���ӵ��˳����У�
-// ���� retain ������֤�ö��󲻱�ɾ�������ڲ���ʹ��ʱ���� release ����
+// GC 释放池的实现机制：
+// Object 类中的引用计数记录了对象被使用的次数，当计数为 0 时，GC 会自动释放这个对象
+// 所有的 Object 对象都应在被使用时（例如 Text 添加到了场景中）
+// 调用 retain 函数保证该对象不被删除，并在不再使用时调用 release 函数
 
 namespace
 {

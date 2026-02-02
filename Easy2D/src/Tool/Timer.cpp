@@ -207,7 +207,7 @@ void easy2d::Timer::__update()
 	for (auto iter = s_vTimers.begin(); iter != s_vTimers.end();)
 	{
 		auto timer = iter->second;
-		// Çå³ıÒÑÍ£Ö¹µÄ¶¨Ê±Æ÷
+		// æ¸…é™¤å·²åœæ­¢çš„å®šæ—¶å™¨
 		if (timer->removed)
 		{
 			GC::release(timer);
@@ -215,7 +215,7 @@ void easy2d::Timer::__update()
 		}
 		else
 		{
-			// ¸üĞÂ¶¨Ê±Æ÷
+			// æ›´æ–°å®šæ—¶å™¨
 			if (timer->isReady())
 			{
 				timer->update();

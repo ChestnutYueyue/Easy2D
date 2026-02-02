@@ -5,7 +5,7 @@
 namespace easy2d
 {
 
-// ������Ⱦ��
+// 文字渲染器
 class TextRenderer
 	: public IDWriteTextRenderer
 {
@@ -507,7 +507,7 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 {
 	__discardResources();
 
-	// �����豸�޹���Դ�����ǵ��������ںͳ����ʱ����ͬ
+	// 创建设备无关资源，它们的生命周期和程序的时长相同
 	HRESULT hr = D2D1CreateFactory(
 		D2D1_FACTORY_TYPE_SINGLE_THREADED,
 		&s_pDirect2dFactory
@@ -570,7 +570,7 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 
 	if (SUCCEEDED(hr))
 	{
-		// ���� WIC ��ͼ����������ͳһ�������ָ�ʽ��ͼƬ
+		// 创建 WIC 绘图工厂，用于统一处理各种格式的图片
 		hr = CoCreateInstance(
 			CLSID_WICImagingFactory,
 			nullptr,
@@ -583,7 +583,7 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 
 	if (SUCCEEDED(hr))
 	{
-		// ���� DirectWrite ����
+		// 创建 DirectWrite 工厂
 		hr = DWriteCreateFactory(
 			DWRITE_FACTORY_TYPE_SHARED,
 			__uuidof(IDWriteFactory),
@@ -594,7 +594,7 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 
 	if (SUCCEEDED(hr))
 	{
-		// �����ı���ʽ������
+		// 创建文本格式化对象
 		hr = s_pDWriteFactory->CreateTextFormat(
 			L"",
 			nullptr,
@@ -615,7 +615,7 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 
 	if (SUCCEEDED(hr))
 	{
-		// �����Զ����������Ⱦ��
+		// 创建自定义的文字渲染器
 		s_pTextRenderer = TextRenderer::Create(
 			s_pDirect2dFactory
 		);
@@ -636,7 +636,7 @@ bool easy2d::Renderer::__createDeviceResources()
 	s_fDpiScaleX = (float)::GetDeviceCaps(hdc, LOGPIXELSX);
 	s_fDpiScaleY = (float)::GetDeviceCaps(hdc, LOGPIXELSY);
 
-	// �����豸�����Դ����Щ��ԴӦ�� Direct3D �豸��ʧʱ�ؽ�
+	// 创建设备相关资源。这些资源应在 Direct3D 设备消失时重建
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 
@@ -645,7 +645,7 @@ bool easy2d::Renderer::__createDeviceResources()
 		rc.bottom - rc.top
 	);
 
-	// ����һ�� Direct2D ��ȾĿ��
+	// 创建一个 Direct2D 渲染目标
 	hr = s_pDirect2dFactory->CreateHwndRenderTarget(
 		D2D1::RenderTargetProperties(),
 		D2D1::HwndRenderTargetProperties(
@@ -659,7 +659,7 @@ bool easy2d::Renderer::__createDeviceResources()
 
 	if (SUCCEEDED(hr))
 	{
-		// ������ˢ
+		// 创建画刷
 		hr = s_pRenderTarget->CreateSolidColorBrush(
 			D2D1::ColorF(D2D1::ColorF::White),
 			&s_pSolidBrush
@@ -698,18 +698,18 @@ void easy2d::Renderer::__render()
 {
 	HRESULT hr = S_OK;
 
-	// �����豸�����Դ
+	// 创建设备相关资源
 	Renderer::__createDeviceResources();
 
-	// ��ʼ��Ⱦ
+	// 开始渲染
 	s_pRenderTarget->BeginDraw();
-	// ʹ�ñ���ɫ�����Ļ
+	// 使用背景色清空屏幕
 	s_pRenderTarget->Clear(s_nClearColor);
 
-	// ��Ⱦ����
+	// 渲染场景
 	SceneManager::__render(s_bShowBodyShapes);
 
-	// ��Ⱦ�Զ���ָ��
+	// 渲染自定义指针
 	auto cursor = Window::getCustomCursor();
 	if (cursor)
 	{
@@ -717,7 +717,7 @@ void easy2d::Renderer::__render()
 		cursor->_render();
 	}
 
-	// ��Ⱦ FPS
+	// 渲染 FPS
 	if (s_bShowFps && s_pTextFormat)
 	{
 		static int s_nRenderTimes = 0;
@@ -767,13 +767,13 @@ void easy2d::Renderer::__render()
 		}
 	}
 
-	// ��ֹ��Ⱦ
+	// 终止渲染
 	hr = s_pRenderTarget->EndDraw();
 
 	if (hr == D2DERR_RECREATE_TARGET)
 	{
-		// ��� Direct3D �豸��ִ�й�������ʧ����������ǰ���豸�����Դ
-		// ������һ�ε���ʱ�ؽ���Դ
+		// 如果 Direct3D 设备在执行过程中消失，将丢弃当前的设备相关资源
+		// 并在下一次调用时重建资源
 		hr = S_OK;
 		Renderer::__discardDeviceResources();
 	}

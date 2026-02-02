@@ -12,7 +12,7 @@ void easy2d::ButtonListenerBase::handle(Node* target, Event* evt)
 {
 	if (evt->target)
 	{
-		// ÒÑÓĞÄ¿±ê£¬²»ÔÙ´¦Àí
+		// å·²æœ‰ç›®æ ‡ï¼Œä¸å†å¤„ç†
 		return;
 	}
 
@@ -59,7 +59,7 @@ void easy2d::ButtonListenerBase::handle(Node* target, Event* evt)
 
 			handle(target, ButtonEvent::Clicked);
 
-			// ÖØÖÃÖ¸Õë×´Ì¬
+			// é‡ç½®æŒ‡é’ˆçŠ¶æ€
 			Window::setCursor(Window::Cursor::Normal);
 		}
 	}

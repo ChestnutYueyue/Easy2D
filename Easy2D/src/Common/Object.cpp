@@ -7,7 +7,7 @@ easy2d::Object::Object()
 	, _name(nullptr)
 	, _hashName(0)
 {
-	// 构造对象时，引用计数置 1
+	// 鏋勯�犲璞℃椂锛屽紩鐢ㄨ鏁扮疆 1
 }
 
 easy2d::Object::~Object()

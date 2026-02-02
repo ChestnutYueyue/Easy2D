@@ -3,38 +3,16 @@ set_version("3.0.0")
 set_languages("c++17")
 add_rules("mode.debug", "mode.release")
 
-add_requires("libsdl3")
-add_requires("glad")
-add_requires("stb")
-add_requires("zlib")
-add_requires("glm")
-add_requires("simpleini")
-add_requires("miniaudio")
-add_requires("freetype", { configs = { zlib = true } })
-add_requires("spdlog", { configs = { header_only = true } })
-
 target("easy2d")
     set_kind("static")
     set_basename("libeasy2d")
     add_files("Easy2D/src/**.cpp")
     add_headerfiles("Easy2D/include/**.h")
     add_includedirs("Easy2D/include", {public = true})
-    add_packages(
-        "libsdl3",
-        "glad",
-        "stb",
-        "zlib",
-        "glm",
-        "simpleini",
-        "miniaudio",
-        "freetype",
-        "spdlog",
-        {public = true}
-    )
 
     if is_plat("windows") then
         add_defines("WIN32_LEAN_AND_MEAN")
-        add_syslinks("opengl32", "user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32")
+        add_syslinks("opengl32", "user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32")
 
         local toolchain = get_config("toolchain") or "msvc"
         if toolchain == "msvc" or toolchain == "clang-cl" then

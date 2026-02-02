@@ -11,15 +11,15 @@ using namespace easy2d;
 
 namespace
 {
-	IDirectInput8A* s_pDirectInput = nullptr;			// DirectInput ½Ó¿Ú¶ÔÏó
-	IDirectInputDevice8A* s_KeyboardDevice = nullptr;	// ¼üÅÌÉè±¸½Ó¿Ú
-	char s_KeyBuffer[BUFFER_SIZE] = { 0 };				// ÓÃÓÚ±£´æ¼üÅÌ°´¼üĞÅÏ¢»º³åÇø
-	char s_KeyRecordBuffer[BUFFER_SIZE] = { 0 };		// ¼üÅÌÏûÏ¢¶ş¼¶»º³åÇø
+	IDirectInput8A* s_pDirectInput = nullptr;			// DirectInput æ¥å£å¯¹è±¡
+	IDirectInputDevice8A* s_KeyboardDevice = nullptr;	// é”®ç›˜è®¾å¤‡æ¥å£
+	char s_KeyBuffer[BUFFER_SIZE] = { 0 };				// ç”¨äºä¿å­˜é”®ç›˜æŒ‰é”®ä¿¡æ¯ç¼“å†²åŒº
+	char s_KeyRecordBuffer[BUFFER_SIZE] = { 0 };		// é”®ç›˜æ¶ˆæ¯äºŒçº§ç¼“å†²åŒº
 
-	IDirectInputDevice8A* s_MouseDevice = nullptr;		// Êó±êÉè±¸½Ó¿Ú
-	DIMOUSESTATE s_MouseState;							// Êó±êĞÅÏ¢´æ´¢½á¹¹Ìå
-	DIMOUSESTATE s_MouseRecordState;					// Êó±êĞÅÏ¢¶ş¼¶»º³å
-	POINT s_MousePosition;								// Êó±êÎ»ÖÃ´æ´¢½á¹¹Ìå
+	IDirectInputDevice8A* s_MouseDevice = nullptr;		// é¼ æ ‡è®¾å¤‡æ¥å£
+	DIMOUSESTATE s_MouseState;							// é¼ æ ‡ä¿¡æ¯å­˜å‚¨ç»“æ„ä½“
+	DIMOUSESTATE s_MouseRecordState;					// é¼ æ ‡ä¿¡æ¯äºŒçº§ç¼“å†²
+	POINT s_MousePosition;								// é¼ æ ‡ä½ç½®å­˜å‚¨ç»“æ„ä½“
 
 	const std::unordered_map<int, const std::vector<int>> s_KeyboardMapping = {
 		{ KeyCode::Unknown, { 0x00 } },
@@ -114,7 +114,7 @@ bool Input::__init()
 	ZeroMemory(&s_MouseState, sizeof(s_MouseState));
 	ZeroMemory(&s_MouseRecordState, sizeof(s_MouseRecordState));
 
-	// ³õÊ¼»¯½Ó¿Ú¶ÔÏó
+	// åˆå§‹åŒ–æ¥å£å¯¹è±¡
 	HRESULT hr = DirectInput8Create(
 		HINST_THISCOMPONENT,
 		DIRECTINPUT_VERSION,
@@ -125,7 +125,7 @@ bool Input::__init()
 
 	if (SUCCEEDED(hr))
 	{
-		// ³õÊ¼»¯¼üÅÌÉè±¸
+		// åˆå§‹åŒ–é”®ç›˜è®¾å¤‡
 		hr = s_pDirectInput->CreateDevice(
 			GUID_SysKeyboard,
 			&s_KeyboardDevice,
@@ -152,7 +152,7 @@ bool Input::__init()
 
 	if (SUCCEEDED(hr))
 	{
-		// ³õÊ¼»¯Êó±êÉè±¸
+		// åˆå§‹åŒ–é¼ æ ‡è®¾å¤‡
 		hr = s_pDirectInput->CreateDevice(GUID_SysMouse, &s_MouseDevice, nullptr);
 
 		if (SUCCEEDED(hr))

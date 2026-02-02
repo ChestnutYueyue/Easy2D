@@ -5,7 +5,7 @@
 #include <imm.h>
 #pragma comment (lib ,"imm32.lib")
 
-// ´°¿Ú¾ä±ú
+// çª—å£å¥æŸ„
 static HWND s_HWnd = nullptr;
 static easy2d::Window::Cursor s_currentCursor = easy2d::Window::Cursor::Normal;
 
@@ -80,7 +80,7 @@ static easy2d::CustomCursor s_customCursor;
 
 bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 {
-	// ×¢²á´°¿ÚÀà
+	// æ³¨å†Œçª—å£ç±»
 	WNDCLASSEXA wcex	= { 0 };
 	wcex.cbSize			= sizeof(WNDCLASSEX);
 	wcex.lpszClassName	= "Easy2DApp";
@@ -96,19 +96,19 @@ bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 
 	RegisterClassExA(&wcex);
 
-	// ¼ÆËã´°¿Ú´óĞ¡
+	// è®¡ç®—çª—å£å¤§å°
 	DWORD dwStyle = WS_OVERLAPPEDWINDOW &~ WS_MAXIMIZEBOX &~ WS_THICKFRAME;
 	RECT wr = { 0, 0, static_cast<LONG>(nWidth), static_cast<LONG>(nHeight) };
 	::AdjustWindowRectEx(&wr, dwStyle, FALSE, NULL);
-	// »ñÈ¡ĞÂµÄ¿í¸ß
+	// è·å–æ–°çš„å®½é«˜
 	nWidth = static_cast<int>(wr.right - wr.left);
 	nHeight = static_cast<int>(wr.bottom - wr.top);
 
-	// »ñÈ¡ÆÁÄ»·Ö±æÂÊ
+	// è·å–å±å¹•åˆ†è¾¨ç‡
 	int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
 
-	// ´´½¨´°¿Ú
+	// åˆ›å»ºçª—å£
 	s_HWnd = ::CreateWindowExA(
 		NULL,
 		"Easy2DApp",
@@ -126,9 +126,9 @@ bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 
 	if (SUCCEEDED(hr))
 	{
-		// ½ûÓÃÊäÈë·¨
+		// ç¦ç”¨è¾“å…¥æ³•
 		Window::setTypewritingEnable(false);
-		// ½ûÓÃ¿ØÖÆÌ¨¹Ø±Õ°´Å¥
+		// ç¦ç”¨æ§åˆ¶å°å…³é—­æŒ‰é’®
 		HWND consoleHWnd = ::GetConsoleWindow();
 		if (consoleHWnd)
 		{
@@ -152,12 +152,12 @@ bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 void easy2d::Window::__uninit()
 {
 	s_customCursor.clear();
-	// ¹Ø±Õ¿ØÖÆÌ¨
+	// å…³é—­æ§åˆ¶å°
 	if (::GetConsoleWindow())
 	{
 		::FreeConsole();
 	}
-	// ¹Ø±Õ´°¿Ú
+	// å…³é—­çª—å£
 	if (s_HWnd)
 	{
 		::DestroyWindow(s_HWnd);
@@ -181,7 +181,7 @@ void easy2d::Window::__updateCursor()
 	s_customCursor.update(s_currentCursor);
 	if (s_customCursor)
 	{
-		::SetCursor(NULL); // ±£Ö¤²»ÏÔÊ¾Ä¬ÈÏÖ¸Õë
+		::SetCursor(NULL); // ä¿è¯ä¸æ˜¾ç¤ºé»˜è®¤æŒ‡é’ˆ
 		return;
 	}
 
@@ -237,7 +237,7 @@ easy2d::Size easy2d::Window::getSize()
 {
 	if (s_HWnd)
 	{
-		// »ñÈ¡¿Í»§Çø´óĞ¡
+		// è·å–å®¢æˆ·åŒºå¤§å°
 		tagRECT rcClient;
 		::GetClientRect(s_HWnd, &rcClient);
 		return Size(float(rcClient.right - rcClient.left), float(rcClient.bottom - rcClient.top));
@@ -252,29 +252,29 @@ HWND easy2d::Window::getHWnd()
 
 void easy2d::Window::setSize(int width, int height)
 {
-	// ¼ÆËã´°¿Ú´óĞ¡
+	// è®¡ç®—çª—å£å¤§å°
 	DWORD dwStyle = WS_OVERLAPPEDWINDOW &~ WS_MAXIMIZEBOX &~ WS_THICKFRAME;
 	RECT wr = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 	::AdjustWindowRectEx(&wr, dwStyle, FALSE, NULL);
-	// »ñÈ¡ĞÂµÄ¿í¸ß
+	// è·å–æ–°çš„å®½é«˜
 	width = static_cast<int>(wr.right - wr.left);
 	height = static_cast<int>(wr.bottom - wr.top);
-	// »ñÈ¡ÆÁÄ»·Ö±æÂÊ
+	// è·å–å±å¹•åˆ†è¾¨ç‡
 	int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
 	int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
-	// µ±ÊäÈëµÄ´°¿Ú´óĞ¡±È·Ö±æÂÊ´óÊ±£¬¸ø³ö¾¯¸æ
+	// å½“è¾“å…¥çš„çª—å£å¤§å°æ¯”åˆ†è¾¨ç‡å¤§æ—¶ï¼Œç»™å‡ºè­¦å‘Š
 	if (screenWidth < width || screenHeight < height)
 		E2D_WARNING("The window is larger than screen!");
-	// È¡×îĞ¡Öµ
+	// å–æœ€å°å€¼
 	width = min(width, screenWidth);
 	height = min(height, screenHeight);
-	// ĞŞ¸Ä´°¿Ú´óĞ¡£¬²¢ÉèÖÃ´°¿ÚÔÚÆÁÄ»¾ÓÖĞ
+	// ä¿®æ”¹çª—å£å¤§å°ï¼Œå¹¶è®¾ç½®çª—å£åœ¨å±å¹•å±…ä¸­
 	::MoveWindow(s_HWnd, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, TRUE);
 }
 
 void easy2d::Window::setTitle(const String& title)
 {
-	// ÉèÖÃ´°¿Ú±êÌâ
+	// è®¾ç½®çª—å£æ ‡é¢˜
 	::SetWindowTextA(s_HWnd, title.c_str());
 }
 
@@ -282,7 +282,7 @@ void easy2d::Window::setIcon(int iconID)
 {
 	HINSTANCE hInstance = ::GetModuleHandleA(nullptr);
 	HICON hIcon = (HICON)::LoadImageA(hInstance, MAKEINTRESOURCEA(iconID), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
-	// ÉèÖÃ´°¿ÚµÄÍ¼±ê
+	// è®¾ç½®çª—å£çš„å›¾æ ‡
 	::SendMessageA(s_HWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
 	::SendMessageA(s_HWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
 }
@@ -479,23 +479,23 @@ LRESULT easy2d::Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 	}
 	break;
 
-	// ´¦Àí´°¿Ú´óĞ¡±ä»¯ÏûÏ¢
+	// å¤„ç†çª—å£å¤§å°å˜åŒ–æ¶ˆæ¯
 	case WM_SIZE:
 	{
 		UINT width = LOWORD(lParam);
 		UINT height = HIWORD(lParam);
-		// Èç¹û³ÌĞò½ÓÊÕµ½Ò»¸ö WM_SIZE ÏûÏ¢£¬Õâ¸ö·½·¨½«µ÷ÕûäÖÈ¾
-		// Ä¿±êÊÊµ±¡£Ëü¿ÉÄÜ»áµ÷ÓÃÊ§°Ü£¬µ«ÊÇÕâÀï¿ÉÒÔºöÂÔÓĞ¿ÉÄÜµÄ
-		// ´íÎó£¬ÒòÎªÕâ¸ö´íÎó½«ÔÚÏÂÒ»´Îµ÷ÓÃ EndDraw Ê±²úÉú
+		// å¦‚æœç¨‹åºæ¥æ”¶åˆ°ä¸€ä¸ª WM_SIZE æ¶ˆæ¯ï¼Œè¿™ä¸ªæ–¹æ³•å°†è°ƒæ•´æ¸²æŸ“
+		// ç›®æ ‡é€‚å½“ã€‚å®ƒå¯èƒ½ä¼šè°ƒç”¨å¤±è´¥ï¼Œä½†æ˜¯è¿™é‡Œå¯ä»¥å¿½ç•¥æœ‰å¯èƒ½çš„
+		// é”™è¯¯ï¼Œå› ä¸ºè¿™ä¸ªé”™è¯¯å°†åœ¨ä¸‹ä¸€æ¬¡è°ƒç”¨ EndDraw æ—¶äº§ç”Ÿ
 		auto pRT = Renderer::getRenderTarget();
 		if (pRT) pRT->Resize(D2D1::SizeU(width, height));
 	}
 	break;
 
-	// ´¦Àí·Ö±æÂÊ±ä»¯ÏûÏ¢
+	// å¤„ç†åˆ†è¾¨ç‡å˜åŒ–æ¶ˆæ¯
 	case WM_DISPLAYCHANGE:
 	{
-		// ÖØ»æ¿Í»§Çø
+		// é‡ç»˜å®¢æˆ·åŒº
 		InvalidateRect(hWnd, nullptr, FALSE);
 	}
 	result = 0;
@@ -508,7 +508,7 @@ LRESULT easy2d::Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 	}
 	break;
 
-	// ´°¿Ú¹Ø±ÕÏûÏ¢
+	// çª—å£å…³é—­æ¶ˆæ¯
 	case WM_CLOSE:
 	{
 		easy2d::Scene * pCurrentScene = easy2d::SceneManager::getCurrentScene();
@@ -521,7 +521,7 @@ LRESULT easy2d::Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 	hasHandled = true;
 	break;
 
-	// ´°¿ÚÏú»ÙÏûÏ¢
+	// çª—å£é”€æ¯æ¶ˆæ¯
 	case WM_DESTROY:
 	{
 		PostQuitMessage(0);

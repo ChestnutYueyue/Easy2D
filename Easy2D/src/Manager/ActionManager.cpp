@@ -10,11 +10,11 @@ void easy2d::ActionManager::__update()
 	if (s_vActions.empty() || Game::isPaused())
 		return;
 
-	// Ñ­»·±éÀúËùÓĞÕıÔÚÔËĞĞµÄ¶¯×÷
+	// å¾ªç¯éå†æ‰€æœ‰æ­£åœ¨è¿è¡Œçš„åŠ¨ä½œ
 	for (size_t i = 0; i < s_vActions.size(); ++i)
 	{
 		auto action = s_vActions[i];
-		// »ñÈ¡¶¯×÷ÔËĞĞ×´Ì¬
+		// è·å–åŠ¨ä½œè¿è¡ŒçŠ¶æ€
 		if (action->_isDone())
 		{
 			action->_target = nullptr;
@@ -25,7 +25,7 @@ void easy2d::ActionManager::__update()
 		{
 			if (action->isRunning())
 			{
-				// Ö´ĞĞ¶¯×÷
+				// æ‰§è¡ŒåŠ¨ä½œ
 				action->_update();
 			}
 		}
@@ -94,7 +94,7 @@ void easy2d::ActionManager::start(Action * action, Node * target, bool paused)
 		}
 		else
 		{
-			E2D_WARNING("¸Ã Action ÒÑÓĞÖ´ĞĞÄ¿±ê");
+			E2D_WARNING("è¯¥ Action å·²æœ‰æ‰§è¡Œç›®æ ‡");
 		}
 	}
 }

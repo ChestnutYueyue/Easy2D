@@ -32,7 +32,7 @@ bool easy2d::Transition::isDone()
 
 void easy2d::Transition::_init(Scene * prev, Scene * next)
 {
-	// ´´½¨Í¼²ã
+	// åˆ›å»ºå›¾å±‚
 	HRESULT hr = Renderer::getRenderTarget()->CreateLayer(&_inLayer);
 
 	if (SUCCEEDED(hr))
@@ -42,7 +42,7 @@ void easy2d::Transition::_init(Scene * prev, Scene * next)
 
 	if (FAILED(hr))
 	{
-		E2D_WARNING("³¡¾°¹ı¶É¶¯»­Í¼²ã´´½¨Ê§°Ü");
+		E2D_WARNING("åœºæ™¯è¿‡æ¸¡åŠ¨ç”»å›¾å±‚åˆ›å»ºå¤±è´¥");
 		return;
 	}
 
@@ -58,7 +58,7 @@ void easy2d::Transition::_init(Scene * prev, Scene * next)
 
 void easy2d::Transition::_update()
 {
-	// ¼ÆËã¶¯×÷½ø¶È
+	// è®¡ç®—åŠ¨ä½œè¿›åº¦
 	if (_duration == 0)
 	{
 		_delta = 1;
@@ -70,7 +70,7 @@ void easy2d::Transition::_update()
 
 	this->_updateCustom();
 
-	// ¸üĞÂ³¡¾°ÄÚÈİ
+	// æ›´æ–°åœºæ™¯å†…å®¹
 	if (_outScene)
 	{
 		_outScene->_update();

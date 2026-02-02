@@ -4,7 +4,7 @@
 #include <easy2d/e2dtool.h>
 #include <algorithm> // std::sort
 
-// Ä¬ÈÏÖĞĞÄµãÎ»ÖÃ
+// é»˜è®¤ä¸­å¿ƒç‚¹ä½ç½®
 static float s_fDefaultAnchorX = 0;
 static float s_fDefaultAnchorY = 0;
 
@@ -49,7 +49,7 @@ easy2d::Node::~Node()
 
 void easy2d::Node::_update()
 {
-	// ¸üĞÂ×ª»»¾ØÕó
+	// æ›´æ–°è½¬æ¢çŸ©é˜µ
 	_updateTransform();
 
 	if (_children.empty())
@@ -62,10 +62,10 @@ void easy2d::Node::_update()
 	}
 	else
 	{
-		// ×Ó½ÚµãÅÅĞò
+		// å­èŠ‚ç‚¹æ’åº
 		_sortChildren();
 
-		// ±éÀú×Ó½Úµã
+		// éå†å­èŠ‚ç‚¹
 		size_t size = _children.size();
 		size_t cursor = 0;
 		bool hasRemoved = false;
@@ -129,19 +129,19 @@ void easy2d::Node::_render()
 		return;
 	}
 
-	// ¸üĞÂ×ª»»¾ØÕó
+	// æ›´æ–°è½¬æ¢çŸ©é˜µ
 	_updateTransform();
 
 	if (_children.empty())
 	{
-		// ×ª»»äÖÈ¾Æ÷µÄ¶şÎ¬¾ØÕó
+		// è½¬æ¢æ¸²æŸ“å™¨çš„äºŒç»´çŸ©é˜µ
 		Renderer::getRenderTarget()->SetTransform(_transform.toD2DMatrix());
-		// äÖÈ¾×ÔÉí
+		// æ¸²æŸ“è‡ªèº«
 		this->onRender();
 	}
 	else
 	{
-		// ×Ó½ÚµãÅÅĞò
+		// å­èŠ‚ç‚¹æ’åº
 		_sortChildren();
 
 		size_t size = _children.size();
@@ -149,18 +149,18 @@ void easy2d::Node::_render()
 		for (i = 0; i < size; ++i)
 		{
 			auto child = _children[i];
-			// ·ÃÎÊ Order Ğ¡ÓÚÁãµÄ½Úµã
+			// è®¿é—® Order å°äºé›¶çš„èŠ‚ç‚¹
 			if (child->getOrder() >= 0)
 				break;
 			child->_render();
 		}
 
-		// ×ª»»äÖÈ¾Æ÷µÄ¶şÎ¬¾ØÕó
+		// è½¬æ¢æ¸²æŸ“å™¨çš„äºŒç»´çŸ©é˜µ
 		Renderer::getRenderTarget()->SetTransform(_transform.toD2DMatrix());
-		// äÖÈ¾×ÔÉí
+		// æ¸²æŸ“è‡ªèº«
 		this->onRender();
 
-		// ·ÃÎÊÊ£Óà½Úµã
+		// è®¿é—®å‰©ä½™èŠ‚ç‚¹
 		for (; i < size; ++i)
 			_children[i]->_render();
 	}
@@ -201,7 +201,7 @@ void easy2d::Node::_updateTransform() const
 	if (!_dirtyTransform)
 		return;
 
-	// ±êÖ¾ÒÑÖ´ĞĞ¹ı±ä»»
+	// æ ‡å¿—å·²æ‰§è¡Œè¿‡å˜æ¢
 	_dirtyTransform = false;
 	_dirtyInverseTransform = true;
 
@@ -217,7 +217,7 @@ void easy2d::Node::_updateTransform() const
 		_transform = _transform * _parent->_transform;
 	}
 
-	// Í¨Öª×Ó½Úµã½øĞĞ×ª»»
+	// é€šçŸ¥å­èŠ‚ç‚¹è¿›è¡Œè½¬æ¢
 	for (auto& child : _children)
 	{
 		child->_dirtyTransform = true;
@@ -496,7 +496,7 @@ void easy2d::Node::setOpacity(float opacity)
 		return;
 
 	_displayOpacity = _realOpacity = min(max(float(opacity), 0), 1);
-	// ¸üĞÂ½ÚµãÍ¸Ã÷¶È
+	// æ›´æ–°èŠ‚ç‚¹é€æ˜åº¦
 	_updateOpacity();
 }
 
@@ -570,7 +570,7 @@ void easy2d::Node::addChild(Node* child, int order)
 	{
 		if (child->_parent != nullptr)
 		{
-			E2D_WARNING("½ÚµãÒÑÓĞ¸¸½Úµã, ²»ÄÜÔÙÌí¼Óµ½ÆäËû½Úµã");
+			E2D_WARNING("èŠ‚ç‚¹å·²æœ‰çˆ¶èŠ‚ç‚¹, ä¸èƒ½å†æ·»åŠ åˆ°å…¶ä»–èŠ‚ç‚¹");
 			return;
 		}
 
@@ -578,7 +578,7 @@ void easy2d::Node::addChild(Node* child, int order)
 		{
 			if (child == parent)
 			{
-				E2D_WARNING("Ò»¸ö½Úµã²»ÄÜÍ¬Ê±ÊÇÁíÒ»¸ö½ÚµãµÄ¸¸½ÚµãºÍ×Ó½Úµã");
+				E2D_WARNING("ä¸€ä¸ªèŠ‚ç‚¹ä¸èƒ½åŒæ—¶æ˜¯å¦ä¸€ä¸ªèŠ‚ç‚¹çš„çˆ¶èŠ‚ç‚¹å’Œå­èŠ‚ç‚¹");
 				return;
 			}
 		}
@@ -596,11 +596,11 @@ void easy2d::Node::addChild(Node* child, int order)
 			child->_setParentScene(this->_parentScene);
 		}
 
-		// ¸üĞÂ×Ó½ÚµãÍ¸Ã÷¶È
+		// æ›´æ–°å­èŠ‚ç‚¹é€æ˜åº¦
 		child->_updateOpacity();
-		// ¸üĞÂ½Úµã×ª»»
+		// æ›´æ–°èŠ‚ç‚¹è½¬æ¢
 		child->_dirtyTransform = true;
-		// ¸üĞÂ×Ó½ÚµãÅÅĞò
+		// æ›´æ–°å­èŠ‚ç‚¹æ’åº
 		_needSort = true;
 	}
 }
@@ -728,7 +728,7 @@ void easy2d::Node::removeChildren(const String& childName)
 		return;
 	}
 
-	// ¼ÆËãÃû³Æ Hash Öµ
+	// è®¡ç®—åç§° Hash å€¼
 	size_t hash = std::hash<String>{}(childName);
 	auto equals = [&](Node* child)
 		{
@@ -744,7 +744,7 @@ void easy2d::Node::removeChildren(const String& childName)
 			auto child = *i;
 			if (equals(child))
 			{
-				// ÒÆ³ı×Ó½Úµã
+				// ç§»é™¤å­èŠ‚ç‚¹
 				child->__clearParents();
 				child->release();
 			}
@@ -760,13 +760,13 @@ void easy2d::Node::removeChildren(const String& childName)
 
 void easy2d::Node::removeAllChildren()
 {
-	// ËùÓĞ½ÚµãµÄÒıÓÃ¼ÆÊı¼õÒ»
+	// æ‰€æœ‰èŠ‚ç‚¹çš„å¼•ç”¨è®¡æ•°å‡ä¸€
 	for (auto child : _children)
 	{
 		child->__clearParents();
 		child->release();
 	}
-	// Çå¿Õ´¢´æ½ÚµãµÄÈİÆ÷
+	// æ¸…ç©ºå‚¨å­˜èŠ‚ç‚¹çš„å®¹å™¨
 	_children.clear();
 }
 
@@ -968,7 +968,7 @@ void easy2d::Node::__updateListeners()
 	for (size_t i = 0; i < _listeners.size(); ++i)
 	{
 		auto listener = _listeners[i];
-		// Çå³ıÒÑÍ£Ö¹µÄ¼àÌıÆ÷
+		// æ¸…é™¤å·²åœæ­¢çš„ç›‘å¬å™¨
 		if (listener->isDone())
 		{
 			GC::release(listener);

@@ -3,13 +3,13 @@
 #include <easy2d/e2dtool.h>
 
 
-// ¿ØÖÆÓÎÏ·ÖÕÖ¹
+// æ§åˆ¶æ¸¸æˆç»ˆæ­¢
 static bool s_bEndGame = true;
-// ¿ØÖÆÓÎÏ·ÔİÍ£
+// æ§åˆ¶æ¸¸æˆæš‚åœ
 static bool s_bPaused = false;
-// ÊÇ·ñ½øĞĞ¹ı³õÊ¼»¯
+// æ˜¯å¦è¿›è¡Œè¿‡åˆå§‹åŒ–
 static bool s_bInitialized = false;
-// ÓÎÏ·Î¨Ò»±êÊ¶
+// æ¸¸æˆå”¯ä¸€æ ‡è¯†
 static easy2d::String s_sUniqueName;
 
 
@@ -21,12 +21,12 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 		return false;
 	}
 
-	// ±£´æÎ¨Ò»±êÊ¶
+	// ä¿å­˜å”¯ä¸€æ ‡è¯†
 	s_sUniqueName = uniqueName.empty() ? title : uniqueName;
 
 	if (singleton)
 	{
-		// ´´½¨½ø³Ì»¥³âÌå
+		// åˆ›å»ºè¿›ç¨‹äº’æ–¥ä½“
 		String fullMutexName = "Easy2DApp-" + s_sUniqueName;
 		HANDLE hMutex = ::CreateMutexA(nullptr, TRUE, fullMutexName.c_str());
 
@@ -36,63 +36,63 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 		}
 		else if (::GetLastError() == ERROR_ALREADY_EXISTS)
 		{
-			// Èç¹û³ÌĞòÒÑ¾­´æÔÚ²¢ÇÒÕıÔÚÔËĞĞ£¬µ¯´°ÌáÊ¾
-			Window::error("ÓÎÏ·ÒÑÔÚÆäËû´°¿ÚÖĞ´ò¿ª£¡", "ÌáÊ¾");
-			// ¹Ø±Õ½ø³Ì»¥³âÌå
+			// å¦‚æœç¨‹åºå·²ç»å­˜åœ¨å¹¶ä¸”æ­£åœ¨è¿è¡Œï¼Œå¼¹çª—æç¤º
+			Window::error("æ¸¸æˆå·²åœ¨å…¶ä»–çª—å£ä¸­æ‰“å¼€ï¼", "æç¤º");
+			// å…³é—­è¿›ç¨‹äº’æ–¥ä½“
 			::CloseHandle(hMutex);
 			return false;
 		}
 	}
 
-	// ³õÊ¼»¯ COM ×é¼ş
+	// åˆå§‹åŒ– COM ç»„ä»¶
 	if (FAILED(CoInitialize(nullptr)))
 	{
-		E2D_ERROR("³õÊ¼»¯ COM ×é¼şÊ§°Ü");
+		E2D_ERROR("åˆå§‹åŒ– COM ç»„ä»¶å¤±è´¥");
 		return false;
 	}
 
-	// ´´½¨Éè±¸ÎŞ¹Ø×ÊÔ´
+	// åˆ›å»ºè®¾å¤‡æ— å…³èµ„æº
 	if (!Renderer::__createDeviceIndependentResources())
 	{
-		E2D_ERROR("äÖÈ¾Æ÷Éè±¸ÎŞ¹Ø×ÊÔ´´´½¨Ê§°Ü");
+		E2D_ERROR("æ¸²æŸ“å™¨è®¾å¤‡æ— å…³èµ„æºåˆ›å»ºå¤±è´¥");
 		return false;
 	}
 
-	// ³õÊ¼»¯´°¿Ú
+	// åˆå§‹åŒ–çª—å£
 	if (!Window::__init(title, width, height))
 	{
-		E2D_ERROR("³õÊ¼»¯´°¿ÚÊ§°Ü");
+		E2D_ERROR("åˆå§‹åŒ–çª—å£å¤±è´¥");
 		return false;
 	}
 
-	// ´´½¨Éè±¸Ïà¹Ø×ÊÔ´
+	// åˆ›å»ºè®¾å¤‡ç›¸å…³èµ„æº
 	if (!Renderer::__createDeviceResources())
 	{
-		E2D_ERROR("äÖÈ¾Æ÷Éè±¸Ïà¹Ø×ÊÔ´´´½¨Ê§°Ü");
+		E2D_ERROR("æ¸²æŸ“å™¨è®¾å¤‡ç›¸å…³èµ„æºåˆ›å»ºå¤±è´¥");
 		return false;
 	}
 
-	// ³õÊ¼»¯ DirectInput
+	// åˆå§‹åŒ– DirectInput
 	if (!Input::__init())
 	{
-		E2D_ERROR("³õÊ¼»¯ DirectInput Ê§°Ü");
+		E2D_ERROR("åˆå§‹åŒ– DirectInput å¤±è´¥");
 		return false;
 	}
 
-	// ³õÊ¼»¯²¥·ÅÆ÷
+	// åˆå§‹åŒ–æ’­æ”¾å™¨
 	if (!Music::__init())
 	{
-		E2D_ERROR("³õÊ¼»¯ XAudio2 Ê§°Ü");
+		E2D_ERROR("åˆå§‹åŒ– XAudio2 å¤±è´¥");
 		return false;
 	}
 
-	// ³õÊ¼»¯Path
+	// åˆå§‹åŒ–Path
 	if (!Path::__init(s_sUniqueName))
 	{
 		E2D_WARNING("Path::__init failed!");
 	}
 
-	// ³õÊ¼»¯³É¹¦
+	// åˆå§‹åŒ–æˆåŠŸ
 	s_bInitialized = true;
 
 	return s_bInitialized;
@@ -102,57 +102,57 @@ void easy2d::Game::start(int fpsLimit)
 {
 	if (!s_bInitialized)
 	{
-		E2D_ERROR("¿ªÊ¼ÓÎÏ·Ç°Î´½øĞĞ³õÊ¼»¯");
+		E2D_ERROR("å¼€å§‹æ¸¸æˆå‰æœªè¿›è¡Œåˆå§‹åŒ–");
 		return;
 	}
 
-	// ³õÊ¼»¯³¡¾°¹ÜÀíÆ÷
+	// åˆå§‹åŒ–åœºæ™¯ç®¡ç†å™¨
 	SceneManager::__init();
-	// ÏÔÊ¾´°¿Ú
+	// æ˜¾ç¤ºçª—å£
 	::ShowWindow(Window::getHWnd(), SW_SHOWNORMAL);
-	// Ë¢ĞÂ´°¿ÚÄÚÈİ
+	// åˆ·æ–°çª—å£å†…å®¹
 	::UpdateWindow(Window::getHWnd());
-	// ³õÊ¼»¯¼ÆÊ±
+	// åˆå§‹åŒ–è®¡æ—¶
 	Time::__init(fpsLimit);
 
 	s_bEndGame = false;
 
 	while (!s_bEndGame)
 	{
-		// ´¦Àí´°¿ÚÏûÏ¢
+		// å¤„ç†çª—å£æ¶ˆæ¯
 		Window::__poll();
-		// Ë¢ĞÂÊ±¼ä
+		// åˆ·æ–°æ—¶é—´
 		Time::__updateNow();
 
-		// ÅĞ¶ÏÊÇ·ñ´ïµ½ÁËË¢ĞÂ×´Ì¬
+		// åˆ¤æ–­æ˜¯å¦è¾¾åˆ°äº†åˆ·æ–°çŠ¶æ€
 		if (Time::__isReady())
 		{
-			Input::__update();			// »ñÈ¡ÓÃ»§ÊäÈë
-			Timer::__update();			// ¸üĞÂ¶¨Ê±Æ÷
-			ActionManager::__update();	// ¸üĞÂ¶¯×÷¹ÜÀíÆ÷
-			SceneManager::__update();	// ¸üĞÂ³¡¾°ÄÚÈİ
-			Renderer::__render();		// äÖÈ¾ÓÎÏ·»­Ãæ
-			GC::clear();				// ÇåÀíÄÚ´æ
+			Input::__update();			// è·å–ç”¨æˆ·è¾“å…¥
+			Timer::__update();			// æ›´æ–°å®šæ—¶å™¨
+			ActionManager::__update();	// æ›´æ–°åŠ¨ä½œç®¡ç†å™¨
+			SceneManager::__update();	// æ›´æ–°åœºæ™¯å†…å®¹
+			Renderer::__render();		// æ¸²æŸ“æ¸¸æˆç”»é¢
+			GC::clear();				// æ¸…ç†å†…å­˜
 
-			Time::__updateLast();		// Ë¢ĞÂÊ±¼äĞÅÏ¢
+			Time::__updateLast();		// åˆ·æ–°æ—¶é—´ä¿¡æ¯
 		}
 		else
 		{
-			Time::__sleep();			// ¹ÒÆğÏß³Ì
+			Time::__sleep();			// æŒ‚èµ·çº¿ç¨‹
 		}
 	}
 
-	// Çå³ıÔËĞĞÊ±²úÉúµÄ×ÊÔ´
+	// æ¸…é™¤è¿è¡Œæ—¶äº§ç”Ÿçš„èµ„æº
 	{
-		// É¾³ı¶¯×÷
+		// åˆ é™¤åŠ¨ä½œ
 		ActionManager::__uninit();
-		// »ØÊÕÒôÀÖ²¥·ÅÆ÷×ÊÔ´
+		// å›æ”¶éŸ³ä¹æ’­æ”¾å™¨èµ„æº
 		MusicPlayer::__uninit();
-		// Çå¿Õ¶¨Ê±Æ÷
+		// æ¸…ç©ºå®šæ—¶å™¨
 		Timer::__uninit();
-		// É¾³ıËùÓĞ³¡¾°
+		// åˆ é™¤æ‰€æœ‰åœºæ™¯
 		SceneManager::__uninit();
-		// ÇåÀí¶ÔÏó
+		// æ¸…ç†å¯¹è±¡
 		GC::clear();
 	}
 }
@@ -188,7 +188,7 @@ bool easy2d::Game::isPaused()
 
 void easy2d::Game::quit()
 {
-	s_bEndGame = true;	// Õâ¸ö±äÁ¿½«¿ØÖÆÓÎÏ·ÊÇ·ñ½áÊø
+	s_bEndGame = true;	// è¿™ä¸ªå˜é‡å°†æ§åˆ¶æ¸¸æˆæ˜¯å¦ç»“æŸ
 }
 
 void easy2d::Game::destroy()
@@ -196,15 +196,15 @@ void easy2d::Game::destroy()
 	if (!s_bInitialized)
 		return;
 
-	// Çå¿ÕÍ¼Æ¬»º´æ
+	// æ¸…ç©ºå›¾ç‰‡ç¼“å­˜
 	Image::clearCache();
-	// »ØÊÕÒôÀÖÏà¹Ø×ÊÔ´
+	// å›æ”¶éŸ³ä¹ç›¸å…³èµ„æº
 	Music::__uninit();
-	// ¹Ø±ÕÊäÈë
+	// å…³é—­è¾“å…¥
 	Input::__uninit();
-	// »ØÊÕäÖÈ¾Ïà¹Ø×ÊÔ´
+	// å›æ”¶æ¸²æŸ“ç›¸å…³èµ„æº
 	Renderer::__discardResources();
-	// Ïú»Ù´°¿Ú
+	// é”€æ¯çª—å£
 	Window::__uninit();
 
 	CoUninitialize();

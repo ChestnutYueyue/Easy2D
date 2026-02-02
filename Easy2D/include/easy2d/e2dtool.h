@@ -7,24 +7,24 @@ namespace easy2d
 class Node;
 
 
-// Ëæ»úÊı²úÉúÆ÷
+// éšæœºæ•°äº§ç”Ÿå™¨
 class Random
 {
 public:
-	// È¡µÃ·¶Î§ÄÚµÄÒ»¸öÕûĞÍËæ»úÊı
+	// å–å¾—èŒƒå›´å†…çš„ä¸€ä¸ªæ•´å‹éšæœºæ•°
 	template<typename T>
 	static inline T range(T min, T max)
 	{
 		return easy2d::Random::__randomInt(min, max);
 	}
 
-	// È¡µÃ·¶Î§ÄÚµÄÒ»¸ö¸¡µãÊıËæ»úÊı
+	// å–å¾—èŒƒå›´å†…çš„ä¸€ä¸ªæµ®ç‚¹æ•°éšæœºæ•°
 	static inline float range(float min, float max)
 	{
 		return easy2d::Random::__randomReal(min, max);
 	}
 
-	// È¡µÃ·¶Î§ÄÚµÄÒ»¸ö¸¡µãÊıËæ»úÊı
+	// å–å¾—èŒƒå›´å†…çš„ä¸€ä¸ªæµ®ç‚¹æ•°éšæœºæ•°
 	static inline double range(double min, double max)
 	{
 		return easy2d::Random::__randomReal(min, max);
@@ -45,12 +45,12 @@ private:
 		return dist(Random::__getEngine());
 	}
 
-	// »ñÈ¡Ëæ»úÊı²úÉúÆ÷
+	// è·å–éšæœºæ•°äº§ç”Ÿå™¨
 	static std::default_random_engine &__getEngine();
 };
 
 
-// ÒôÀÖ
+// éŸ³ä¹
 class Music :
 	public Object
 {
@@ -60,48 +60,48 @@ public:
 	Music();
 
 	explicit Music(
-		const String& filePath		/* ÒôÀÖÎÄ¼şÂ·¾¶ */
+		const String& filePath		/* éŸ³ä¹æ–‡ä»¶è·¯å¾„ */
 	);
 
 	Music(
-		int resNameId,				/* ÒôÀÖ×ÊÔ´Ãû³Æ */
-		const String& resType		/* ÒôÀÖ×ÊÔ´ÀàĞÍ */
+		int resNameId,				/* éŸ³ä¹èµ„æºåç§° */
+		const String& resType		/* éŸ³ä¹èµ„æºç±»å‹ */
 	);
 
 	virtual ~Music();
 
-	// ´ò¿ªÒôÀÖÎÄ¼ş
+	// æ‰“å¼€éŸ³ä¹æ–‡ä»¶
 	bool open(
-		const String& filePath		/* ÒôÀÖÎÄ¼şÂ·¾¶ */
+		const String& filePath		/* éŸ³ä¹æ–‡ä»¶è·¯å¾„ */
 	);
 
-	// ´ò¿ªÒôÀÖ×ÊÔ´
+	// æ‰“å¼€éŸ³ä¹èµ„æº
 	bool open(
-		int resNameId,				/* ÒôÀÖ×ÊÔ´Ãû³Æ */
-		const String& resType		/* ÒôÀÖ×ÊÔ´ÀàĞÍ */
+		int resNameId,				/* éŸ³ä¹èµ„æºåç§° */
+		const String& resType		/* éŸ³ä¹èµ„æºç±»å‹ */
 	);
 
-	// ²¥·Å
+	// æ’­æ”¾
 	bool play(
 		int nLoopCount = 0
 	);
 
-	// ÔİÍ£
+	// æš‚åœ
 	void pause();
 
-	// ¼ÌĞø
+	// ç»§ç»­
 	void resume();
 
-	// Í£Ö¹
+	// åœæ­¢
 	void stop();
 
-	// ¹Ø±Õ²¢»ØÊÕ×ÊÔ´
+	// å…³é—­å¹¶å›æ”¶èµ„æº
 	void close();
 
-	// ÊÇ·ñÕıÔÚ²¥·Å
+	// æ˜¯å¦æ­£åœ¨æ’­æ”¾
 	bool isPlaying() const;
 
-	// ÉèÖÃÒôÁ¿
+	// è®¾ç½®éŸ³é‡
 	bool setVolume(
 		float volume
 	);
@@ -117,95 +117,95 @@ private:
 };
 
 
-// ÒôÀÖ²¥·ÅÆ÷
+// éŸ³ä¹æ’­æ”¾å™¨
 class MusicPlayer
 {
 	friend class Game;
 
 public:
-	// Ô¤¼ÓÔØÒôÀÖ×ÊÔ´
+	// é¢„åŠ è½½éŸ³ä¹èµ„æº
 	static Music* preload(
-		const String& filePath	/* ÒôÀÖÎÄ¼şÂ·¾¶ */
+		const String& filePath	/* éŸ³ä¹æ–‡ä»¶è·¯å¾„ */
 	);
 
-	// ²¥·ÅÒôÀÖ
+	// æ’­æ”¾éŸ³ä¹
 	static bool play(
-		const String& filePath,	/* ÒôÀÖÎÄ¼şÂ·¾¶ */
-		int nLoopCount = 0		/* ÖØ¸´²¥·Å´ÎÊı£¬ÉèÖÃ -1 ÎªÑ­»·²¥·Å */
+		const String& filePath,	/* éŸ³ä¹æ–‡ä»¶è·¯å¾„ */
+		int nLoopCount = 0		/* é‡å¤æ’­æ”¾æ¬¡æ•°ï¼Œè®¾ç½® -1 ä¸ºå¾ªç¯æ’­æ”¾ */
 	);
 
-	// ÔİÍ£ÒôÀÖ
+	// æš‚åœéŸ³ä¹
 	static void pause(
-		const String& filePath	/* ÒôÀÖÎÄ¼şÂ·¾¶ */
+		const String& filePath	/* éŸ³ä¹æ–‡ä»¶è·¯å¾„ */
 	);
 
-	// ¼ÌĞø²¥·ÅÒôÀÖ
+	// ç»§ç»­æ’­æ”¾éŸ³ä¹
 	static void resume(
-		const String& filePath	/* ÒôÀÖÎÄ¼şÂ·¾¶ */
+		const String& filePath	/* éŸ³ä¹æ–‡ä»¶è·¯å¾„ */
 	);
 
-	// Í£Ö¹ÒôÀÖ
+	// åœæ­¢éŸ³ä¹
 	static void stop(
-		const String& filePath	/* ÒôÀÖÎÄ¼şÂ·¾¶ */
+		const String& filePath	/* éŸ³ä¹æ–‡ä»¶è·¯å¾„ */
 	);
 
-	// »ñÈ¡ÒôÀÖ²¥·Å×´Ì¬
+	// è·å–éŸ³ä¹æ’­æ”¾çŠ¶æ€
 	static bool isPlaying(
-		const String& filePath	/* ÒôÀÖÎÄ¼şÂ·¾¶ */
+		const String& filePath	/* éŸ³ä¹æ–‡ä»¶è·¯å¾„ */
 	);
 
-	// Ô¤¼ÓÔØÒôÀÖ×ÊÔ´
+	// é¢„åŠ è½½éŸ³ä¹èµ„æº
 	static Music* preload(
-		int resNameId,			/* ÒôÀÖ×ÊÔ´Ãû³Æ */
-		const String& resType	/* ÒôÀÖ×ÊÔ´ÀàĞÍ */
+		int resNameId,			/* éŸ³ä¹èµ„æºåç§° */
+		const String& resType	/* éŸ³ä¹èµ„æºç±»å‹ */
 	);
 
-	// ²¥·ÅÒôÀÖ
+	// æ’­æ”¾éŸ³ä¹
 	static bool play(
-		int resNameId,			/* ÒôÀÖ×ÊÔ´Ãû³Æ */
-		const String& resType,	/* ÒôÀÖ×ÊÔ´ÀàĞÍ */
-		int nLoopCount = 0		/* ÖØ¸´²¥·Å´ÎÊı£¬ÉèÖÃ -1 ÎªÑ­»·²¥·Å */
+		int resNameId,			/* éŸ³ä¹èµ„æºåç§° */
+		const String& resType,	/* éŸ³ä¹èµ„æºç±»å‹ */
+		int nLoopCount = 0		/* é‡å¤æ’­æ”¾æ¬¡æ•°ï¼Œè®¾ç½® -1 ä¸ºå¾ªç¯æ’­æ”¾ */
 	);
 
-	// ÔİÍ£ÒôÀÖ
+	// æš‚åœéŸ³ä¹
 	static void pause(
-		int resNameId,			/* ÒôÀÖ×ÊÔ´Ãû³Æ */
-		const String& resType	/* ÒôÀÖ×ÊÔ´ÀàĞÍ */
+		int resNameId,			/* éŸ³ä¹èµ„æºåç§° */
+		const String& resType	/* éŸ³ä¹èµ„æºç±»å‹ */
 	);
 
-	// ¼ÌĞø²¥·ÅÒôÀÖ
+	// ç»§ç»­æ’­æ”¾éŸ³ä¹
 	static void resume(
-		int resNameId,			/* ÒôÀÖ×ÊÔ´Ãû³Æ */
-		const String& resType	/* ÒôÀÖ×ÊÔ´ÀàĞÍ */
+		int resNameId,			/* éŸ³ä¹èµ„æºåç§° */
+		const String& resType	/* éŸ³ä¹èµ„æºç±»å‹ */
 	);
 
-	// Í£Ö¹ÒôÀÖ
+	// åœæ­¢éŸ³ä¹
 	static void stop(
-		int resNameId,			/* ÒôÀÖ×ÊÔ´Ãû³Æ */
-		const String& resType	/* ÒôÀÖ×ÊÔ´ÀàĞÍ */
+		int resNameId,			/* éŸ³ä¹èµ„æºåç§° */
+		const String& resType	/* éŸ³ä¹èµ„æºç±»å‹ */
 	);
 
-	// »ñÈ¡ÒôÀÖ²¥·Å×´Ì¬
+	// è·å–éŸ³ä¹æ’­æ”¾çŠ¶æ€
 	static bool isPlaying(
-		int resNameId,			/* ÒôÀÖ×ÊÔ´Ãû³Æ */
-		const String& resType	/* ÒôÀÖ×ÊÔ´ÀàĞÍ */
+		int resNameId,			/* éŸ³ä¹èµ„æºåç§° */
+		const String& resType	/* éŸ³ä¹èµ„æºç±»å‹ */
 	);
 
-	// »ñÈ¡ÒôÁ¿
+	// è·å–éŸ³é‡
 	static float getVolume();
 
-	// ÉèÖÃÒôÁ¿
+	// è®¾ç½®éŸ³é‡
 	static void setVolume(
-		float volume			/* ÒôÁ¿·¶Î§Îª -224 ~ 224£¬0 ÊÇ¾²Òô£¬1 ÊÇÕı³£ÒôÁ¿ */
+		float volume			/* éŸ³é‡èŒƒå›´ä¸º -224 ~ 224ï¼Œ0 æ˜¯é™éŸ³ï¼Œ1 æ˜¯æ­£å¸¸éŸ³é‡ */
 	);
 
-	// ÔİÍ£ËùÓĞÒôÀÖ
+	// æš‚åœæ‰€æœ‰éŸ³ä¹
 	static void pauseAll();
 
-	// ¼ÌĞø²¥·ÅËùÓĞÒôÀÖ
+	// ç»§ç»­æ’­æ”¾æ‰€æœ‰éŸ³ä¹
 	static void resumeAll();
 
-	// Í£Ö¹ËùÓĞÒôÀÖ
+	// åœæ­¢æ‰€æœ‰éŸ³ä¹
 	static void stopAll();
 
 private:
@@ -213,204 +213,204 @@ private:
 };
 
 
-// ¶¨Ê±Æ÷
+// å®šæ—¶å™¨
 class Timer
 {
 	friend class Game;
 
 public:
-	// Ìí¼Ó¶¨Ê±Æ÷
+	// æ·»åŠ å®šæ—¶å™¨
 	static size_t add(
-		const Function<void()>& func,	/* Ö´ĞĞº¯Êı */
-		float interval,					/* Ö´ĞĞ¼ä¸ô£¨Ãë£© */
-		int times = -1,					/* Ö´ĞĞ´ÎÊı£¨Éè -1 ÎªÓÀ¾ÃÖ´ĞĞ£© */
-		const String & name = ""		/* ¶¨Ê±Æ÷Ãû³Æ */
+		const Function<void()>& func,	/* æ‰§è¡Œå‡½æ•° */
+		float interval,					/* æ‰§è¡Œé—´éš”ï¼ˆç§’ï¼‰ */
+		int times = -1,					/* æ‰§è¡Œæ¬¡æ•°ï¼ˆè®¾ -1 ä¸ºæ°¸ä¹…æ‰§è¡Œï¼‰ */
+		const String & name = ""		/* å®šæ—¶å™¨åç§° */
 	);
 
-	// ÑÓ³ÙÒ»¶ÎÊ±¼äºóÖ´ĞĞÖ¸¶¨º¯ÊıÒ»´Î
+	// å»¶è¿Ÿä¸€æ®µæ—¶é—´åæ‰§è¡ŒæŒ‡å®šå‡½æ•°ä¸€æ¬¡
 	static size_t runDelayed(
-		float delay,					/* ÑÓ³ÙÊ±³¤£¨Ãë£© */
-		const Function<void()>& func	/* Ö´ĞĞµÄº¯Êı */
+		float delay,					/* å»¶è¿Ÿæ—¶é•¿ï¼ˆç§’ï¼‰ */
+		const Function<void()>& func	/* æ‰§è¡Œçš„å‡½æ•° */
 	);
 
-	// ½«¶¨Ê±Æ÷ºÍ½ÚµãµÄÉúÃüÖÜÆÚ°ó¶¨£¬½ÚµãÏú»ÙÊ±¶¨Ê±Æ÷Ò²Ïú»Ù
+	// å°†å®šæ—¶å™¨å’ŒèŠ‚ç‚¹çš„ç”Ÿå‘½å‘¨æœŸç»‘å®šï¼ŒèŠ‚ç‚¹é”€æ¯æ—¶å®šæ—¶å™¨ä¹Ÿé”€æ¯
 	static void bind(
 		size_t id,
 		Node* node
 	);
 
-	// ÒÆ³ıºÍ½Úµã°ó¶¨µÄËùÓĞ¶¨Ê±Æ÷
+	// ç§»é™¤å’ŒèŠ‚ç‚¹ç»‘å®šçš„æ‰€æœ‰å®šæ—¶å™¨
 	static void removeBoundWith(
 		Node* node
 	);
 
-	// Æô¶¯¶¨Ê±Æ÷
+	// å¯åŠ¨å®šæ—¶å™¨
 	static void start(
 		size_t id
 	);
 
-	// Í£Ö¹¶¨Ê±Æ÷
+	// åœæ­¢å®šæ—¶å™¨
 	static void stop(
 		size_t id
 	);
 
-	// ÒÆ³ı¶¨Ê±Æ÷
+	// ç§»é™¤å®šæ—¶å™¨
 	static void remove(
 		size_t id
 	);
 
-	// Æô¶¯¾ßÓĞÏàÍ¬Ãû³ÆµÄ¶¨Ê±Æ÷
+	// å¯åŠ¨å…·æœ‰ç›¸åŒåç§°çš„å®šæ—¶å™¨
 	static void start(
 		const String& name
 	);
 
-	// Í£Ö¹¾ßÓĞÏàÍ¬Ãû³ÆµÄ¶¨Ê±Æ÷
+	// åœæ­¢å…·æœ‰ç›¸åŒåç§°çš„å®šæ—¶å™¨
 	static void stop(
 		const String& name
 	);
 
-	// ÒÆ³ı¾ßÓĞÏàÍ¬Ãû³ÆµÄ¶¨Ê±Æ÷
+	// ç§»é™¤å…·æœ‰ç›¸åŒåç§°çš„å®šæ—¶å™¨
 	static void remove(
 		const String& name
 	);
 
-	// Æô¶¯ËùÓĞ¶¨Ê±Æ÷
+	// å¯åŠ¨æ‰€æœ‰å®šæ—¶å™¨
 	static void startAll();
 
-	// Í£Ö¹ËùÓĞ¶¨Ê±Æ÷
+	// åœæ­¢æ‰€æœ‰å®šæ—¶å™¨
 	static void stopAll();
 
-	// ÒÆ³ıËùÓĞ¶¨Ê±Æ÷
+	// ç§»é™¤æ‰€æœ‰å®šæ—¶å™¨
 	static void removeAll();
 
 private:
-	// ¸üĞÂ¶¨Ê±Æ÷
+	// æ›´æ–°å®šæ—¶å™¨
 	static void __update();
 
-	// ÖØÖÃ¶¨Ê±Æ÷×´Ì¬
+	// é‡ç½®å®šæ—¶å™¨çŠ¶æ€
 	static void __resetAll();
 
-	// Çå¿Õ¶¨Ê±Æ÷
+	// æ¸…ç©ºå®šæ—¶å™¨
 	static void __uninit();
 };
 
 
-// Êı¾İ¹ÜÀí¹¤¾ß
+// æ•°æ®ç®¡ç†å·¥å…·
 class Data
 {
 public:
-	// ±£´æ int ÀàĞÍµÄÖµ
+	// ä¿å­˜ int ç±»å‹çš„å€¼
 	static void saveInt(
-		const String& key,					/* ¼üÖµ */
-		int value,							/* Êı¾İ */
-		const String& field = "Defalut"	/* ×Ö¶ÎÃû³Æ */
+		const String& key,					/* é”®å€¼ */
+		int value,							/* æ•°æ® */
+		const String& field = "Defalut"	/* å­—æ®µåç§° */
 	);
 
-	// ±£´æ float ÀàĞÍµÄÖµ
+	// ä¿å­˜ float ç±»å‹çš„å€¼
 	static void saveDouble(
-		const String& key,					/* ¼üÖµ */
-		float value,						/* Êı¾İ */
-		const String& field = "Defalut"	/* ×Ö¶ÎÃû³Æ */
+		const String& key,					/* é”®å€¼ */
+		float value,						/* æ•°æ® */
+		const String& field = "Defalut"	/* å­—æ®µåç§° */
 	);
 
-	// ±£´æ bool ÀàĞÍµÄÖµ
+	// ä¿å­˜ bool ç±»å‹çš„å€¼
 	static void saveBool(
-		const String& key,					/* ¼üÖµ */
-		bool value,							/* Êı¾İ */
-		const String& field = "Defalut"	/* ×Ö¶ÎÃû³Æ */
+		const String& key,					/* é”®å€¼ */
+		bool value,							/* æ•°æ® */
+		const String& field = "Defalut"	/* å­—æ®µåç§° */
 	);
 
-	// ±£´æ ×Ö·û´® ÀàĞÍµÄÖµ
+	// ä¿å­˜ å­—ç¬¦ä¸² ç±»å‹çš„å€¼
 	static void saveString(
-		const String& key,					/* ¼üÖµ */
-		const String& value,				/* Êı¾İ */
-		const String& field = "Defalut"	/* ×Ö¶ÎÃû³Æ */
+		const String& key,					/* é”®å€¼ */
+		const String& value,				/* æ•°æ® */
+		const String& field = "Defalut"	/* å­—æ®µåç§° */
 	);
 
-	// »ñÈ¡ int ÀàĞÍµÄÖµ
-	// £¨Èô²»´æÔÚÔò·µ»Ø defaultValue ²ÎÊıµÄÖµ£©
+	// è·å– int ç±»å‹çš„å€¼
+	// ï¼ˆè‹¥ä¸å­˜åœ¨åˆ™è¿”å› defaultValue å‚æ•°çš„å€¼ï¼‰
 	static int getInt(
-		const String& key,					/* ¼üÖµ */
-		int defaultValue,					/* Ä¬ÈÏÖµ */
-		const String& field = "Defalut"	/* ×Ö¶ÎÃû³Æ */
+		const String& key,					/* é”®å€¼ */
+		int defaultValue,					/* é»˜è®¤å€¼ */
+		const String& field = "Defalut"	/* å­—æ®µåç§° */
 	);
 
-	// »ñÈ¡ float ÀàĞÍµÄÖµ
-	// £¨Èô²»´æÔÚÔò·µ»Ø defaultValue ²ÎÊıµÄÖµ£©
+	// è·å– float ç±»å‹çš„å€¼
+	// ï¼ˆè‹¥ä¸å­˜åœ¨åˆ™è¿”å› defaultValue å‚æ•°çš„å€¼ï¼‰
 	static float getDouble(
-		const String& key,					/* ¼üÖµ */
-		float defaultValue,				/* Ä¬ÈÏÖµ */
-		const String& field = "Defalut"	/* ×Ö¶ÎÃû³Æ */
+		const String& key,					/* é”®å€¼ */
+		float defaultValue,				/* é»˜è®¤å€¼ */
+		const String& field = "Defalut"	/* å­—æ®µåç§° */
 	);
 
-	// »ñÈ¡ bool ÀàĞÍµÄÖµ
-	// £¨Èô²»´æÔÚÔò·µ»Ø defaultValue ²ÎÊıµÄÖµ£©
+	// è·å– bool ç±»å‹çš„å€¼
+	// ï¼ˆè‹¥ä¸å­˜åœ¨åˆ™è¿”å› defaultValue å‚æ•°çš„å€¼ï¼‰
 	static bool getBool(
-		const String& key,					/* ¼üÖµ */
-		bool defaultValue,					/* Ä¬ÈÏÖµ */
-		const String& field = "Defalut"	/* ×Ö¶ÎÃû³Æ */
+		const String& key,					/* é”®å€¼ */
+		bool defaultValue,					/* é»˜è®¤å€¼ */
+		const String& field = "Defalut"	/* å­—æ®µåç§° */
 	);
 
-	// »ñÈ¡ ×Ö·û´® ÀàĞÍµÄÖµ
-	// £¨Èô²»´æÔÚÔò·µ»Ø defaultValue ²ÎÊıµÄÖµ£©
+	// è·å– å­—ç¬¦ä¸² ç±»å‹çš„å€¼
+	// ï¼ˆè‹¥ä¸å­˜åœ¨åˆ™è¿”å› defaultValue å‚æ•°çš„å€¼ï¼‰
 	static String getString(
-		const String& key,					/* ¼üÖµ */
-		const String& defaultValue,			/* Ä¬ÈÏÖµ */
-		const String& field = "Defalut"	/* ×Ö¶ÎÃû³Æ */
+		const String& key,					/* é”®å€¼ */
+		const String& defaultValue,			/* é»˜è®¤å€¼ */
+		const String& field = "Defalut"	/* å­—æ®µåç§° */
 	);
 };
 
 
-// Â·¾¶¹¤¾ß
+// è·¯å¾„å·¥å…·
 class Path
 {
 	friend class Game;
 
 public:
-	// Ìí¼ÓËÑË÷Â·¾¶
+	// æ·»åŠ æœç´¢è·¯å¾„
 	static void add(
 		String path
 	);
 
-	// ¼ìË÷ÎÄ¼şÂ·¾¶
+	// æ£€ç´¢æ–‡ä»¶è·¯å¾„
 	static String searchForFile(
 		const String& path
 	);
 
-	// ÌáÈ¡×ÊÔ´ÎÄ¼ş£¬·µ»ØÌáÈ¡ºóµÄÎÄ¼şÂ·¾¶
+	// æå–èµ„æºæ–‡ä»¶ï¼Œè¿”å›æå–åçš„æ–‡ä»¶è·¯å¾„
 	static String extractResource(
-		int resNameId,				/* ×ÊÔ´Ãû³Æ */
-		const String& resType,		/* ×ÊÔ´ÀàĞÍ */
-		const String& destFileName	/* Ä¿±êÎÄ¼şÃû */
+		int resNameId,				/* èµ„æºåç§° */
+		const String& resType,		/* èµ„æºç±»å‹ */
+		const String& destFileName	/* ç›®æ ‡æ–‡ä»¶å */
 	);
 
-	// »ñÈ¡Êı¾İµÄÄ¬ÈÏ±£´æÂ·¾¶
+	// è·å–æ•°æ®çš„é»˜è®¤ä¿å­˜è·¯å¾„
 	static String getDataSavePath();
 
-	// »ñÈ¡ÁÙÊ±ÎÄ¼şÄ¿Â¼
+	// è·å–ä¸´æ—¶æ–‡ä»¶ç›®å½•
 	static String getTempPath();
 
-	// »ñÈ¡Ö´ĞĞ³ÌĞòµÄ¾ø¶ÔÂ·¾¶
+	// è·å–æ‰§è¡Œç¨‹åºçš„ç»å¯¹è·¯å¾„
 	static String getExecutableFilePath();
 
-	// ´ò¿ª±£´æÎÄ¼ş¶Ô»°¿ò
+	// æ‰“å¼€ä¿å­˜æ–‡ä»¶å¯¹è¯æ¡†
 	static String getSaveFilePath(
-		const String& title = "±£´æµ½",		/* ¶Ô»°¿ò±êÌâ */
-		const String& defExt = ""			/* Ä¬ÈÏÀ©Õ¹Ãû */
+		const String& title = "ä¿å­˜åˆ°",		/* å¯¹è¯æ¡†æ ‡é¢˜ */
+		const String& defExt = ""			/* é»˜è®¤æ‰©å±•å */
 	);
 
-	// ´´½¨ÎÄ¼ş¼Ğ
+	// åˆ›å»ºæ–‡ä»¶å¤¹
 	static bool createFolder(
-		const String& dirPath	/* ÎÄ¼ş¼ĞÂ·¾¶ */
+		const String& dirPath	/* æ–‡ä»¶å¤¹è·¯å¾„ */
 	);
 
-	// ÅĞ¶ÏÎÄ¼ş»òÎÄ¼ş¼ĞÊÇ·ñ´æÔÚ
+	// åˆ¤æ–­æ–‡ä»¶æˆ–æ–‡ä»¶å¤¹æ˜¯å¦å­˜åœ¨
 	static bool exists(
-		const String& dirPath	/* ÎÄ¼ş¼ĞÂ·¾¶ */
+		const String& dirPath	/* æ–‡ä»¶å¤¹è·¯å¾„ */
 	);
 
 private:
-	// ³õÊ¼»¯
+	// åˆå§‹åŒ–
 	static bool __init(
 		const String& uniqueName
 	);

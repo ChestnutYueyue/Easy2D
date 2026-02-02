@@ -26,7 +26,7 @@ bool easy2d::Path::__init(const String& uniqueName)
 		return false;
 	}
 	
-	// »ñÈ¡Êı¾İµÄÄ¬ÈÏ±£´æÂ·¾¶
+	// è·å–æ•°æ®çš„é»˜è®¤ä¿å­˜è·¯å¾„
 	s_sDataSavePath = s_sLocalAppDataPath + "\\Easy2DGameData\\";
 	if (!uniqueName.empty())
 	{
@@ -41,7 +41,7 @@ bool easy2d::Path::__init(const String& uniqueName)
 	}
 	s_sDataSavePath.append("Data.ini");
 
-	// »ñÈ¡ÁÙÊ±ÎÄ¼şÄ¿Â¼
+	// è·å–ä¸´æ—¶æ–‡ä»¶ç›®å½•
 	char path[_MAX_PATH];
 	if (0 == ::GetTempPathA(_MAX_PATH, path))
 	{
@@ -115,18 +115,18 @@ easy2d::String easy2d::Path::searchForFile(const String& path)
 easy2d::String easy2d::Path::extractResource(int resNameId, const String & resType, const String & destFileName)
 {
 	String destFilePath = s_sTempPath + destFileName;
-	// ´´½¨ÎÄ¼ş
+	// åˆ›å»ºæ–‡ä»¶
 	HANDLE hFile = ::CreateFileA(destFilePath.c_str(), GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY, NULL);
 	if (hFile == INVALID_HANDLE_VALUE)
 		return String();
 
-	// ²éÕÒ×ÊÔ´ÎÄ¼şÖĞ¡¢¼ÓÔØ×ÊÔ´µ½ÄÚ´æ¡¢µÃµ½×ÊÔ´´óĞ¡
+	// æŸ¥æ‰¾èµ„æºæ–‡ä»¶ä¸­ã€åŠ è½½èµ„æºåˆ°å†…å­˜ã€å¾—åˆ°èµ„æºå¤§å°
 	Resource res{ resNameId, resType };
 	auto data = res.loadData();
 
 	if (data.isValid())
 	{
-		// Ğ´ÈëÎÄ¼ş
+		// å†™å…¥æ–‡ä»¶
 		DWORD dwWrite = 0;
 		::WriteFile(hFile, data.buffer, (DWORD)data.size, &dwWrite, NULL);
 		::CloseHandle(hFile);
@@ -147,19 +147,19 @@ easy2d::String easy2d::Path::getDataSavePath()
 
 easy2d::String easy2d::Path::getSaveFilePath(const String& title, const String& defExt)
 {
-	// µ¯³ö±£´æ¶Ô»°¿ò
+	// å¼¹å‡ºä¿å­˜å¯¹è¯æ¡†
 	OPENFILENAMEA ofn = { 0 };
-	char strFilename[MAX_PATH] = { 0 };					// ÓÃÓÚ½ÓÊÕÎÄ¼şÃû
-	ofn.lStructSize = sizeof(OPENFILENAME);				// ½á¹¹Ìå´óĞ¡
-	ofn.hwndOwner = Window::getHWnd();					// ´°¿Ú¾ä±ú
-	ofn.lpstrFilter = "ËùÓĞÎÄ¼ş\0*.*\0\0";				// ÉèÖÃ¹ıÂË
-	ofn.nFilterIndex = 1;								// ¹ıÂËÆ÷Ë÷Òı
-	ofn.lpstrFile = strFilename;						// ½ÓÊÕ·µ»ØµÄÎÄ¼şÂ·¾¶ºÍÎÄ¼şÃû
-	ofn.nMaxFile = sizeof(strFilename);					// »º³åÇø³¤¶È
-	ofn.lpstrInitialDir = nullptr;						// ³õÊ¼Ä¿Â¼ÎªÄ¬ÈÏ
+	char strFilename[MAX_PATH] = { 0 };					// ç”¨äºæ¥æ”¶æ–‡ä»¶å
+	ofn.lStructSize = sizeof(OPENFILENAME);				// ç»“æ„ä½“å¤§å°
+	ofn.hwndOwner = Window::getHWnd();					// çª—å£å¥æŸ„
+	ofn.lpstrFilter = "æ‰€æœ‰æ–‡ä»¶\0*.*\0\0";				// è®¾ç½®è¿‡æ»¤
+	ofn.nFilterIndex = 1;								// è¿‡æ»¤å™¨ç´¢å¼•
+	ofn.lpstrFile = strFilename;						// æ¥æ”¶è¿”å›çš„æ–‡ä»¶è·¯å¾„å’Œæ–‡ä»¶å
+	ofn.nMaxFile = sizeof(strFilename);					// ç¼“å†²åŒºé•¿åº¦
+	ofn.lpstrInitialDir = nullptr;						// åˆå§‹ç›®å½•ä¸ºé»˜è®¤
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-	ofn.lpstrTitle = title.c_str();						// ±êÌâ
-	ofn.lpstrDefExt = defExt.c_str();					// Ä¬ÈÏ×·¼ÓµÄÀ©Õ¹Ãû
+	ofn.lpstrTitle = title.c_str();						// æ ‡é¢˜
+	ofn.lpstrDefExt = defExt.c_str();					// é»˜è®¤è¿½åŠ çš„æ‰©å±•å
 
 	if (GetSaveFileNameA(&ofn))
 	{

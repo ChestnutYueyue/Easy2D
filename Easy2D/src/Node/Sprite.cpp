@@ -95,7 +95,7 @@ void easy2d::Sprite::crop(const Rect& cropRect)
 {
 	if (cropRect.isEmpty())
 	{
-		// ²»²Ã¼ô
+		// ä¸è£å‰ª
 		_cropRect = cropRect;
 		if (_image)
 		{
@@ -108,7 +108,7 @@ void easy2d::Sprite::crop(const Rect& cropRect)
 	}
 	else
 	{
-		// ±£Ö¤²Ã¼ô¾ØĞÎ²»³¬³öÍ¼Æ¬´óĞ¡
+		// ä¿è¯è£å‰ªçŸ©å½¢ä¸è¶…å‡ºå›¾ç‰‡å¤§å°
 		_cropRect.leftTop.x = min(max(cropRect.leftTop.x, 0), _image->getWidth());
 		_cropRect.leftTop.y = min(max(cropRect.leftTop.y, 0), _image->getHeight());
 		_cropRect.rightBottom.x = min(max(cropRect.rightBottom.x, 0), _image->getWidth());
@@ -171,7 +171,7 @@ void easy2d::Sprite::onRender()
 			srcRect = &_cropRect;
 		}
 
-		// äÖÈ¾Í¼Æ¬
+		// æ¸²æŸ“å›¾ç‰‡
 		Renderer::getRenderTarget()->DrawBitmap(
 			_image->getBitmap(),
 			reinterpret_cast<const D2D1_RECT_F&>(getBounds()),

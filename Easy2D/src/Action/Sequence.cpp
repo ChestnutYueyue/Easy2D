@@ -22,7 +22,7 @@ easy2d::Sequence::~Sequence()
 void easy2d::Sequence::_init()
 {
 	Action::_init();
-	// ½«ËùÓĞ¶¯×÷ÓëÄ¿±ê°ó¶¨
+	// å°†æ‰€æœ‰åŠ¨ä½œä¸ç›®æ ‡ç»‘å®š
 	if (_target)
 	{
 		for (auto action : _actions)
@@ -30,7 +30,7 @@ void easy2d::Sequence::_init()
 			action->_target = _target;
 		}
 	}
-	// ³õÊ¼»¯µÚÒ»¸ö¶¯×÷
+	// åˆå§‹åŒ–ç¬¬ä¸€ä¸ªåŠ¨ä½œ
 	_actions[0]->_init();
 }
 

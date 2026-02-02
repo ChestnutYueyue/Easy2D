@@ -4,15 +4,15 @@
 using namespace std::chrono;
 
 
-// ÓÎÏ·¿ªÊ¼Ê±¼ä
+// æ¸¸æˆå¼€å§‹æ—¶é—´
 static steady_clock::time_point s_tStart;
-// µ±Ç°Ê±¼ä
+// å½“å‰æ—¶é—´
 static steady_clock::time_point s_tNow;
-// ÉÏÒ»Ö¡Ë¢ĞÂÊ±¼ä
+// ä¸Šä¸€å¸§åˆ·æ–°æ—¶é—´
 static steady_clock::time_point s_tLast;
-// ¹Ì¶¨µÄË¢ĞÂÊ±¼ä
+// å›ºå®šçš„åˆ·æ–°æ—¶é—´
 static steady_clock::time_point s_tFixed;
-// Ã¿Ò»Ö¡¼ä¸ô
+// æ¯ä¸€å¸§é—´éš”
 static nanoseconds s_tExceptedInvertal;
 
 
@@ -56,7 +56,7 @@ bool easy2d::Time::__isReady()
 
 void easy2d::Time::__updateNow()
 {
-	// Ë¢ĞÂÊ±¼ä
+	// åˆ·æ–°æ—¶é—´
 	s_tNow = steady_clock::now();
 }
 
@@ -77,11 +77,11 @@ void easy2d::Time::__sleep()
 {
 	if (s_tExceptedInvertal.count())
 	{
-		// ¼ÆËã¹ÒÆğÊ±³¤
+		// è®¡ç®—æŒ‚èµ·æ—¶é•¿
 		auto wait = duration_cast<nanoseconds>(s_tExceptedInvertal - (s_tNow - s_tFixed));
 		if (wait > milliseconds(1))
 		{
-			// ¹ÒÆğÏß³Ì£¬ÊÍ·Å CPU Õ¼ÓÃ
+			// æŒ‚èµ·çº¿ç¨‹ï¼Œé‡Šæ”¾ CPU å ç”¨
 			std::this_thread::sleep_for(wait);
 		}
 	}

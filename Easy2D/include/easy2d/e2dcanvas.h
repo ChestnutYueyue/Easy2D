@@ -9,7 +9,7 @@ namespace easy2d
 
 class CanvasBrush;
 
-// »­²¼
+// ç”»å¸ƒ
 class Canvas
 	: public Object
 {
@@ -20,13 +20,13 @@ public:
 
 	virtual ~Canvas();
 
-	// ¿ªÊ¼»æÍ¼
+	// å¼€å§‹ç»˜å›¾
 	CanvasBrush* beginDraw();
 
-	// ½áÊø»æÍ¼
+	// ç»“æŸç»˜å›¾
 	void endDraw();
 
-	// »ñÈ¡»­²¼Í¼Ïñ
+	// è·å–ç”»å¸ƒå›¾åƒ
 	Image* getOutputImage() const;
 
 protected:
@@ -37,154 +37,154 @@ protected:
 };
 
 
-// »­²¼»­Ë¢
+// ç”»å¸ƒç”»åˆ·
 class CanvasBrush
 	: public Object
 {
 	friend class Canvas;
 
 public:
-	// Çå¿Õ»­²¼
+	// æ¸…ç©ºç”»å¸ƒ
 	void clear();
 
-	// Ö¸¶¨ÑÕÉ«Çå¿Õ»­²¼
+	// æŒ‡å®šé¢œè‰²æ¸…ç©ºç”»å¸ƒ
 	void clear(const Color& color);
 
-	// »æÖÆĞÎ×´
+	// ç»˜åˆ¶å½¢çŠ¶
 	void drawShape(
 		Shape* shape
 	);
 
-	// »æÖÆÍ¼Æ¬
+	// ç»˜åˆ¶å›¾ç‰‡
 	void drawImage(
-		Image* image,					/* Í¼Ïñ */
-		const Point& pos = Point(),		/* »æÖÆÎ»ÖÃ */
-		const Rect& cropRect = Rect{}	/* ²Ã¼ô¾ØĞÎ */
+		Image* image,					/* å›¾åƒ */
+		const Point& pos = Point(),		/* ç»˜åˆ¶ä½ç½® */
+		const Rect& cropRect = Rect{}	/* è£å‰ªçŸ©å½¢ */
 	);
 
-	// »æÖÆÍ¼Æ¬
+	// ç»˜åˆ¶å›¾ç‰‡
 	void drawImage(
-		Image* image,					/* Í¼Ïñ */
-		const Rect& destRect,			/* »æÖÆÇøÓò */
-		const Rect& cropRect = Rect{}	/* ²Ã¼ô¾ØĞÎ */
+		Image* image,					/* å›¾åƒ */
+		const Rect& destRect,			/* ç»˜åˆ¶åŒºåŸŸ */
+		const Rect& cropRect = Rect{}	/* è£å‰ªçŸ©å½¢ */
 	);
 
-	// »æÖÆ¹Ø¼üÖ¡
+	// ç»˜åˆ¶å…³é”®å¸§
 	void drawImage(
-		KeyFrame* frame,				/* ¹Ø¼üÖ¡ */
-		const Point& pos = Point()		/* »æÖÆÎ»ÖÃ */
+		KeyFrame* frame,				/* å…³é”®å¸§ */
+		const Point& pos = Point()		/* ç»˜åˆ¶ä½ç½® */
 	);
 
-	// »æÖÆ¹Ø¼üÖ¡
+	// ç»˜åˆ¶å…³é”®å¸§
 	void drawImage(
-		KeyFrame* frame,				/* ¹Ø¼üÖ¡ */
-		const Rect& destRect			/* »æÖÆÇøÓò */
+		KeyFrame* frame,				/* å…³é”®å¸§ */
+		const Rect& destRect			/* ç»˜åˆ¶åŒºåŸŸ */
 	);
 
-	// »æÖÆÎÄ±¾
+	// ç»˜åˆ¶æ–‡æœ¬
 	void drawText(
 		TextLayout* layout,
 		const Point& pos = Point()
 	);
 
-	// »æÖÆÎÄ±¾
+	// ç»˜åˆ¶æ–‡æœ¬
 	void drawText(
 		const String& text,
 		const Point& pos = Point(),
 		const TextStyle& style = TextStyle()
 	);
 
-	// »ñÈ¡Ìî³äÑÕÉ«
+	// è·å–å¡«å……é¢œè‰²
 	Color getFillColor() const;
 
-	// ÉèÖÃÌî³äÑÕÉ«
+	// è®¾ç½®å¡«å……é¢œè‰²
 	void setFillColor(
 		Color fillColor
 	);
 
-	// »ñÈ¡ÏßÌõÑÕÉ«
+	// è·å–çº¿æ¡é¢œè‰²
 	Color getStrokeColor() const;
 
-	// ÉèÖÃÏßÌõÑÕÉ«
+	// è®¾ç½®çº¿æ¡é¢œè‰²
 	void setStrokeColor(
 		Color strokeColor
 	);
 
-	// »ñÈ¡ÏßÌõ¿í¶È
+	// è·å–çº¿æ¡å®½åº¦
 	float getStrokeWidth() const;
 
-	// ÉèÖÃÏßÌõ¿í¶È
+	// è®¾ç½®çº¿æ¡å®½åº¦
 	void setStrokeWidth(
 		float strokeWidth
 	);
 
-	// ÉèÖÃÏßÌõÏà½»ÑùÊ½
+	// è®¾ç½®çº¿æ¡ç›¸äº¤æ ·å¼
 	void setLineJoin(
 		LineJoin lineJoin
 	);
 
-	// »ñÈ¡»æÍ¼Ä£Ê½
+	// è·å–ç»˜å›¾æ¨¡å¼
 	DrawingStyle::Mode getDrawingMode() const;
 
-	// ÉèÖÃ»æÍ¼Ä£Ê½
+	// è®¾ç½®ç»˜å›¾æ¨¡å¼
 	void setDrawingMode(DrawingStyle::Mode mode);
 
-	// »ñÈ¡»æÍ¼ÑùÊ½
+	// è·å–ç»˜å›¾æ ·å¼
 	DrawingStyle getDrawingStyle() const;
 
-	// ÉèÖÃ»æÍ¼ÑùÊ½
+	// è®¾ç½®ç»˜å›¾æ ·å¼
 	void setDrawingStyle(DrawingStyle style);
 
-	// »ñÈ¡Í¸Ã÷¶È
+	// è·å–é€æ˜åº¦
 	float getOpacity() const;
 
-	// ÉèÖÃÍ¸Ã÷¶È£¨·¶Î§£º0 ~ 1£©
+	// è®¾ç½®é€æ˜åº¦ï¼ˆèŒƒå›´ï¼š0 ~ 1ï¼‰
 	void setOpacity(float opacity);
 
-	// »ñÈ¡×ø±ê
+	// è·å–åæ ‡
 	Point getPos() const;
 
-	// ÉèÖÃ×ø±ê
+	// è®¾ç½®åæ ‡
 	void setPos(
 		const Point& point
 	);
 
-	// ÒÆ¶¯»­±Ê
+	// ç§»åŠ¨ç”»ç¬”
 	void movePos(
 		const Vector2& point
 	);
 
-	// »ñÈ¡Ğı×ª½Ç¶È
+	// è·å–æ—‹è½¬è§’åº¦
 	float getRotation() const;
 
-	// ÉèÖÃĞı×ª½Ç¶È
+	// è®¾ç½®æ—‹è½¬è§’åº¦
 	void setRotation(
 		float rotation
 	);
 
-	// »ñÈ¡Ëõ·Å±ÈÀı
+	// è·å–ç¼©æ”¾æ¯”ä¾‹
 	Vector2 getScale() const;
 
-	// ÉèÖÃËõ·Å±ÈÀı
+	// è®¾ç½®ç¼©æ”¾æ¯”ä¾‹
 	void setScale(
 		const Vector2& scale
 	);
 
-	// »ñÈ¡½ÚµãÇãĞ±½Ç¶È
+	// è·å–èŠ‚ç‚¹å€¾æ–œè§’åº¦
 	Vector2 getSkew() const;
 
-	// ÉèÖÃÇãĞ±½Ç¶È
+	// è®¾ç½®å€¾æ–œè§’åº¦
 	void setSkew(
 		const Vector2& skew
 	);
 
-	// »ñÈ¡»­±Ê±ä»»¾ØÕó
+	// è·å–ç”»ç¬”å˜æ¢çŸ©é˜µ
 	Matrix32 getTransform() const;
 
-	// »ñÈ¡»æÖÆÍ¼ÏñÊ±µÄÏñËØ²åÖµ·½Ê½
+	// è·å–ç»˜åˆ¶å›¾åƒæ—¶çš„åƒç´ æ’å€¼æ–¹å¼
 	InterpolationMode getInterpolationMode() const;
 
-	// ÉèÖÃ»æÖÆÍ¼ÏñÊ±µÄÏñËØ²åÖµ·½Ê½
+	// è®¾ç½®ç»˜åˆ¶å›¾åƒæ—¶çš„åƒç´ æ’å€¼æ–¹å¼
 	void setInterpolationMode(InterpolationMode mode);
 
 protected:
