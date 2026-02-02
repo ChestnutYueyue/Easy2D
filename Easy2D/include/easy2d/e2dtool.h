@@ -300,31 +300,43 @@ class Data
 {
 public:
 	// 保存 int 类型的值
-	static void saveInt(
+	// 返回 true 表示保存成功，false 表示失败
+	static bool saveInt(
 		const String& key,					/* 键值 */
 		int value,							/* 数据 */
-		const String& field = "Defalut"	/* 字段名称 */
+		const String& field = "Default"	/* 字段名称 */
 	);
 
 	// 保存 float 类型的值
-	static void saveDouble(
+	// 返回 true 表示保存成功，false 表示失败
+	static bool saveFloat(
 		const String& key,					/* 键值 */
 		float value,						/* 数据 */
-		const String& field = "Defalut"	/* 字段名称 */
+		const String& field = "Default"	/* 字段名称 */
+	);
+
+	// 保存 double 类型的值
+	// 返回 true 表示保存成功，false 表示失败
+	static bool saveDouble(
+		const String& key,					/* 键值 */
+		double value,						/* 数据 */
+		const String& field = "Default"	/* 字段名称 */
 	);
 
 	// 保存 bool 类型的值
-	static void saveBool(
+	// 返回 true 表示保存成功，false 表示失败
+	static bool saveBool(
 		const String& key,					/* 键值 */
 		bool value,							/* 数据 */
-		const String& field = "Defalut"	/* 字段名称 */
+		const String& field = "Default"	/* 字段名称 */
 	);
 
 	// 保存 字符串 类型的值
-	static void saveString(
+	// 返回 true 表示保存成功，false 表示失败
+	static bool saveString(
 		const String& key,					/* 键值 */
 		const String& value,				/* 数据 */
-		const String& field = "Defalut"	/* 字段名称 */
+		const String& field = "Default"	/* 字段名称 */
 	);
 
 	// 获取 int 类型的值
@@ -332,15 +344,23 @@ public:
 	static int getInt(
 		const String& key,					/* 键值 */
 		int defaultValue,					/* 默认值 */
-		const String& field = "Defalut"	/* 字段名称 */
+		const String& field = "Default"	/* 字段名称 */
 	);
 
 	// 获取 float 类型的值
 	// （若不存在则返回 defaultValue 参数的值）
-	static float getDouble(
+	static float getFloat(
 		const String& key,					/* 键值 */
 		float defaultValue,				/* 默认值 */
-		const String& field = "Defalut"	/* 字段名称 */
+		const String& field = "Default"	/* 字段名称 */
+	);
+
+	// 获取 double 类型的值
+	// （若不存在则返回 defaultValue 参数的值）
+	static double getDouble(
+		const String& key,					/* 键值 */
+		double defaultValue,				/* 默认值 */
+		const String& field = "Default"	/* 字段名称 */
 	);
 
 	// 获取 bool 类型的值
@@ -348,7 +368,7 @@ public:
 	static bool getBool(
 		const String& key,					/* 键值 */
 		bool defaultValue,					/* 默认值 */
-		const String& field = "Defalut"	/* 字段名称 */
+		const String& field = "Default"	/* 字段名称 */
 	);
 
 	// 获取 字符串 类型的值
@@ -356,7 +376,7 @@ public:
 	static String getString(
 		const String& key,					/* 键值 */
 		const String& defaultValue,			/* 默认值 */
-		const String& field = "Defalut"	/* 字段名称 */
+		const String& field = "Default"	/* 字段名称 */
 	);
 };
 

@@ -132,17 +132,22 @@ TextRenderer::TextRenderer()
 TextRenderer::~TextRenderer()
 {
 	SafeRelease(pD2DFactory_);
+	SafeRelease(pRT_);
+	SafeRelease(pBrush_);
+	SafeRelease(pCurrStrokeStyle_);
 }
 
 TextRenderer* TextRenderer::Create(
 	ID2D1Factory* pD2DFactory
 )
 {
+	if (!pD2DFactory)
+		return nullptr;
+
 	TextRenderer* pTextRenderer = new (std::nothrow) TextRenderer();
 	if (pTextRenderer)
 	{
 		pD2DFactory->AddRef();
-
 		pTextRenderer->pD2DFactory_ = pD2DFactory;
 	}
 	return pTextRenderer;
@@ -195,16 +200,14 @@ STDMETHODIMP TextRenderer::DrawGlyphRun(
 	HRESULT hr = S_OK;
 
 	ID2D1PathGeometry* pPathGeometry = nullptr;
-	hr = pD2DFactory_->CreatePathGeometry(
-		&pPathGeometry
-	);
-
 	ID2D1GeometrySink* pSink = nullptr;
+	ID2D1TransformedGeometry* pTransformedGeometry = nullptr;
+
+	hr = pD2DFactory_->CreatePathGeometry(&pPathGeometry);
+
 	if (SUCCEEDED(hr))
 	{
-		hr = pPathGeometry->Open(
-			&pSink
-		);
+		hr = pPathGeometry->Open(&pSink);
 	}
 
 	if (SUCCEEDED(hr))
@@ -226,15 +229,14 @@ STDMETHODIMP TextRenderer::DrawGlyphRun(
 		hr = pSink->Close();
 	}
 
-	D2D1::Matrix3x2F const matrix = D2D1::Matrix3x2F(
-		1.0f, 0.0f,
-		0.0f, 1.0f,
-		baselineOriginX, baselineOriginY
-	);
-
-	ID2D1TransformedGeometry* pTransformedGeometry = nullptr;
 	if (SUCCEEDED(hr))
 	{
+		D2D1::Matrix3x2F const matrix = D2D1::Matrix3x2F(
+			1.0f, 0.0f,
+			0.0f, 1.0f,
+			baselineOriginX, baselineOriginY
+		);
+
 		hr = pD2DFactory_->CreateTransformedGeometry(
 			pPathGeometry,
 			&matrix,
@@ -245,7 +247,6 @@ STDMETHODIMP TextRenderer::DrawGlyphRun(
 	if (SUCCEEDED(hr) && bShowOutline_)
 	{
 		pBrush_->SetColor(sOutlineColor_);
-
 		pRT_->DrawGeometry(
 			pTransformedGeometry,
 			pBrush_,
@@ -257,16 +258,15 @@ STDMETHODIMP TextRenderer::DrawGlyphRun(
 	if (SUCCEEDED(hr))
 	{
 		pBrush_->SetColor(sFillColor_);
-
 		pRT_->FillGeometry(
 			pTransformedGeometry,
 			pBrush_
 		);
 	}
 
-	SafeRelease(pPathGeometry);
-	SafeRelease(pSink);
 	SafeRelease(pTransformedGeometry);
+	SafeRelease(pSink);
+	SafeRelease(pPathGeometry);
 
 	return hr;
 }
@@ -759,11 +759,16 @@ void easy2d::Renderer::__render()
 		++s_nRenderTimes;
 
 		float fDelay = Time::getTotalTime() - s_fLastRenderTime;
-		if (fDelay >= 0.3)
+		if (fDelay >= 0.3f)
 		{
-			wchar_t fpsText[20] = { 0 };
-			::swprintf_s(fpsText, L"FPS: %.1lf", (1 / fDelay) * s_nRenderTimes);
-			s_sFpsText = fpsText;
+			// 防止除零，确保 fDelay 不为 0
+			if (fDelay > 0.001f)
+			{
+				wchar_t fpsText[32] = { 0 };
+				float fps = static_cast<float>(s_nRenderTimes) / fDelay;
+				::swprintf_s(fpsText, L"FPS: %.1f", fps);
+				s_sFpsText = fpsText;
+			}
 			s_fLastRenderTime = Time::getTotalTime();
 			s_nRenderTimes = 0;
 		}

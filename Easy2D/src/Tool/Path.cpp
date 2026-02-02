@@ -67,7 +67,7 @@ bool easy2d::Path::__init(const String& uniqueName)
 void easy2d::Path::add(String path)
 {
 	// 检查路径是否为空，避免访问空字符串导致越界
-	if (!path.empty() && path[path.length() - 1] != L'\\' && path[path.length() - 1] != L'/')
+	if (!path.empty() && path[path.length() - 1] != '\\' && path[path.length() - 1] != '/')
 	{
 		path.append("\\");
 	}

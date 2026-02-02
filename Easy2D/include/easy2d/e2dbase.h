@@ -409,13 +409,13 @@ public:
 	static void disable();
 
 	// 输出日志消息
-	static void messageln(String format, ...);
+	static void messageln(const String& format, ...);
 
 	// 输出警告
-	static void warningln(String format, ...);
+	static void warningln(const String& format, ...);
 
 	// 输出错误
-	static void errorln(String format, ...);
+	static void errorln(const String& format, ...);
 
 	// 打开/关闭控制台
 	static void showConsole(bool show = true);
