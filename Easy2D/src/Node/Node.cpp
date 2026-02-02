@@ -188,7 +188,8 @@ void easy2d::Node::_renderBodyShape()
 		Renderer::getRenderTarget()->SetTransform(_transform.toD2DMatrix());
 		auto pBrush = Renderer::getSolidColorBrush();
 		pBrush->SetOpacity(0.8f);
-		pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(Color(Color::Red)));
+		Color redColor(Color::Red);
+		pBrush->SetColor(reinterpret_cast<const D2D1_COLOR_F&>(redColor));
 		Renderer::getRenderTarget()->DrawGeometry(_body->_geo, pBrush, 1.f, Renderer::getMiterID2D1StrokeStyle());
 	}
 
@@ -786,7 +787,7 @@ void easy2d::Node::runAction(Action* action)
 
 void easy2d::Node::resumeAction(const String& name)
 {
-	auto& actions = ActionManager::get(name);
+	auto actions = ActionManager::get(name);
 	for (auto action : actions)
 	{
 		if (action->getTarget() == this)
@@ -798,7 +799,7 @@ void easy2d::Node::resumeAction(const String& name)
 
 void easy2d::Node::pauseAction(const String& name)
 {
-	auto& actions = ActionManager::get(name);
+	auto actions = ActionManager::get(name);
 	for (auto action : actions)
 	{
 		if (action->getTarget() == this)
@@ -810,7 +811,7 @@ void easy2d::Node::pauseAction(const String& name)
 
 void easy2d::Node::stopAction(const String& name)
 {
-	auto& actions = ActionManager::get(name);
+	auto actions = ActionManager::get(name);
 	for (auto action : actions)
 	{
 		if (action->getTarget() == this)
@@ -1051,6 +1052,10 @@ easy2d::BodyRelation easy2d::Node::compareWithBody(Node* other) const
 		return BodyRelation::Contains;
 	case D2D1_GEOMETRY_RELATION::D2D1_GEOMETRY_RELATION_OVERLAP:
 		return BodyRelation::Overlap;
+	case D2D1_GEOMETRY_RELATION::D2D1_GEOMETRY_RELATION_DISJOINT:
+		return BodyRelation::Disjoint;
+	case D2D1_GEOMETRY_RELATION::D2D1_GEOMETRY_RELATION_UNKNOWN:
+	default:
+		return BodyRelation::Disjoint;
 	}
-	return BodyRelation::Disjoint;
 }

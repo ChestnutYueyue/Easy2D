@@ -497,24 +497,92 @@ namespace __gc_helper
 // Log macros
 //
 
+// 使用 C++11 可变参数模板替代宏，提供更好的类型安全和 IDE 支持
+
+namespace __log_helper
+{
+	/**
+	 * @brief 日志辅助函数模板 - Debug 级别
+	 * @tparam Args 可变参数类型
+	 * @param format 格式化字符串
+	 * @param args 可变参数
+	 */
+	template<typename... Args>
+	inline void logDebug(const String& format, Args&&... args)
+	{
+#ifdef E2D_DEBUG
+		Logger::messageln(format.c_str(), std::forward<Args>(args)...);
+#else
+		(void)format;
+		// 使用折叠表达式消除未使用参数警告 (C++17)
+		// 对于 C++11，使用以下技巧
+		int dummy[] = { 0, (static_cast<void>(args), 0)... };
+		(void)dummy;
+#endif
+	}
+
+	/**
+	 * @brief 日志辅助函数模板 - Warning 级别
+	 * @tparam Args 可变参数类型
+	 * @param format 格式化字符串
+	 * @param args 可变参数
+	 */
+	template<typename... Args>
+	inline void logWarning(const String& format, Args&&... args)
+	{
+		Logger::warningln(format.c_str(), std::forward<Args>(args)...);
+	}
+
+	/**
+	 * @brief 日志辅助函数模板 - Error 级别
+	 * @tparam Args 可变参数类型
+	 * @param format 格式化字符串
+	 * @param args 可变参数
+	 */
+	template<typename... Args>
+	inline void logError(const String& format, Args&&... args)
+	{
+		Logger::errorln(format.c_str(), std::forward<Args>(args)...);
+	}
+
+	/**
+	 * @brief 检查 HRESULT 错误并记录日志
+	 * @tparam Args 可变参数类型
+	 * @param hr HRESULT 错误码
+	 * @param format 格式化字符串
+	 * @param args 可变参数
+	 */
+	template<typename... Args>
+	inline void logErrorIfFailed(HRESULT hr, const String& format, Args&&... args)
+	{
+		if (FAILED(hr))
+		{
+			Logger::errorln(format.c_str(), std::forward<Args>(args)...);
+		}
+	}
+}
+
+// C++11 兼容的日志宏定义
+// 使用模板函数替代直接宏展开，提供更好的类型检查
+
 #ifndef E2D_LOG
 #	ifdef E2D_DEBUG
-#		define E2D_LOG(FORMAT, ...) easy2d::Logger::messageln(FORMAT, __VA_ARGS__)
+#		define E2D_LOG(...) ::easy2d::__log_helper::logDebug(__VA_ARGS__)
 #	else
-#		define E2D_LOG __noop
+#		define E2D_LOG(...) ((void)0)
 #	endif
 #endif
 
 #ifndef E2D_WARNING
-#	define E2D_WARNING(FORMAT, ...) easy2d::Logger::warningln(FORMAT, __VA_ARGS__)
+#	define E2D_WARNING(...) ::easy2d::__log_helper::logWarning(__VA_ARGS__)
 #endif
 
 #ifndef E2D_ERROR
-#	define E2D_ERROR(FORMAT, ...) easy2d::Logger::errorln(FORMAT, __VA_ARGS__)
+#	define E2D_ERROR(...) ::easy2d::__log_helper::logError(__VA_ARGS__)
 #endif
 
 #ifndef E2D_ERROR_IF_FAILED
-#	define E2D_ERROR_IF_FAILED(HR, FORMAT, ...) do { if (FAILED(HR)) { E2D_ERROR(FORMAT, __VA_ARGS__); } } while (0)
+#	define E2D_ERROR_IF_FAILED(hr, ...) ::easy2d::__log_helper::logErrorIfFailed(hr, __VA_ARGS__)
 #endif
 
 }
