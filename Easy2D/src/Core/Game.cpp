@@ -170,7 +170,7 @@ void easy2d::Game::start(int fpsLimit)
 		// 删除所有场景
 		SceneManager::__uninit();
 		// 清理对象
-		GC::clear();
+		GC::forceFullCollect();
 	}
 }
 
@@ -205,6 +205,14 @@ bool easy2d::Game::isPaused()
 
 void easy2d::Game::quit()
 {
+	if (s_bInitialized)
+	{
+		SDL_Window* window = Window::getSDLWindow();
+		if (window)
+		{
+			SDL_HideWindow(window);
+		}
+	}
 	s_bEndGame = true;	// 这个变量将控制游戏是否结束
 }
 

@@ -12,6 +12,7 @@ easy2d::Object::Object()
 
 easy2d::Object::~Object()
 {
+	GC::untrace(this);
 	if (_name)
 	{
 		delete _name;

@@ -1,7 +1,6 @@
 #include <easy2d/e2dbase.h>
-#include <unordered_set>
+#include <unordered_map>
 #include <vector>
-#include <array>
 
 //
 // gcnew helper
@@ -20,18 +19,129 @@ easy2d::__gc_helper::GCNewHelper easy2d::__gc_helper::GCNewHelper::instance;
 
 namespace
 {
-	// 分代GC池
-	std::vector<easy2d::Object*> s_youngPool;      // 新生代（本帧创建）
-	std::vector<easy2d::Object*> s_oldPool;        // 老年代（存活多帧）
-	std::unordered_set<easy2d::Object*> s_tracked; // 跟踪所有对象，防止重复添加
+	enum class Generation : uint8_t
+	{
+		Young = 0,
+		Old = 1,
+	};
+
+	struct TrackedInfo
+	{
+		Generation gen = Generation::Young;
+		uint32_t age = 0;
+		size_t index = 0;
+	};
+
+	std::vector<easy2d::Object*> s_youngPool;
+	std::vector<easy2d::Object*> s_oldPool;
+	std::unordered_map<easy2d::Object*, TrackedInfo> s_tracked;
 	
 	// GC配置
-	constexpr uint32_t PROMOTE_AGE = 3;            // 晋升到老年代的帧数阈值
-	constexpr uint32_t OLD_GC_INTERVAL = 60;       // 老年代清理间隔（帧）
+	constexpr uint32_t PROMOTE_AGE = 3;
+	constexpr uint32_t OLD_GC_INTERVAL = 60;
 	
 	uint32_t s_frameCount = 0;
 	bool s_bClearing = false;
-	bool s_enableGenerational = true;              // 是否启用分代GC
+	bool s_enableGenerational = true;
+
+	static void removeAt(std::vector<easy2d::Object*>& pool, size_t index)
+	{
+		const size_t lastIndex = pool.size() - 1;
+		if (index != lastIndex)
+		{
+			easy2d::Object* moved = pool[lastIndex];
+			pool[index] = moved;
+			auto it = s_tracked.find(moved);
+			if (it != s_tracked.end())
+			{
+				it->second.index = index;
+			}
+		}
+		pool.pop_back();
+	}
+
+	static void untrackUnsafe(easy2d::Object* pObject)
+	{
+		auto it = s_tracked.find(pObject);
+		if (it == s_tracked.end())
+			return;
+
+		const Generation gen = it->second.gen;
+		const size_t index = it->second.index;
+		s_tracked.erase(it);
+
+		if (gen == Generation::Young)
+		{
+			if (index < s_youngPool.size() && s_youngPool[index] == pObject)
+				removeAt(s_youngPool, index);
+		}
+		else
+		{
+			if (index < s_oldPool.size() && s_oldPool[index] == pObject)
+				removeAt(s_oldPool, index);
+		}
+	}
+
+	static void collectYoung()
+	{
+		size_t i = 0;
+		while (i < s_youngPool.size())
+		{
+			easy2d::Object* pObj = s_youngPool[i];
+			auto it = s_tracked.find(pObj);
+			if (it == s_tracked.end())
+			{
+				removeAt(s_youngPool, i);
+				continue;
+			}
+
+			if (pObj->getRefCount() <= 1)
+			{
+				s_tracked.erase(it);
+				removeAt(s_youngPool, i);
+				pObj->release();
+				continue;
+			}
+
+			TrackedInfo& info = it->second;
+			++info.age;
+			if (info.age >= PROMOTE_AGE)
+			{
+				info.gen = Generation::Old;
+				removeAt(s_youngPool, i);
+				info.index = s_oldPool.size();
+				s_oldPool.push_back(pObj);
+				continue;
+			}
+
+			++i;
+		}
+	}
+
+	static void collectOld()
+	{
+		size_t i = 0;
+		while (i < s_oldPool.size())
+		{
+			easy2d::Object* pObj = s_oldPool[i];
+			auto it = s_tracked.find(pObj);
+			if (it == s_tracked.end())
+			{
+				removeAt(s_oldPool, i);
+				continue;
+			}
+
+			if (pObj->getRefCount() <= 1)
+			{
+				s_tracked.erase(it);
+				removeAt(s_oldPool, i);
+				pObj->release();
+				continue;
+			}
+
+			++i;
+		}
+	}
 }
 
 bool easy2d::GC::isInPool(Object* pObject)
@@ -52,42 +162,20 @@ void easy2d::GC::clear()
 	
 	if (s_enableGenerational)
 	{
-		// 分代清理策略
-		
-		// 1. 清理新生代（每帧都清理）
-		for (auto* pObj : s_youngPool)
-		{
-			pObj->release();
-			s_tracked.erase(pObj);
-		}
-		s_youngPool.clear();
-		
-		// 2. 定期清理老年代
-		if (++s_frameCount % OLD_GC_INTERVAL == 0)
-		{
-			for (auto* pObj : s_oldPool)
-			{
-				pObj->release();
-				s_tracked.erase(pObj);
-			}
-			s_oldPool.clear();
-		}
+		++s_frameCount;
+		collectYoung();
+		if (s_frameCount % OLD_GC_INTERVAL == 0)
+			collectOld();
 	}
 	else
 	{
-		// 传统清理策略：全部清理
 		for (auto* pObj : s_youngPool)
-		{
 			pObj->release();
-		}
-		s_youngPool.clear();
-		
 		for (auto* pObj : s_oldPool)
-		{
 			pObj->release();
-		}
+
+		s_youngPool.clear();
 		s_oldPool.clear();
-		
 		s_tracked.clear();
 	}
 	
@@ -99,11 +187,14 @@ void easy2d::GC::trace(easy2d::Object * pObject)
 	if (!pObject)
 		return;
 	
-	// 检查是否已跟踪
-	if (!s_tracked.insert(pObject).second)
-		return;  // 已存在，跳过
-	
-	// 添加到新生代
+	if (s_tracked.find(pObject) != s_tracked.end())
+		return;
+
+	TrackedInfo info;
+	info.gen = Generation::Young;
+	info.age = 0;
+	info.index = s_youngPool.size();
+	s_tracked.emplace(pObject, info);
 	s_youngPool.push_back(pObject);
 }
 
@@ -112,11 +203,15 @@ void easy2d::GC::tracePersistent(Object* pObject)
 	if (!pObject)
 		return;
 	
-	// 直接添加到老年代，跳过分代晋升过程
-	if (s_tracked.insert(pObject).second)
-	{
-		s_oldPool.push_back(pObject);
-	}
+	if (s_tracked.find(pObject) != s_tracked.end())
+		return;
+
+	TrackedInfo info;
+	info.gen = Generation::Old;
+	info.age = PROMOTE_AGE;
+	info.index = s_oldPool.size();
+	s_tracked.emplace(pObject, info);
+	s_oldPool.push_back(pObject);
 }
 
 size_t easy2d::GC::getPoolSize()
@@ -148,20 +243,23 @@ void easy2d::GC::forceFullCollect()
 {
 	s_bClearing = true;
 	
-	// 强制清理所有代
 	for (auto* pObj : s_youngPool)
-	{
 		pObj->release();
-	}
-	s_youngPool.clear();
-	
 	for (auto* pObj : s_oldPool)
-	{
 		pObj->release();
-	}
+
+	s_youngPool.clear();
 	s_oldPool.clear();
-	
 	s_tracked.clear();
 	
 	s_bClearing = false;
+}
+
+void easy2d::GC::untrace(Object* pObject)
+{
+	if (!pObject)
+		return;
+	if (s_bClearing)
+		return;
+	untrackUnsafe(pObject);
 }

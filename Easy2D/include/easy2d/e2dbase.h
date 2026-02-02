@@ -498,6 +498,9 @@ public:
 	// 检查对象是否在 GC 池中
 	static bool isInPool(Object* pObject);
 
+	// 从 GC 池中移除对象（用于对象提前释放的安全处理）
+	static void untrace(Object* pObject);
+
 	// GC 池状态
 	static bool isClearing();
 

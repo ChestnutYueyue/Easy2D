@@ -66,4 +66,9 @@ target("GreedyMonster")
         add_cxxflags("/utf-8")
         add_rules("win.sdk.resource")
         add_files("GreedyMonster-Easy2D/src/*.rc")
+        if is_mode("release") then
+            add_ldflags("/SUBSYSTEM:WINDOWS", "/ENTRY:mainCRTStartup", {force = true})
+        end
     end
+
+

@@ -306,6 +306,7 @@ void easy2d::Logger::shutdown()
 		s_logger.reset();
 	}
 	spdlog::shutdown();
+	FreeAllocatedConsole();
 	s_initialized = false;
 }
 
