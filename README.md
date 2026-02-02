@@ -270,6 +270,248 @@ xmake run GreedyMonster
 
 ---
 
+## 📦 使用 xmake 远程包管理 Easy2D
+
+xmake 提供了强大的远程包管理功能，可以轻松集成 Easy2D 到你的项目中，无需手动下载和配置。
+
+### 基础配置
+
+最简单的配置方式，适合快速开始：
+
+```lua
+-- xmake.lua
+add_rules("mode.debug", "mode.release")
+
+-- 添加 Easy2D 远程仓库
+add_repositories("easy2d https://github.com/ChestnutYueyue/xmake-repo")
+
+-- 添加 Easy2D 包依赖
+add_requires("easy2d")
+
+target("mygame")
+    set_kind("binary")
+    set_languages("c++17")
+    add_files("src/*.cpp")
+    add_packages("easy2d")
+target_end()
+```
+
+### 进阶配置
+
+#### 静态链接模式
+
+如果你希望将 Easy2D 静态链接到你的可执行文件中：
+
+```lua
+-- xmake.lua
+add_rules("mode.debug", "mode.release")
+add_repositories("easy2d https://github.com/ChestnutYueyue/xmake-repo")
+
+-- 配置为静态库链接
+add_requires("easy2d", {configs = {shared = false}})
+
+target("mygame")
+    set_kind("binary")
+    set_languages("c++17")
+    add_files("src/*.cpp")
+    add_packages("easy2d")
+target_end()
+```
+
+#### Windows 平台完整配置
+
+针对 Windows 平台的完整配置示例，包含编译器优化和系统库链接：
+
+```lua
+-- xmake.lua
+add_rules("mode.debug", "mode.release")
+add_repositories("easy2d https://github.com/ChestnutYueyue/xmake-repo")
+add_requires("easy2d", {configs = {shared = false}})
+
+target("mygame")
+    set_kind("binary")
+    set_languages("c++17")
+    add_files("src/**.cpp")
+    add_files("src/**.rc")  -- 资源文件
+    add_packages("easy2d")
+
+    -- Windows 平台配置
+    if is_plat("windows") then
+        -- 减少 Windows 头文件冗余
+        add_defines("WIN32_LEAN_AND_MEAN", "NOMINMAX")
+
+        -- 链接 Windows 系统库
+        add_syslinks("user32", "gdi32", "shell32", "winmm",
+                     "imm32", "version", "ole32", "comdlg32",
+                     "dinput8", "d2d1", "dwrite", "dxguid")
+
+        -- MSVC / Clang-CL 编译器配置
+        local toolchain = get_config("toolchain") or "msvc"
+        if toolchain == "msvc" or toolchain == "clang-cl" then
+            add_cxxflags("/EHsc", "/Zc:__cplusplus", "/utf-8", {force = true})
+            add_cxxflags("/wd4996", {force = true})
+
+            if is_mode("debug") then
+                set_runtimes("MDd")
+                add_cxxflags("/Od", "/Zi", {force = true})
+            else
+                set_runtimes("MD")
+                add_cxxflags("/O2", "/Ob2", {force = true})
+                -- Release 模式隐藏控制台窗口
+                add_ldflags("/SUBSYSTEM:WINDOWS", "/ENTRY:mainCRTStartup", {force = true})
+            end
+        end
+    end
+target_end()
+```
+
+#### MinGW 平台完整配置
+
+使用 MinGW 编译时的完整配置：
+
+```lua
+-- xmake.lua
+add_rules("mode.debug", "mode.release")
+add_repositories("easy2d https://github.com/ChestnutYueyue/xmake-repo")
+add_requires("easy2d", {configs = {shared = false}})
+
+target("mygame")
+    set_kind("binary")
+    set_languages("c++17")
+    add_files("src/**.cpp")
+    add_packages("easy2d")
+
+    -- MinGW 平台配置
+    if is_plat("mingw") then
+        -- 编译警告选项
+        add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
+        add_cxxflags("-Wno-unused-parameter", "-Wno-missing-field-initializers", {force = true})
+
+        -- UTF-8 编码支持
+        add_cxxflags("-finput-charset=UTF-8", "-fexec-charset=UTF-8", {force = true})
+
+        -- 启用异常处理和 RTTI
+        add_cxxflags("-fexceptions", "-frtti", {force = true})
+
+        -- 按模式配置
+        if is_mode("debug") then
+            add_cxxflags("-O0", "-g", "-ggdb", {force = true})
+            set_runtimes("MDd")
+        else
+            add_cxxflags("-O2", "-fomit-frame-pointer", {force = true})
+            add_ldflags("-mwindows", {force = true})
+            set_runtimes("MD")
+        end
+    end
+target_end()
+```
+
+### 多平台通用配置
+
+一个同时支持 Windows (MSVC/MinGW) 的完整配置模板：
+
+```lua
+-- xmake.lua
+add_rules("mode.debug", "mode.release")
+add_repositories("easy2d https://github.com/ChestnutYueyue/xmake-repo")
+add_requires("easy2d", {configs = {shared = false}})
+
+target("mygame")
+    set_kind("binary")
+    set_languages("c++17")
+    add_files("src/**.cpp")
+    add_files("src/**.rc")
+    add_packages("easy2d")
+
+    -- ==============================================
+    -- Windows 平台配置
+    -- ==============================================
+    if is_plat("windows") then
+        add_defines("WIN32_LEAN_AND_MEAN", "NOMINMAX")
+
+        local win_sys_libs = {
+            "user32", "gdi32", "shell32", "winmm",
+            "imm32", "version", "ole32", "comdlg32",
+            "dinput8", "d2d1", "dwrite", "dxguid"
+        }
+        add_syslinks(win_sys_libs)
+
+        local toolchain = get_config("toolchain") or "msvc"
+        if toolchain == "msvc" or toolchain == "clang-cl" then
+            add_cxxflags("/EHsc", "/Zc:__cplusplus", "/utf-8", {force = true})
+            add_cxxflags("/wd4996", {force = true})
+
+            if is_mode("debug") then
+                set_runtimes("MDd")
+                add_cxxflags("/Od", "/Zi", {force = true})
+            else
+                set_runtimes("MD")
+                add_cxxflags("/O2", "/Ob2", {force = true})
+                add_ldflags("/SUBSYSTEM:WINDOWS", "/ENTRY:mainCRTStartup", {force = true})
+            end
+        end
+    end
+
+    -- ==============================================
+    -- MinGW 平台配置
+    -- ==============================================
+    if is_plat("mingw") then
+        add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
+        add_cxxflags("-Wno-unused-parameter", "-Wno-missing-field-initializers", {force = true})
+        add_cxxflags("-finput-charset=UTF-8", "-fexec-charset=UTF-8", {force = true})
+        add_cxxflags("-fexceptions", "-frtti", {force = true})
+
+        if is_mode("debug") then
+            add_cxxflags("-O0", "-g", "-ggdb", {force = true})
+            set_runtimes("MDd")
+        else
+            add_cxxflags("-O2", "-fomit-frame-pointer", {force = true})
+            add_ldflags("-mwindows", {force = true})
+            set_runtimes("MD")
+        end
+    end
+target_end()
+```
+
+### 构建命令
+
+配置好 `xmake.lua` 后，使用以下命令构建项目：
+
+```bash
+# 配置项目（自动下载并安装 Easy2D 包）
+xmake f --mode=release
+
+# 使用 MinGW 工具链
+xmake f --toolchain=mingw --mode=release
+
+# 编译项目
+xmake
+
+# 运行程序
+xmake run
+
+# 清理构建
+xmake clean
+
+# 重新编译
+xmake -r
+```
+
+### 项目目录结构示例
+
+```
+mygame/
+├── xmake.lua          # xmake 配置文件
+├── src/
+│   ├── main.cpp       # 主程序入口
+│   └── resources.rc   # Windows 资源文件（可选）
+└── assets/            # 游戏资源文件
+    ├── images/
+    └── sounds/
+```
+
+---
+
 ## 📦 安装
 
 ### 简易安装器
