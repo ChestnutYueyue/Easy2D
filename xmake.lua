@@ -39,19 +39,20 @@ target("easy2d")
         local toolchain = get_config("toolchain") or "msvc"
         if toolchain == "msvc" or toolchain == "clang-cl" then
             add_cxxflags("/EHsc", "/Zc:__cplusplus", "/utf-8", {force = true})
-        else
-            add_cxxflags("-fexceptions", "-frtti", "-finput-charset=UTF-8", "-fexec-charset=UTF-8")
-        end
-
-        if toolchain == "msvc" or toolchain == "clang-cl" then
             if is_mode("debug") then
                 set_runtimes("MDd")
             else
                 set_runtimes("MD")
             end
         end
-    else 
-        add_cxxflags("-finput-charset=utf-8", "-fexec-charset=utf-8")
+    elseif is_plat("mingw") then
+        -- MinGW 平台特定配置
+        add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
+        -- 设置源文件编码为 UTF-8
+        add_cxxflags("-finput-charset=UTF-8", {force = true})
+        -- 设置执行字符集为 UTF-8
+        add_cxxflags("-fexec-charset=UTF-8", {force = true})
+        add_cxxflags("-fexceptions", "-frtti", {force = true})
     end
 
 target("GreedyMonster")
