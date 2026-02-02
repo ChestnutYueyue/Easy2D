@@ -1,4 +1,6 @@
 #include <easy2d/e2dtool.h>
+#include <thread>
+#include <chrono>
 
 #if !defined(E2D_USE_MCI)
 
@@ -376,6 +378,10 @@ void easy2d::Music::__uninit()
 {
 	if (s_pEngine)
 	{
+		// 先停止所有正在播放的音频，避免引擎卸载时等待音频线程
+		ma_engine_stop(s_pEngine);
+		// 短暂等待确保音频线程退出
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		ma_engine_uninit(s_pEngine);
 		delete s_pEngine;
 		s_pEngine = nullptr;

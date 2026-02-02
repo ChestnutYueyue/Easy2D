@@ -174,14 +174,25 @@ bool Input::__init()
 
 void Input::__uninit()
 {
-	if (s_KeyboardDevice)
-		s_KeyboardDevice->Unacquire();
+	// 先释放设备再 Unacquire，避免 MinGW Release 模式下阻塞
+	// 顺序：先释放鼠标，再释放键盘，最后释放 DirectInput 接口
 	if (s_MouseDevice)
+	{
 		s_MouseDevice->Unacquire();
-
-	SafeRelease(s_MouseDevice);
-	SafeRelease(s_KeyboardDevice);
-	SafeRelease(s_pDirectInput);
+		s_MouseDevice->Release();
+		s_MouseDevice = nullptr;
+	}
+	if (s_KeyboardDevice)
+	{
+		s_KeyboardDevice->Unacquire();
+		s_KeyboardDevice->Release();
+		s_KeyboardDevice = nullptr;
+	}
+	if (s_pDirectInput)
+	{
+		s_pDirectInput->Release();
+		s_pDirectInput = nullptr;
+	}
 }
 
 void easy2d::Input::__update()

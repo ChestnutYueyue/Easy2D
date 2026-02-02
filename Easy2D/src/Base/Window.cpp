@@ -163,6 +163,8 @@ void easy2d::Window::__uninit()
 		::DestroyWindow(s_HWnd);
 		s_HWnd = nullptr;
 	}
+	// 注销窗口类，避免资源泄漏导致退出卡顿
+	::UnregisterClassA("Easy2DApp", HINST_THISCOMPONENT);
 }
 
 void easy2d::Window::__poll()

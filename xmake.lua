@@ -129,16 +129,18 @@ target("easy2d")
             -- 启用异常处理和 RTTI
             add_cxxflags("-fexceptions", "-frtti", {force = true})
 
-            -- 补充 MinGW 缺失的系统库链接
-            local mingw_extra_libs = {"windowscodecs", "mfplat", "mfreadwrite", "shlwapi", "xaudio2_8"}
-            add_syslinks(mingw_extra_libs)
-
             -- MinGW 按构建模式配置专属选项
             if is_mode("debug") then
                 add_cxxflags("-O0", "-g", "-ggdb", {force = true})
                 set_runtimes("MDd")
             else
-                add_cxxflags("-O3", "-fomit-frame-pointer", {force = true})
+                -- Release 模式：优化但保留关键检查，避免退出卡顿问题
+                -- -O2 替代 -O3：减少激进优化导致的资源释放顺序问题
+                -- -fno-strict-aliasing：避免严格别名优化导致的异常行为
+                -- -fno-delete-null-pointer-checks：防止删除看似无用的空指针检查
+                add_cxxflags("-O2", "-fno-strict-aliasing", "-fno-delete-null-pointer-checks", {force = true})
+                -- 可选：如需完全关闭优化以排查问题，使用 -O0
+                -- add_cxxflags("-O0", {force = true})
                 set_runtimes("MD")
             end
         end
