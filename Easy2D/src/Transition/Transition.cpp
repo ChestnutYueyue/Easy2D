@@ -13,7 +13,7 @@ easy2d::Transition::Transition(float duration)
 	, _outLayerParam()
 	, _inLayerParam()
 {
-	_duration = max(duration, 0);
+	_duration = std::max(duration, 0.0f);
 }
 
 easy2d::Transition::~Transition()
@@ -65,7 +65,7 @@ void easy2d::Transition::_update()
 	}
 	else
 	{
-		_delta = min((Time::getTotalTime() - _last) / _duration, 1);
+		_delta = std::min((Time::getTotalTime() - _last) / _duration, 1.0f);
 	}
 
 	this->_updateCustom();
@@ -89,10 +89,10 @@ void easy2d::Transition::_render()
 	{
 		Point rootPos = _outScene->getPos();
 		auto clipRect = D2D1::RectF(
-			float(max(rootPos.x, 0)),
-			float(max(rootPos.y, 0)),
-			float(min(rootPos.x + _windowSize.width, _windowSize.width)),
-			float(min(rootPos.y + _windowSize.height, _windowSize.height))
+			float(std::max(rootPos.x, 0.0f)),
+			float(std::max(rootPos.y, 0.0f)),
+			float(std::min(rootPos.x + _windowSize.width, _windowSize.width)),
+			float(std::min(rootPos.y + _windowSize.height, _windowSize.height))
 		);
 		pRT->SetTransform(D2D1::Matrix3x2F::Identity());
 		pRT->PushAxisAlignedClip(clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
@@ -108,10 +108,10 @@ void easy2d::Transition::_render()
 	{
 		Point rootPos = _inScene->getPos();
 		auto clipRect = D2D1::RectF(
-			float(max(rootPos.x, 0)),
-			float(max(rootPos.y, 0)),
-			float(min(rootPos.x + _windowSize.width, _windowSize.width)),
-			float(min(rootPos.y + _windowSize.height, _windowSize.height))
+			float(std::max(rootPos.x, 0.0f)),
+			float(std::max(rootPos.y, 0.0f)),
+			float(std::min(rootPos.x + _windowSize.width, _windowSize.width)),
+			float(std::min(rootPos.y + _windowSize.height, _windowSize.height))
 		);
 		pRT->SetTransform(D2D1::Matrix3x2F::Identity());
 		pRT->PushAxisAlignedClip(clipRect, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);

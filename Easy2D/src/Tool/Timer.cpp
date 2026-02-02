@@ -19,7 +19,7 @@ namespace easy2d
 			, removed(false)
 			, runTimes(0)
 			, totalTimes(updateTimes)
-			, interval(max(interval, 0))
+			, interval(std::max(interval, 0.0f))
 			, lastTime(easy2d::Time::getTotalTime())
 			, callback(func)
 			, name(name)

@@ -40,10 +40,10 @@ easy2d::Rect easy2d::KeyFrame::getCropRect() const
 
 void easy2d::KeyFrame::setCropRect(const Rect& cropRect)
 {
-	_cropRect.leftTop.x = min(max(cropRect.leftTop.x, 0), _image->getWidth());
-	_cropRect.leftTop.y = min(max(cropRect.leftTop.y, 0), _image->getHeight());
-	_cropRect.rightBottom.x = min(max(cropRect.rightBottom.x, 0), _image->getWidth());
-	_cropRect.rightBottom.y = min(max(cropRect.rightBottom.y, 0), _image->getHeight());
+	_cropRect.leftTop.x = std::min(std::max(cropRect.leftTop.x, 0.0f), _image->getWidth());
+	_cropRect.leftTop.y = std::min(std::max(cropRect.leftTop.y, 0.0f), _image->getHeight());
+	_cropRect.rightBottom.x = std::min(std::max(cropRect.rightBottom.x, 0.0f), _image->getWidth());
+	_cropRect.rightBottom.y = std::min(std::max(cropRect.rightBottom.y, 0.0f), _image->getHeight());
 }
 
 float easy2d::KeyFrame::getWidth() const

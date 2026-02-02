@@ -285,7 +285,7 @@ float easy2d::CanvasBrush::getOpacity() const
 
 void easy2d::CanvasBrush::setOpacity(float opacity)
 {
-	_opacity = max(min(opacity, 1.f), 0.f);
+	_opacity = std::min(std::max(opacity, 1.0f), 0.0f);
 }
 
 easy2d::Point easy2d::CanvasBrush::getPos() const

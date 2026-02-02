@@ -32,7 +32,7 @@ easy2d::FrameSequence::~FrameSequence()
 
 void easy2d::FrameSequence::setInterval(float interval)
 {
-	_interval = max(interval, 0);
+	_interval = std::max(interval, 0.0f);
 }
 
 void easy2d::FrameSequence::add(KeyFrame* frame)

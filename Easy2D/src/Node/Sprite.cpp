@@ -109,13 +109,13 @@ void easy2d::Sprite::crop(const Rect& cropRect)
 	else
 	{
 		// 保证裁剪矩形不超出图片大小
-		_cropRect.leftTop.x = min(max(cropRect.leftTop.x, 0), _image->getWidth());
-		_cropRect.leftTop.y = min(max(cropRect.leftTop.y, 0), _image->getHeight());
-		_cropRect.rightBottom.x = min(max(cropRect.rightBottom.x, 0), _image->getWidth());
-		_cropRect.rightBottom.y = min(max(cropRect.rightBottom.y, 0), _image->getHeight());
+		_cropRect.leftTop.x = std::min(std::max(cropRect.leftTop.x, 0.0f), _image->getWidth());
+		_cropRect.leftTop.y = std::min(std::max(cropRect.leftTop.y, 0.0f), _image->getHeight());
+		_cropRect.rightBottom.x = std::min(std::max(cropRect.rightBottom.x, 0.0f), _image->getWidth());
+		_cropRect.rightBottom.y = std::min(std::max(cropRect.rightBottom.y, 0.0f), _image->getHeight());
 		setSize(
-			min(max(cropRect.getWidth(), 0), _image->getWidth() - _cropRect.leftTop.x),
-			min(max(cropRect.getHeight(), 0), _image->getHeight() - _cropRect.leftTop.y)
+			std::min(std::max(cropRect.getWidth(), 0.0f), _image->getWidth() - _cropRect.leftTop.x),
+			std::min(std::max(cropRect.getHeight(), 0.0f), _image->getHeight() - _cropRect.leftTop.y)
 		);
 	}
 }
@@ -172,9 +172,10 @@ void easy2d::Sprite::onRender()
 		}
 
 		// 渲染图片
+		auto bounds = getBounds();
 		Renderer::getRenderTarget()->DrawBitmap(
 			_image->getBitmap(),
-			reinterpret_cast<const D2D1_RECT_F&>(getBounds()),
+			reinterpret_cast<const D2D1_RECT_F&>(bounds),
 			_displayOpacity,
 			(_interpolationMode == InterpolationMode::Nearest) ? D2D1_BITMAP_INTERPOLATION_MODE_NEAREST_NEIGHBOR : D2D1_BITMAP_INTERPOLATION_MODE_LINEAR,
 			reinterpret_cast<const D2D1_RECT_F*>(srcRect)

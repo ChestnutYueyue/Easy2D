@@ -2,6 +2,22 @@
 #include <easy2d/e2dmanager.h>
 #include <easy2d/e2dnode.h>
 
+// MinGW 兼容性：定义 SAL 注解宏
+#ifdef __MINGW32__
+#ifndef __maybenull
+#define __maybenull
+#endif
+#ifndef __in
+#define __in
+#endif
+#ifndef __out
+#define __out
+#endif
+// MinGW 不支持 swprintf_s，使用 swprintf 代替
+#define swprintf_s swprintf
+#endif
+
+
 namespace easy2d
 {
 
@@ -27,7 +43,7 @@ public:
 		CONST D2D1_COLOR_F& outlineColor,
 		FLOAT outlineWidth,
 		D2D1_LINE_JOIN outlineJoin
-		);
+		) noexcept;
 
 	STDMETHOD(DrawGlyphRun)(
 		__maybenull void* clientDrawingContext,
@@ -37,7 +53,7 @@ public:
 		__in DWRITE_GLYPH_RUN const* glyphRun,
 		__in DWRITE_GLYPH_RUN_DESCRIPTION const* glyphRunDescription,
 		IUnknown* clientDrawingEffect
-		);
+		) noexcept;
 
 	STDMETHOD(DrawUnderline)(
 		__maybenull void* clientDrawingContext,
@@ -45,7 +61,7 @@ public:
 		FLOAT baselineOriginY,
 		__in DWRITE_UNDERLINE const* underline,
 		IUnknown* clientDrawingEffect
-		);
+		) noexcept;
 
 	STDMETHOD(DrawStrikethrough)(
 		__maybenull void* clientDrawingContext,
@@ -53,7 +69,7 @@ public:
 		FLOAT baselineOriginY,
 		__in DWRITE_STRIKETHROUGH const* strikethrough,
 		IUnknown* clientDrawingEffect
-		);
+		) noexcept;
 
 	STDMETHOD(DrawInlineObject)(
 		__maybenull void* clientDrawingContext,
@@ -63,22 +79,22 @@ public:
 		BOOL isSideways,
 		BOOL isRightToLeft,
 		IUnknown* clientDrawingEffect
-		);
+		) noexcept;
 
 	STDMETHOD(IsPixelSnappingDisabled)(
 		__maybenull void* clientDrawingContext,
 		__out BOOL* isDisabled
-		);
+		) noexcept;
 
 	STDMETHOD(GetCurrentTransform)(
 		__maybenull void* clientDrawingContext,
 		__out DWRITE_MATRIX* transform
-		);
+		) noexcept;
 
 	STDMETHOD(GetPixelsPerDip)(
 		__maybenull void* clientDrawingContext,
 		__out FLOAT* pixelsPerDip
-		);
+		) noexcept;
 
 public:
 	unsigned long STDMETHODCALLTYPE AddRef();
@@ -140,7 +156,7 @@ STDMETHODIMP_(void) TextRenderer::Prepare(
 	CONST D2D1_COLOR_F& outlineColor,
 	FLOAT outlineWidth,
 	D2D1_LINE_JOIN outlineJoin
-)
+) noexcept
 {
 	pRT_ = pRT;
 	pBrush_ = pBrush;
@@ -174,7 +190,7 @@ STDMETHODIMP TextRenderer::DrawGlyphRun(
 	__in DWRITE_GLYPH_RUN const* glyphRun,
 	__in DWRITE_GLYPH_RUN_DESCRIPTION const* glyphRunDescription,
 	IUnknown* clientDrawingEffect
-)
+) noexcept
 {
 	HRESULT hr = S_OK;
 
@@ -261,7 +277,7 @@ STDMETHODIMP TextRenderer::DrawUnderline(
 	FLOAT baselineOriginY,
 	__in DWRITE_UNDERLINE const* underline,
 	IUnknown* clientDrawingEffect
-)
+) noexcept
 {
 	HRESULT hr;
 
@@ -328,7 +344,7 @@ STDMETHODIMP TextRenderer::DrawStrikethrough(
 	FLOAT baselineOriginY,
 	__in DWRITE_STRIKETHROUGH const* strikethrough,
 	IUnknown* clientDrawingEffect
-)
+) noexcept
 {
 	HRESULT hr;
 
@@ -397,7 +413,7 @@ STDMETHODIMP TextRenderer::DrawInlineObject(
 	BOOL isSideways,
 	BOOL isRightToLeft,
 	IUnknown* clientDrawingEffect
-)
+) noexcept
 {
 	return E_NOTIMPL;
 }
@@ -423,7 +439,7 @@ STDMETHODIMP_(unsigned long) TextRenderer::Release()
 STDMETHODIMP TextRenderer::IsPixelSnappingDisabled(
 	__maybenull void* clientDrawingContext,
 	__out BOOL* isDisabled
-)
+) noexcept
 {
 	*isDisabled = FALSE;
 	return S_OK;
@@ -432,7 +448,7 @@ STDMETHODIMP TextRenderer::IsPixelSnappingDisabled(
 STDMETHODIMP TextRenderer::GetCurrentTransform(
 	__maybenull void* clientDrawingContext,
 	__out DWRITE_MATRIX* transform
-)
+) noexcept
 {
 	pRT_->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F*>(transform));
 	return S_OK;
@@ -441,7 +457,7 @@ STDMETHODIMP TextRenderer::GetCurrentTransform(
 STDMETHODIMP TextRenderer::GetPixelsPerDip(
 	__maybenull void* clientDrawingContext,
 	__out FLOAT* pixelsPerDip
-)
+) noexcept
 {
 	float x, yUnused;
 
@@ -456,15 +472,27 @@ STDMETHODIMP TextRenderer::QueryInterface(
 	void** ppvObject
 )
 {
+#ifdef __MINGW32__
+	if (IID_IDWriteTextRenderer == riid)
+#else
 	if (__uuidof(IDWriteTextRenderer) == riid)
+#endif
 	{
 		*ppvObject = this;
 	}
+#ifdef __MINGW32__
+	else if (IID_IDWritePixelSnapping == riid)
+#else
 	else if (__uuidof(IDWritePixelSnapping) == riid)
+#endif
 	{
 		*ppvObject = this;
 	}
+#ifdef __MINGW32__
+	else if (IID_IUnknown == riid)
+#else
 	else if (__uuidof(IUnknown) == riid)
+#endif
 	{
 		*ppvObject = this;
 	}
@@ -586,7 +614,11 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 		// 创建 DirectWrite 工厂
 		hr = DWriteCreateFactory(
 			DWRITE_FACTORY_TYPE_SHARED,
+#ifdef __MINGW32__
+			IID_IDWriteFactory,
+#else
 			__uuidof(IDWriteFactory),
+#endif
 			reinterpret_cast<IUnknown * *>(&s_pDWriteFactory)
 		);
 		E2D_ERROR_IF_FAILED(hr, "Create IDWriteFactory failed");

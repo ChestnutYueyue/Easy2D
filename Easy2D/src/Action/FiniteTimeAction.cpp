@@ -2,7 +2,7 @@
 
 easy2d::FiniteTimeAction::FiniteTimeAction(float duration)
 	: _delta(0)
-	, _duration(max(duration, 0))
+	, _duration(std::max(duration, 0.0f))
 {
 }
 
@@ -28,7 +28,7 @@ void easy2d::FiniteTimeAction::_update()
 	}
 	else
 	{
-		_delta = min((Time::getTotalTime() - _last) / _duration, 1);
+		_delta = std::min((Time::getTotalTime() - _last) / _duration, 1.0f);
 
 		if (_delta >= 1)
 		{

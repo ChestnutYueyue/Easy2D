@@ -12,7 +12,7 @@ target("easy2d")
 
     if is_plat("windows") then
         add_defines("WIN32_LEAN_AND_MEAN")
-        add_syslinks("opengl32", "user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32")
+        add_syslinks("opengl32", "user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "dinput8", "d2d1", "dwrite", "dxguid")
 
         local toolchain = get_config("toolchain") or "msvc"
         if toolchain == "msvc" or toolchain == "clang-cl" then
@@ -41,12 +41,16 @@ target("GreedyMonster")
     set_rundir("GreedyMonster-Easy2D/src")
 
     if is_plat("windows") then
-        add_cxxflags("/utf-8")
         add_rules("win.sdk.resource")
         add_files("GreedyMonster-Easy2D/src/*.rc")
         if is_mode("release") then
             add_ldflags("/SUBSYSTEM:WINDOWS", "/ENTRY:mainCRTStartup", {force = true})
         end
+    elseif is_plat("mingw") then
+        add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
+        add_cxxflags("-finput-charset=UTF-8", {force = true})
+        add_cxxflags("-fexec-charset=UTF-8", {force = true})
+        add_cxxflags("-fexceptions", "-frtti", {force = true})
     end
 
 

@@ -169,7 +169,8 @@ easy2d::Rect easy2d::ShapeNode::getBoundingBox() const
 {
 	if (_shape)
 	{
-		return _shape->getBoundingBox(&getTransform());
+		auto transform = getTransform();
+		return _shape->getBoundingBox(&transform);
 	}
 	return Rect();
 }
@@ -178,7 +179,8 @@ bool easy2d::ShapeNode::containsPoint(Point const& point) const
 {
 	if (_shape)
 	{
-		return _shape->containsPoint(point, &getTransform());
+		auto transform = getTransform();
+		return _shape->containsPoint(point, &transform);
 	}
 	return false;
 }

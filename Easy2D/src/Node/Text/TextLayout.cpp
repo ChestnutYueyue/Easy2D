@@ -150,7 +150,7 @@ void easy2d::TextLayout::setWrappingWidth(float wrappingWidth)
 {
 	if (_style.wrappingWidth != wrappingWidth)
 	{
-		_style.wrappingWidth = max(wrappingWidth, 0);
+		_style.wrappingWidth = std::max(wrappingWidth, 0.0f);
 
 		if (_style.wrapping)
 		{

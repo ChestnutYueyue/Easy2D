@@ -2,7 +2,7 @@
 
 easy2d::Delay::Delay(float duration)
 	: _delta(0)
-	, _delay(max(duration, 0))
+	, _delay(std::max(duration, 0.0f))
 {
 }
 

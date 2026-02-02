@@ -340,7 +340,7 @@ bool easy2d::Music::Media::setVolume(float volume)
 	if (_opened)
 	{
 		// miniaudio 音量范围是 0.0 到 1.0
-		float linearVolume = max(0.0f, min(1.0f, volume));
+		float linearVolume = std::max(0.0f, std::min(1.0f, volume));
 		ma_sound_set_volume(&_sound, linearVolume);
 		return true;
 	}
