@@ -4,8 +4,6 @@
 #include <easy2d/e2dtext.h>
 #include <easy2d/e2dlistener.h>
 #include <vector>
-#include <unordered_set>
-#include <cstdint>
 
 namespace easy2d 
 {
@@ -17,13 +15,13 @@ class SceneManager;
 class Renderer;
 class Scene;
 
-// èº«ä½“å½¢çŠ¶å…³ç³»
+// ÉíÌåĞÎ×´¹ØÏµ
 enum class BodyRelation
 {
-	Disjoint,		// å®Œå…¨ä¸ç›¸äº¤
-	IsContained,	// è¢«å¯¹æ–¹åŒ…å«
-	Contains,		// åŒ…å«å¯¹æ–¹
-	Overlap,		// ç›¸äº¤ä½†ä¸åŒ…å«
+	Disjoint,		// ÍêÈ«²»Ïà½»
+	IsContained,	// ±»¶Ô·½°üº¬
+	Contains,		// °üº¬¶Ô·½
+	Overlap,		// Ïà½»µ«²»°üº¬
 };
 
 class Node :
@@ -32,20 +30,19 @@ class Node :
 	friend class Transition;
 	friend class SceneManager;
 	friend class Renderer;
-	friend class GLRenderer;
 
 public:
-	// èŠ‚ç‚¹å±æ€§
+	// ½ÚµãÊôĞÔ
 	struct Property
 	{
-		bool visable;		// å¯è§æ€§
-		Point pos;			// åæ ‡
-		Size size;			// å®½é«˜
-		float opacity;		// é€æ˜åº¦
-		Point anchor;		// é”šç‚¹
-		Vector2 scale;		// ç¼©æ”¾
-		float rotation;		// æ—‹è½¬è§’åº¦
-		Vector2 skewAngle;	// å€¾æ–œè§’åº¦
+		bool visable;		// ¿É¼ûĞÔ
+		Point pos;			// ×ø±ê
+		Size size;			// ¿í¸ß
+		float opacity;		// Í¸Ã÷¶È
+		Point anchor;		// Ãªµã
+		Vector2 scale;		// Ëõ·Å
+		float rotation;		// Ğı×ª½Ç¶È
+		Vector2 skewAngle;	// ÇãĞ±½Ç¶È
 	};
 
 public:
@@ -53,490 +50,461 @@ public:
 
 	virtual ~Node();
 
-	// æ›´æ–°èŠ‚ç‚¹
+	// ¸üĞÂ½Úµã
 	virtual void onUpdate() {}
 
-	// æ¸²æŸ“èŠ‚ç‚¹
+	// äÖÈ¾½Úµã
 	virtual void onRender() {}
 
-	// è·å–èŠ‚ç‚¹æ˜¾ç¤ºçŠ¶æ€
+	// »ñÈ¡½ÚµãÏÔÊ¾×´Ì¬
 	bool isVisible() const;
 
-	// è·å–èŠ‚ç‚¹ç»˜å›¾é¡ºåº
+	// »ñÈ¡½Úµã»æÍ¼Ë³Ğò
 	int getOrder() const;
 
-	// è·å–èŠ‚ç‚¹æ¨ªåæ ‡
+	// »ñÈ¡½Úµãºá×ø±ê
 	float getPosX() const;
 
-	// è·å–èŠ‚ç‚¹çºµåæ ‡
+	// »ñÈ¡½Úµã×İ×ø±ê
 	float getPosY() const;
 
-	// è·å–èŠ‚ç‚¹åæ ‡
+	// »ñÈ¡½Úµã×ø±ê
 	Point getPos() const;
 
-	// è·å–èŠ‚ç‚¹å®½åº¦
+	// »ñÈ¡½Úµã¿í¶È
 	float getWidth() const;
 
-	// è·å–èŠ‚ç‚¹é«˜åº¦
+	// »ñÈ¡½Úµã¸ß¶È
 	float getHeight() const;
 
-	// è·å–èŠ‚ç‚¹å®½åº¦ï¼ˆä¸è€ƒè™‘ç¼©æ”¾ï¼‰
+	// »ñÈ¡½Úµã¿í¶È£¨²»¿¼ÂÇËõ·Å£©
 	float getRealWidth() const;
 
-	// è·å–èŠ‚ç‚¹é«˜åº¦ï¼ˆä¸è€ƒè™‘ç¼©æ”¾ï¼‰
+	// »ñÈ¡½Úµã¸ß¶È£¨²»¿¼ÂÇËõ·Å£©
 	float getRealHeight() const;
 
-	// è·å–èŠ‚ç‚¹å¤§å°ï¼ˆä¸è€ƒè™‘ç¼©æ”¾ï¼‰
+	// »ñÈ¡½Úµã´óĞ¡£¨²»¿¼ÂÇËõ·Å£©
 	Size getRealSize() const;
 
-	// è·å–èŠ‚ç‚¹çš„é”šç‚¹
+	// »ñÈ¡½ÚµãµÄÃªµã
 	float getAnchorX() const;
 
-	// è·å–èŠ‚ç‚¹çš„é”šç‚¹
+	// »ñÈ¡½ÚµãµÄÃªµã
 	float getAnchorY() const;
 
-	// è·å–èŠ‚ç‚¹å¤§å°
+	// »ñÈ¡½Úµã´óĞ¡
 	Size getSize() const;
 
-	// è·å–èŠ‚ç‚¹æ¨ªå‘ç¼©æ”¾æ¯”ä¾‹
+	// »ñÈ¡½ÚµãºáÏòËõ·Å±ÈÀı
 	float getScaleX() const;
 
-	// è·å–èŠ‚ç‚¹çºµå‘ç¼©æ”¾æ¯”ä¾‹
+	// »ñÈ¡½Úµã×İÏòËõ·Å±ÈÀı
 	float getScaleY() const;
 
-	// è·å–èŠ‚ç‚¹æ¨ªå‘å€¾æ–œè§’åº¦
+	// »ñÈ¡½ÚµãºáÏòÇãĞ±½Ç¶È
 	float getSkewX() const;
 
-	// è·å–èŠ‚ç‚¹çºµå‘å€¾æ–œè§’åº¦
+	// »ñÈ¡½Úµã×İÏòÇãĞ±½Ç¶È
 	float getSkewY() const;
 
-	// è·å–èŠ‚ç‚¹æ—‹è½¬è§’åº¦
+	// »ñÈ¡½ÚµãĞı×ª½Ç¶È
 	float getRotation() const;
 
-	// è·å–èŠ‚ç‚¹é€æ˜åº¦
+	// »ñÈ¡½ÚµãÍ¸Ã÷¶È
 	float getOpacity() const;
 
-	// è·å–èŠ‚ç‚¹å±æ€§
+	// »ñÈ¡½ÚµãÊôĞÔ
 	Property getProperty() const;
 
-	// è·å–è¾¹æ¡†
+	// »ñÈ¡±ß¿ò
 	virtual Rect getBounds() const;
 
-	// è·å–å¤–åˆ‡åŒ…å›´ç›’
+	// »ñÈ¡ÍâÇĞ°üÎ§ºĞ
 	virtual Rect getBoundingBox() const;
 
-	// è·å–äºŒç»´å˜æ¢çŸ©é˜µ
+	// »ñÈ¡¶şÎ¬±ä»»¾ØÕó
 	Matrix32 getTransform() const;
 
-	// è·å–äºŒç»´å˜æ¢é€†çŸ©é˜µ
+	// »ñÈ¡¶şÎ¬±ä»»Äæ¾ØÕó
 	Matrix32 getInverseTransform() const;
 
-	// è·å–çˆ¶èŠ‚ç‚¹
+	// »ñÈ¡¸¸½Úµã
 	Node * getParent() const;
 
-	// è·å–èŠ‚ç‚¹æ‰€åœ¨åœºæ™¯
+	// »ñÈ¡½ÚµãËùÔÚ³¡¾°
 	Scene * getParentScene() const;
 
-	// æ˜¯å¦åŒ…å«ç‚¹åæ ‡
+	// ÊÇ·ñ°üº¬µã×ø±ê
 	virtual bool containsPoint(Point const& point) const;
 
-	// è®¾ç½®èŠ‚ç‚¹æ˜¯å¦æ˜¾ç¤º
+	// ÉèÖÃ½ÚµãÊÇ·ñÏÔÊ¾
 	void setVisible(
 		bool value
 	);
 
-	// å¼€å¯æˆ–ç¦ç”¨ onUpdate å‡½æ•°
+	// ¿ªÆô»ò½ûÓÃ onUpdate º¯Êı
 	void setAutoUpdate(
 		bool autoUpdate
 	);
 
-	// è®¾ç½®èŠ‚ç‚¹æ¨ªåæ ‡
+	// ÉèÖÃ½Úµãºá×ø±ê
 	void setPosX(
 		float x
 	);
 
-	// è®¾ç½®èŠ‚ç‚¹çºµåæ ‡
+	// ÉèÖÃ½Úµã×İ×ø±ê
 	void setPosY(
 		float y
 	);
 
-	// è®¾ç½®èŠ‚ç‚¹åæ ‡
+	// ÉèÖÃ½Úµã×ø±ê
 	void setPos(
 		const Point & point
 	);
 
-	// è®¾ç½®èŠ‚ç‚¹åæ ‡
+	// ÉèÖÃ½Úµã×ø±ê
 	void setPos(
 		float x,
 		float y
 	);
 
-	// ç§»åŠ¨èŠ‚ç‚¹
+	// ÒÆ¶¯½Úµã
 	void movePosX(
 		float x
 	);
 
-	// ç§»åŠ¨èŠ‚ç‚¹
+	// ÒÆ¶¯½Úµã
 	void movePosY(
 		float y
 	);
 
-	// ç§»åŠ¨èŠ‚ç‚¹
+	// ÒÆ¶¯½Úµã
 	void movePos(
 		float x,
 		float y
 	);
 
-	// ç§»åŠ¨èŠ‚ç‚¹
+	// ÒÆ¶¯½Úµã
 	void movePos(
 		const Vector2 & v
 	);
 
-	// è®¾ç½®èŠ‚ç‚¹ç»˜å›¾é¡ºåºï¼Œæ•°å­—å¤§çš„ä¼šæ˜¾ç¤ºåœ¨å…¶ä»–å…„å¼ŸèŠ‚ç‚¹ä¸Šæ–¹
-	// é»˜è®¤ä¸º 0
+	// ÉèÖÃ½Úµã»æÍ¼Ë³Ğò£¬Êı×Ö´óµÄ»áÏÔÊ¾ÔÚÆäËûĞÖµÜ½ÚµãÉÏ·½
+	// Ä¬ÈÏÎª 0
 	void setOrder(
 		int order
 	);
 
-	// è®¾ç½®æ¨ªå‘ç¼©æ”¾æ¯”ä¾‹
-	// é»˜è®¤ä¸º 1.0f
+	// ÉèÖÃºáÏòËõ·Å±ÈÀı
+	// Ä¬ÈÏÎª 1.0f
 	void setScaleX(
 		float scaleX
 	);
 
-	// è®¾ç½®çºµå‘ç¼©æ”¾æ¯”ä¾‹
-	// é»˜è®¤ä¸º 1.0f
+	// ÉèÖÃ×İÏòËõ·Å±ÈÀı
+	// Ä¬ÈÏÎª 1.0f
 	void setScaleY(
 		float scaleY
 	);
 
-	// è®¾ç½®ç¼©æ”¾æ¯”ä¾‹
-	// é»˜è®¤ä¸º (1.0f, 1.0f)
+	// ÉèÖÃËõ·Å±ÈÀı
+	// Ä¬ÈÏÎª (1.0f, 1.0f)
 	void setScale(
 		float scaleX,
 		float scaleY
 	);
 
-	// è®¾ç½®ç¼©æ”¾æ¯”ä¾‹
-	// é»˜è®¤ä¸º 1.0f
+	// ÉèÖÃËõ·Å±ÈÀı
+	// Ä¬ÈÏÎª 1.0f
 	void setScale(
 		float scale
 	);
 
-	// è®¾ç½®æ¨ªå‘å€¾æ–œè§’åº¦
-	// é»˜è®¤ä¸º 0
+	// ÉèÖÃºáÏòÇãĞ±½Ç¶È
+	// Ä¬ÈÏÎª 0
 	void setSkewX(
 		float angleX
 	);
 
-	// è®¾ç½®çºµå‘å€¾æ–œè§’åº¦
-	// é»˜è®¤ä¸º 0
+	// ÉèÖÃ×İÏòÇãĞ±½Ç¶È
+	// Ä¬ÈÏÎª 0
 	void setSkewY(
 		float angleY
 	);
 
-	// è®¾ç½®å€¾æ–œè§’åº¦
-	// é»˜è®¤ä¸º (0, 0)
+	// ÉèÖÃÇãĞ±½Ç¶È
+	// Ä¬ÈÏÎª (0, 0)
 	void setSkew(
 		float angleX,
 		float angleY
 	);
 
-	// è®¾ç½®æ—‹è½¬è§’åº¦
-	// é»˜è®¤ä¸º 0
+	// ÉèÖÃĞı×ª½Ç¶È
+	// Ä¬ÈÏÎª 0
 	void setRotation(
 		float rotation
 	);
 
-	// è®¾ç½®é€æ˜åº¦
-	// é»˜è®¤ä¸º 1.0f, èŒƒå›´ [0, 1]
+	// ÉèÖÃÍ¸Ã÷¶È
+	// Ä¬ÈÏÎª 1.0f, ·¶Î§ [0, 1]
 	void setOpacity(
 		float opacity
 	);
 
-	// è®¾ç½®é”šç‚¹çš„æ¨ªå‘ä½ç½®
-	// é»˜è®¤ä¸º 0, èŒƒå›´ [0, 1]
+	// ÉèÖÃÃªµãµÄºáÏòÎ»ÖÃ
+	// Ä¬ÈÏÎª 0, ·¶Î§ [0, 1]
 	void setAnchorX(
 		float anchorX
 	);
 
-	// è®¾ç½®é”šç‚¹çš„çºµå‘ä½ç½®
-	// é»˜è®¤ä¸º 0, èŒƒå›´ [0, 1]
+	// ÉèÖÃÃªµãµÄ×İÏòÎ»ÖÃ
+	// Ä¬ÈÏÎª 0, ·¶Î§ [0, 1]
 	void setAnchorY(
 		float anchorY
 	);
 
-	// è®¾ç½®é”šç‚¹ä½ç½®
-	// é»˜è®¤ä¸º (0, 0), èŒƒå›´ [0, 1]
+	// ÉèÖÃÃªµãÎ»ÖÃ
+	// Ä¬ÈÏÎª (0, 0), ·¶Î§ [0, 1]
 	void setAnchor(
 		float anchorX,
 		float anchorY
 	);
 
-	// ä¿®æ”¹èŠ‚ç‚¹å®½åº¦
+	// ĞŞ¸Ä½Úµã¿í¶È
 	void setWidth(
 		float width
 	);
 
-	// ä¿®æ”¹èŠ‚ç‚¹é«˜åº¦
+	// ĞŞ¸Ä½Úµã¸ß¶È
 	void setHeight(
 		float height
 	);
 
-	// ä¿®æ”¹èŠ‚ç‚¹å¤§å°
+	// ĞŞ¸Ä½Úµã´óĞ¡
 	void setSize(
 		float width,
 		float height
 	);
 
-	// ä¿®æ”¹èŠ‚ç‚¹å¤§å°
+	// ĞŞ¸Ä½Úµã´óĞ¡
 	void setSize(
 		Size size
 	);
 
-	// è®¾ç½®èŠ‚ç‚¹å±æ€§
+	// ÉèÖÃ½ÚµãÊôĞÔ
 	void setProperty(
 		Property prop
 	);
 
-	// æ·»åŠ å­èŠ‚ç‚¹
+	// Ìí¼Ó×Ó½Úµã
 	void addChild(
 		Node * child
 	);
 
-	// æ·»åŠ å­èŠ‚ç‚¹
+	// Ìí¼Ó×Ó½Úµã
 	void addChild(
 		Node* child,
-		int order		/* æ¸²æŸ“é¡ºåºï¼Œæ•°å­—å¤§çš„ä¼šæ˜¾ç¤ºåœ¨å…¶ä»–å…„å¼ŸèŠ‚ç‚¹ä¸Šæ–¹ */
+		int order		/* äÖÈ¾Ë³Ğò£¬Êı×Ö´óµÄ»áÏÔÊ¾ÔÚÆäËûĞÖµÜ½ÚµãÉÏ·½ */
 	);
 
-	// æ·»åŠ å¤šä¸ªå­èŠ‚ç‚¹
+	// Ìí¼Ó¶à¸ö×Ó½Úµã
 	void addChildren(
-		std::initializer_list<Node*> nodes	/* èŠ‚ç‚¹æ•°ç»„ */
+		std::initializer_list<Node*> nodes	/* ½ÚµãÊı×é */
 	);
 
-	// æ·»åŠ å¤šä¸ªå­èŠ‚ç‚¹
+	// Ìí¼Ó¶à¸ö×Ó½Úµã
 	void addChildren(
-		std::initializer_list<Node*> nodes,	/* èŠ‚ç‚¹æ•°ç»„ */
-		int order							/* æ¸²æŸ“é¡ºåºï¼Œæ•°å­—å¤§çš„ä¼šæ˜¾ç¤ºåœ¨å…¶ä»–å…„å¼ŸèŠ‚ç‚¹ä¸Šæ–¹ */
+		std::initializer_list<Node*> nodes,	/* ½ÚµãÊı×é */
+		int order							/* äÖÈ¾Ë³Ğò£¬Êı×Ö´óµÄ»áÏÔÊ¾ÔÚÆäËûĞÖµÜ½ÚµãÉÏ·½ */
 	);
 
-	// è·å–æ‰€æœ‰åç§°ç›¸åŒçš„å­èŠ‚ç‚¹
+	// »ñÈ¡ËùÓĞÃû³ÆÏàÍ¬µÄ×Ó½Úµã
 	std::vector<Node*> getChildren(
 		const String& name
 	) const;
 
-	// è·å–åç§°ç›¸åŒçš„å­èŠ‚ç‚¹
+	// »ñÈ¡Ãû³ÆÏàÍ¬µÄ×Ó½Úµã
 	Node* getChild(
 		const String& name
 	) const;
 
-	// è·å–æ‰€æœ‰å­èŠ‚ç‚¹
+	// »ñÈ¡ËùÓĞ×Ó½Úµã
 	const std::vector<Node*>& getAllChildren() const;
 
-	// è·å–å­èŠ‚ç‚¹æ•°é‡
+	// »ñÈ¡×Ó½ÚµãÊıÁ¿
 	int getChildrenCount() const;
 
-	// ç§»é™¤å­èŠ‚ç‚¹
+	// ÒÆ³ı×Ó½Úµã
 	bool removeChild(
 		Node* child
 	);
 
-	// ç§»é™¤æ‰€æœ‰åç§°ç›¸åŒçš„å­èŠ‚ç‚¹
+	// ÒÆ³ıËùÓĞÃû³ÆÏàÍ¬µÄ×Ó½Úµã
 	void removeChildren(
 		const String& childName
 	);
 
-	// ç§»é™¤æ‰€æœ‰èŠ‚ç‚¹
+	// ÒÆ³ıËùÓĞ½Úµã
 	void removeAllChildren();
 
-	// ä»çˆ¶èŠ‚ç‚¹ç§»é™¤è‡ªèº«ï¼ˆåœ¨ä¸‹ä¸€æ¬¡æ›´æ–°æ—¶æ‰§è¡Œï¼‰
+	// ´Ó¸¸½ÚµãÒÆ³ı×ÔÉí£¨ÔÚÏÂÒ»´Î¸üĞÂÊ±Ö´ĞĞ£©
 	void removeSelfInNextUpdate();
 
-	// æ‰§è¡ŒåŠ¨ä½œ
+	// Ö´ĞĞ¶¯×÷
 	void runAction(
 		Action * action
 	);
 
-	// ç»§ç»­åŠ¨ä½œ
+	// ¼ÌĞø¶¯×÷
 	void resumeAction(
 		const String& name
 	);
 
-	// æš‚åœåŠ¨ä½œ
+	// ÔİÍ£¶¯×÷
 	void pauseAction(
 		const String& name
 	);
 
-	// åœæ­¢åŠ¨ä½œ
+	// Í£Ö¹¶¯×÷
 	void stopAction(
 		const String& name
 	);
 
-	// ç»§ç»­æ‰€æœ‰æš‚åœåŠ¨ä½œ
+	// ¼ÌĞøËùÓĞÔİÍ£¶¯×÷
 	void resumeAllActions();
 
-	// æš‚åœæ‰€æœ‰åŠ¨ä½œ
+	// ÔİÍ£ËùÓĞ¶¯×÷
 	void pauseAllActions();
 
-	// åœæ­¢æ‰€æœ‰åŠ¨ä½œ
+	// Í£Ö¹ËùÓĞ¶¯×÷
 	void stopAllActions();
 
-	// æ·»åŠ è¾“å…¥ç›‘å¬
+	// Ìí¼ÓÊäÈë¼àÌı
 	Listener* addListener(
-		const Listener::Callback& func,	/* ç›‘å¬åˆ°ç”¨æˆ·è¾“å…¥æ—¶çš„æ‰§è¡Œå‡½æ•° */
-		const String& name = {},		/* ç›‘å¬å™¨åç§° */
-		bool paused = false				/* æ˜¯å¦æš‚åœ */
+		const Listener::Callback& func,	/* ¼àÌıµ½ÓÃ»§ÊäÈëÊ±µÄÖ´ĞĞº¯Êı */
+		const String& name = {},		/* ¼àÌıÆ÷Ãû³Æ */
+		bool paused = false				/* ÊÇ·ñÔİÍ£ */
 	);
 
-	// æ·»åŠ ç¢°æ’ç›‘å¬
+	// Ìí¼ÓÅö×²¼àÌı
 	void addListener(
-		ListenerBase* listener		/* ç›‘å¬å™¨ */
+		ListenerBase* listener		/* ¼àÌıÆ÷ */
 	);
 
-	// ç§»é™¤ç›‘å¬å™¨
+	// ÒÆ³ı¼àÌıÆ÷
 	void removeListener(
-		ListenerBase* listener		/* ç›‘å¬å™¨ */
+		ListenerBase* listener		/* ¼àÌıÆ÷ */
 	);
 
-	// å¯åŠ¨è¾“å…¥ç›‘å¬
+	// Æô¶¯ÊäÈë¼àÌı
 	void startListener(
 		const String& name
 	);
 
-	// åœæ­¢è¾“å…¥ç›‘å¬
+	// Í£Ö¹ÊäÈë¼àÌı
 	void stopListener(
 		const String& name
 	);
 
-	// ç§»é™¤è¾“å…¥ç›‘å¬
+	// ÒÆ³ıÊäÈë¼àÌı
 	void removeListener(
 		const String& name
 	);
 
-	// å¯åŠ¨æ‰€æœ‰ç›‘å¬å™¨
+	// Æô¶¯ËùÓĞ¼àÌıÆ÷
 	void startAllListeners();
 
-	// åœæ­¢æ‰€æœ‰ç›‘å¬å™¨
+	// Í£Ö¹ËùÓĞ¼àÌıÆ÷
 	void stopAllListeners();
 
-	// ç§»é™¤æ‰€æœ‰ç›‘å¬å™¨
+	// ÒÆ³ıËùÓĞ¼àÌıÆ÷
 	void removeAllListeners();
 
-	// ä¿®æ”¹èŠ‚ç‚¹çš„é»˜è®¤é”šç‚¹ä½ç½®
+	// ĞŞ¸Ä½ÚµãµÄÄ¬ÈÏÃªµãÎ»ÖÃ
 	static void setDefaultAnchor(
 		float defaultAnchorX,
 		float defaultAnchorY
 	);
 
-	// è·å–èº«ä½“å½¢çŠ¶
+	// »ñÈ¡ÉíÌåĞÎ×´
 	Shape* getBodyShape() const;
 
-	// è®¾ç½®èº«ä½“å½¢çŠ¶
+	// ÉèÖÃÉíÌåĞÎ×´
 	void setBodyShape(Shape* shape);
 
-	// æ¸²æŸ“èº«ä½“å½¢çŠ¶
+	// äÖÈ¾ÉíÌåĞÎ×´
 	void showBodyShape(bool enabled = true);
 
-	// åˆ¤æ–­å’Œå¦ä¸€èŠ‚ç‚¹çš„èº«ä½“å½¢çŠ¶å…³ç³»
+	// ÅĞ¶ÏºÍÁíÒ»½ÚµãµÄÉíÌåĞÎ×´¹ØÏµ
 	BodyRelation compareWithBody(Node* other) const;
 
 protected:
-	// æ›´æ–°èŠ‚ç‚¹
+	// ¸üĞÂ½Úµã
 	void _update();
 
-	// æ¸²æŸ“èŠ‚ç‚¹
+	// äÖÈ¾½Úµã
 	void _render();
 
 	void _renderBodyShape();
 
-	// è®¾ç½®èŠ‚ç‚¹æ‰€åœ¨åœºæ™¯
+	// ÉèÖÃ½ÚµãËùÔÚ³¡¾°
 	void _setParentScene(
 		Scene * scene
 	);
 
-	// æ›´æ–°äºŒç»´å˜æ¢çŸ©é˜µ
+	// ¸üĞÂ¶şÎ¬±ä»»¾ØÕó
 	void _updateTransform() const;
 
-	// æ›´æ–°äºŒç»´å˜æ¢é€†çŸ©é˜µ
+	// ¸üĞÂ¶şÎ¬±ä»»Äæ¾ØÕó
 	void _updateInverseTransform() const;
 
-	// å­èŠ‚ç‚¹æ’åº
+	// ×Ó½ÚµãÅÅĞò
 	void _sortChildren();
 
-	// æ›´æ–°èŠ‚ç‚¹é€æ˜åº¦
+	// ¸üĞÂ½ÚµãÍ¸Ã÷¶È
 	void _updateOpacity();
 
 private:
-	// æ›´æ–°ç›‘å¬å™¨
+	// ¸üĞÂ¼àÌıÆ÷
 	void __updateListeners();
 
 	void __dispatchEvent(Event* evt);
 
-	// æ¸…ç©ºç›‘å¬å™¨
+	// Çå¿Õ¼àÌıÆ÷
 	void __clearListeners();
 
 	void __clearParents();
 
 protected:
-	// å­èŠ‚ç‚¹å®¹å™¨
-	std::vector<Node*>	_children;
-	
-	// ç›‘å¬å™¨å®¹å™¨ - ä½¿ç”¨vectorä¿æŒé¡ºåºï¼Œunordered_setå¿«é€Ÿå»é‡
-	std::vector<ListenerBase*> _listeners;
-	std::unordered_set<ListenerBase*> _listenerSet;
-	bool _listenersDirty = false;
-
-	// çŸ©é˜µæˆå‘˜ï¼ˆ24å­—èŠ‚ï¼‰
-	mutable Matrix32	_transform;
-	mutable Matrix32	_inverseTransform;
-
-	// æŒ‡é’ˆæˆå‘˜ï¼ˆ8å­—èŠ‚ï¼‰
-	Scene*		_parentScene;
-	Node*		_parent;
-	Shape*		_body;
-
-	// Point/Size/Vector2æˆå‘˜ï¼ˆ8å­—èŠ‚ï¼‰
+	bool		_visible;
+	bool		_autoUpdate;
+	bool		_needSort;
+	bool		_showBodyShape;
+	bool		_removed;
+	int			_order;
+	float		_rotation;
+	float		_displayOpacity;
+	float		_realOpacity;
 	Point		_pos;
 	Size		_size;
 	Vector2		_scale;
 	Vector2		_skewAngle;
 	Point		_anchor;
+	Scene*		_parentScene;
+	Node*		_parent;
+	Shape*		_body;
 
-	// floatæˆå‘˜ï¼ˆ4å­—èŠ‚ï¼‰
-	float		_rotation;
-	float		_displayOpacity;
-	float		_realOpacity;
+	std::vector<Node*>	_children;
+	std::vector<ListenerBase*> _listeners;
 
-	// intæˆå‘˜ï¼ˆ4å­—èŠ‚ï¼‰
-	int			_order;
-
-	// boolæ ‡å¿—ä½ä½¿ç”¨ä½åŸŸå‹ç¼©åˆ°1å­—èŠ‚
-	// æ³¨æ„ï¼šmutableå…è®¸åœ¨constæ–¹æ³•ä¸­ä¿®æ”¹è„æ ‡è®°
-	union {
-		struct {
-			uint8_t _visible : 1;
-			uint8_t _autoUpdate : 1;
-			uint8_t _needSort : 1;
-			uint8_t _showBodyShape : 1;
-			uint8_t _removed : 1;
-			mutable uint8_t _dirtyTransform : 1;
-			mutable uint8_t _dirtyInverseTransform : 1;
-			uint8_t _reserved : 1;  // ä¿ç•™ä½
-		};
-		uint8_t _flags;
-	};
-
-public:
-	// è·å–æ ‡å¿—ä½ï¼ˆç”¨äºè°ƒè¯•ï¼‰
-	uint8_t getFlags() const { return _flags; }
-	
-	// é¢„åˆ†é…å­èŠ‚ç‚¹ç©ºé—´ï¼Œé¿å…é¢‘ç¹æ‰©å®¹
-	void reserveChildren(size_t capacity);
+	mutable bool		_dirtyTransform;
+	mutable Matrix32	_transform;
+	mutable bool		_dirtyInverseTransform;
+	mutable Matrix32	_inverseTransform;
 };
 
 
-// åœºæ™¯
+// ³¡¾°
 class Scene :
 	public Node
 {
@@ -545,18 +513,18 @@ public:
 
 	virtual ~Scene();
 
-	// é‡å†™è¿™ä¸ªå‡½æ•°ï¼Œå®ƒå°†åœ¨è¿›å…¥è¿™ä¸ªåœºæ™¯æ—¶è‡ªåŠ¨æ‰§è¡Œ
+	// ÖØĞ´Õâ¸öº¯Êı£¬Ëü½«ÔÚ½øÈëÕâ¸ö³¡¾°Ê±×Ô¶¯Ö´ĞĞ
 	virtual void onEnter() {}
 
-	// é‡å†™è¿™ä¸ªå‡½æ•°ï¼Œå®ƒå°†åœ¨ç¦»å¼€è¿™ä¸ªåœºæ™¯æ—¶è‡ªåŠ¨æ‰§è¡Œ
+	// ÖØĞ´Õâ¸öº¯Êı£¬Ëü½«ÔÚÀë¿ªÕâ¸ö³¡¾°Ê±×Ô¶¯Ö´ĞĞ
 	virtual void onExit() {}
 
-	// é‡å†™è¿™ä¸ªå‡½æ•°ï¼Œå®ƒå°†åœ¨å…³é—­çª—å£æ—¶æ‰§è¡Œï¼ˆè¿”å› false å°†é˜»æ­¢çª—å£å…³é—­ï¼‰
+	// ÖØĞ´Õâ¸öº¯Êı£¬Ëü½«ÔÚ¹Ø±Õ´°¿ÚÊ±Ö´ĞĞ£¨·µ»Ø false ½«×èÖ¹´°¿Ú¹Ø±Õ£©
 	virtual bool onCloseWindow() { return true; }
 };
 
 
-// ç²¾çµ
+// ¾«Áé
 class Sprite :
 	public Node
 {
@@ -568,85 +536,85 @@ public:
 	);
 
 	explicit Sprite(
-		const String& filePath	/* å›¾ç‰‡æ–‡ä»¶è·¯å¾„ */
+		const String& filePath	/* Í¼Æ¬ÎÄ¼şÂ·¾¶ */
 	);
 
 	explicit Sprite(
-		const Resource& res		/* å›¾ç‰‡èµ„æº */
+		const Resource& res		/* Í¼Æ¬×ÊÔ´ */
 	);
 
 	explicit Sprite(
-		KeyFrame* frame			/* å…³é”®å¸§ */
+		KeyFrame* frame			/* ¹Ø¼üÖ¡ */
 	);
 
 	Sprite(
-		int resNameId,			/* å›¾ç‰‡èµ„æºåç§° */
-		const String& resType	/* å›¾ç‰‡èµ„æºç±»å‹ */
+		int resNameId,			/* Í¼Æ¬×ÊÔ´Ãû³Æ */
+		const String& resType	/* Í¼Æ¬×ÊÔ´ÀàĞÍ */
 	);
 
 	Sprite(
-		const String& filePath,	/* å›¾ç‰‡æ–‡ä»¶è·¯å¾„ */
-		const Rect& cropRect	/* è£å‰ªçŸ©å½¢ */
+		const String& filePath,	/* Í¼Æ¬ÎÄ¼şÂ·¾¶ */
+		const Rect& cropRect	/* ²Ã¼ô¾ØĞÎ */
 	);
 
 	Sprite(
-		const Resource& res,	/* å›¾ç‰‡èµ„æº */
-		const Rect& cropRect	/* è£å‰ªçŸ©å½¢ */
+		const Resource& res,	/* Í¼Æ¬×ÊÔ´ */
+		const Rect& cropRect	/* ²Ã¼ô¾ØĞÎ */
 	);
 
 	Sprite(
-		int resNameId,			/* å›¾ç‰‡èµ„æºåç§° */
-		const String& resType,	/* å›¾ç‰‡èµ„æºç±»å‹ */
-		const Rect& cropRect	/* è£å‰ªçŸ©å½¢ */
+		int resNameId,			/* Í¼Æ¬×ÊÔ´Ãû³Æ */
+		const String& resType,	/* Í¼Æ¬×ÊÔ´ÀàĞÍ */
+		const Rect& cropRect	/* ²Ã¼ô¾ØĞÎ */
 	);
 
 	virtual ~Sprite();
 
-	// åŠ è½½å›¾ç‰‡æ–‡ä»¶
+	// ¼ÓÔØÍ¼Æ¬ÎÄ¼ş
 	bool open(
 		const String& filePath
 	);
 
-	// åŠ è½½å›¾ç‰‡èµ„æº
+	// ¼ÓÔØÍ¼Æ¬×ÊÔ´
 	bool open(
-		const Resource& res		/* å›¾ç‰‡èµ„æº */
+		const Resource& res		/* Í¼Æ¬×ÊÔ´ */
 	);
 
-	// åŠ è½½å›¾ç‰‡èµ„æº
+	// ¼ÓÔØÍ¼Æ¬×ÊÔ´
 	bool open(
-		int resNameId,			/* å›¾ç‰‡èµ„æºåç§° */
-		const String& resType	/* å›¾ç‰‡èµ„æºç±»å‹ */
+		int resNameId,			/* Í¼Æ¬×ÊÔ´Ãû³Æ */
+		const String& resType	/* Í¼Æ¬×ÊÔ´ÀàĞÍ */
 	);
 
-	// è·å–è£å‰ªçŸ©å½¢
+	// »ñÈ¡²Ã¼ô¾ØĞÎ
 	Rect getCropRect() const;
 
-	// å°†å›¾ç‰‡è£å‰ªä¸ºçŸ©å½¢
+	// ½«Í¼Æ¬²Ã¼ôÎª¾ØĞÎ
 	void crop(
-		const Rect& cropRect	/* è£å‰ªçŸ©å½¢ï¼Œä¼ ç©ºçŸ©å½¢åˆ™ä¸è£å‰ª */
+		const Rect& cropRect	/* ²Ã¼ô¾ØĞÎ£¬´«¿Õ¾ØĞÎÔò²»²Ã¼ô */
 	);
 
-	// è·å–å›¾ç‰‡
+	// »ñÈ¡Í¼Æ¬
 	Image* getImage() const;
 
-	// è®¾ç½®å›¾ç‰‡
+	// ÉèÖÃÍ¼Æ¬
 	void setImage(
 		Image* image,
-		bool resetCropRect = true	/* é‡ç½®è£å‰ªçŸ©å½¢ */
+		bool resetCropRect = true	/* ÖØÖÃ²Ã¼ô¾ØĞÎ */
 	);
 
-	// è®¾ç½®å…³é”®å¸§
+	// ÉèÖÃ¹Ø¼üÖ¡
 	void setKeyFrame(
 		KeyFrame* frame
 	);
 
-	// è·å–åƒç´ æ’å€¼æ–¹å¼
+	// »ñÈ¡ÏñËØ²åÖµ·½Ê½
 	InterpolationMode getInterpolationMode() const;
 
-	// è®¾ç½®åƒç´ æ’å€¼æ–¹å¼
+	// ÉèÖÃÏñËØ²åÖµ·½Ê½
 	void setInterpolationMode(InterpolationMode mode);
 
-	// æ¸²æŸ“ç²¾çµ
+	// äÖÈ¾¾«Áé
 	virtual void onRender() override;
 
 protected:
@@ -656,7 +624,7 @@ protected:
 };
 
 
-// æ–‡æœ¬èŠ‚ç‚¹
+// ÎÄ±¾½Úµã
 class Text
 	: public Node
 {
@@ -664,132 +632,132 @@ public:
 	Text();
 
 	explicit Text(
-		const String& text,									/* æ–‡å­—å†…å®¹ */
-		const TextStyle& textStyle = TextStyle(),			/* æ–‡æœ¬æ ·å¼ */
-		const DrawingStyle& drawingStyle = DrawingStyle()	/* ç»˜å›¾æ ·å¼ */
+		const String& text,									/* ÎÄ×ÖÄÚÈİ */
+		const TextStyle& textStyle = TextStyle(),			/* ÎÄ±¾ÑùÊ½ */
+		const DrawingStyle& drawingStyle = DrawingStyle()	/* »æÍ¼ÑùÊ½ */
 	);
 
 	explicit Text(
-		TextLayout* layout,									/* æ–‡å­—å¸ƒå±€ */
-		const DrawingStyle& drawingStyle = DrawingStyle()	/* ç»˜å›¾æ ·å¼ */
+		TextLayout* layout,									/* ÎÄ×Ö²¼¾Ö */
+		const DrawingStyle& drawingStyle = DrawingStyle()	/* »æÍ¼ÑùÊ½ */
 	);
 
 	virtual ~Text();
 
-	// è·å–æ–‡æœ¬å¸ƒå±€
+	// »ñÈ¡ÎÄ±¾²¼¾Ö
 	TextLayout* getLayout() const;
 
-	// è·å–æ–‡æœ¬
+	// »ñÈ¡ÎÄ±¾
 	String getText() const;
 
-	// è·å–å­—ä½“
+	// »ñÈ¡×ÖÌå
 	Font getFont() const;
 
-	// è·å–æ–‡æœ¬æ ·å¼
+	// »ñÈ¡ÎÄ±¾ÑùÊ½
 	TextStyle getTextStyle() const;
 
-	// è·å–æ¸²æŸ“æ ·å¼
+	// »ñÈ¡äÖÈ¾ÑùÊ½
 	DrawingStyle getDrawingStyle() const;
 
-	// è·å–æ–‡æœ¬æ˜¾ç¤ºè¡Œæ•°
+	// »ñÈ¡ÎÄ±¾ÏÔÊ¾ĞĞÊı
 	int getLineCount() const;
 
-	// è®¾ç½®æ–‡æœ¬å¸ƒå±€
+	// ÉèÖÃÎÄ±¾²¼¾Ö
 	void setTextLayout(
 		TextLayout* layout
 	);
 
-	// è®¾ç½®æ–‡æœ¬
+	// ÉèÖÃÎÄ±¾
 	void setText(
 		const String& text
 	);
 
-	// è®¾ç½®æ–‡æœ¬æ ·å¼
+	// ÉèÖÃÎÄ±¾ÑùÊ½
 	void setTextStyle(
 		const TextStyle& style
 	);
 
-	// è®¾ç½®æ¸²æŸ“æ ·å¼
+	// ÉèÖÃäÖÈ¾ÑùÊ½
 	void setDrawingStyle(
 		DrawingStyle style
 	);
 
-	// è®¾ç½®å­—ä½“
+	// ÉèÖÃ×ÖÌå
 	void setFont(
 		const Font& font
 	);
 
-	// è®¾ç½®å­—ä½“æ—
+	// ÉèÖÃ×ÖÌå×å
 	void setFontFamily(
 		const String& family
 	);
 
-	// è®¾ç½®å­—å·
+	// ÉèÖÃ×ÖºÅ
 	void setFontSize(
 		float size
 	);
 
-	// è®¾ç½®å­—ä½“ç²—ç»†å€¼
+	// ÉèÖÃ×ÖÌå´ÖÏ¸Öµ
 	void setFontWeight(
 		UINT weight
 	);
 
-	// è®¾ç½®æ–‡å­—æ–œä½“
+	// ÉèÖÃÎÄ×ÖĞ±Ìå
 	void setItalic(
 		bool italic
 	);
 
-	// æ‰“å¼€æˆ–å…³é—­æ–‡æœ¬è‡ªåŠ¨æ¢è¡Œ
+	// ´ò¿ª»ò¹Ø±ÕÎÄ±¾×Ô¶¯»»ĞĞ
 	void setWrapping(
 		bool wrapping
 	);
 
-	// è®¾ç½®æ–‡æœ¬è‡ªåŠ¨æ¢è¡Œçš„å®½åº¦
+	// ÉèÖÃÎÄ±¾×Ô¶¯»»ĞĞµÄ¿í¶È
 	void setWrappingWidth(
 		float wrappingWidth
 	);
 
-	// è®¾ç½®è¡Œé—´è·ï¼ˆé»˜è®¤ä¸º 0ï¼‰
+	// ÉèÖÃĞĞ¼ä¾à£¨Ä¬ÈÏÎª 0£©
 	void setLineSpacing(
 		float lineSpacing
 	);
 
-	// è®¾ç½®å¯¹é½æ–¹å¼
+	// ÉèÖÃ¶ÔÆë·½Ê½
 	void setAlignment(
 		TextAlign align
 	);
 
-	// è®¾ç½®ä¸‹åˆ’çº¿
+	// ÉèÖÃÏÂ»®Ïß
 	void setUnderline(
 		bool hasUnderline
 	);
 
-	// è®¾ç½®åˆ é™¤çº¿
+	// ÉèÖÃÉ¾³ıÏß
 	void setStrikethrough(
 		bool hasStrikethrough
 	);
 
-	// è®¾ç½®æ–‡å­—å¡«å……é¢œè‰²
+	// ÉèÖÃÎÄ×ÖÌî³äÑÕÉ«
 	void setFillColor(
 		Color color
 	);
 
-	// è®¾ç½®æè¾¹é¢œè‰²
+	// ÉèÖÃÃè±ßÑÕÉ«
 	void setStrokeColor(
 		Color strokeColor
 	);
 
-	// è®¾ç½®æè¾¹çº¿å®½
+	// ÉèÖÃÃè±ßÏß¿í
 	void setStrokeWidth(
 		float strokeWidth
 	);
 
-	// è®¾ç½®æè¾¹çº¿ç›¸äº¤æ ·å¼
+	// ÉèÖÃÃè±ßÏßÏà½»ÑùÊ½
 	void setLineJoin(
 		LineJoin lineJoin
 	);
 
-	// æ¸²æŸ“æ–‡å­—
+	// äÖÈ¾ÎÄ×Ö
 	virtual void onRender() override;
 
 protected:
@@ -801,12 +769,12 @@ protected:
 };
 
 
-// å½¢çŠ¶èŠ‚ç‚¹
+// ĞÎ×´½Úµã
 class ShapeNode :
 	public Node
 {
 public:
-	// åˆ›å»ºç›´çº¿èŠ‚ç‚¹
+	// ´´½¨Ö±Ïß½Úµã
 	ShapeNode(
 		Shape::LineType,
 		Point begin,
@@ -814,43 +782,43 @@ public:
 		DrawingStyle style = DrawingStyle{}
 	);
 
-	// åˆ›å»ºçŸ©å½¢èŠ‚ç‚¹
+	// ´´½¨¾ØĞÎ½Úµã
 	ShapeNode(
 		Shape::RectType,
-		const Size& size,		// çŸ©å½¢å®½é«˜
+		const Size& size,		// ¾ØĞÎ¿í¸ß
 		DrawingStyle style = DrawingStyle{}
 	);
 
-	// åˆ›å»ºåœ†è§’çŸ©å½¢èŠ‚ç‚¹
+	// ´´½¨Ô²½Ç¾ØĞÎ½Úµã
 	ShapeNode(
 		Shape::RoundedRectType,
-		const Size& size,		// çŸ©å½¢å®½é«˜
-		const Vector2& radius,	// çŸ©å½¢åœ†è§’åŠå¾„
+		const Size& size,		// ¾ØĞÎ¿í¸ß
+		const Vector2& radius,	// ¾ØĞÎÔ²½Ç°ë¾¶
 		DrawingStyle style = DrawingStyle{}
 	);
 
-	// åˆ›å»ºåœ†å½¢èŠ‚ç‚¹
+	// ´´½¨Ô²ĞÎ½Úµã
 	ShapeNode(
 		Shape::CircleType,
-		float radius,			// åŠå¾„
+		float radius,			// °ë¾¶
 		DrawingStyle style = DrawingStyle{}
 	);
 
-	// åˆ›å»ºæ¤­åœ†å½¢èŠ‚ç‚¹
+	// ´´½¨ÍÖÔ²ĞÎ½Úµã
 	ShapeNode(
 		Shape::EllipseType,
-		const Vector2& radius,	// åŠå¾„
+		const Vector2& radius,	// °ë¾¶
 		DrawingStyle style = DrawingStyle{}
 	);
 
-	// åˆ›å»ºå¤šè¾¹å½¢èŠ‚ç‚¹
+	// ´´½¨¶à±ßĞÎ½Úµã
 	ShapeNode(
 		Shape::PolygonType,
-		std::initializer_list<Point> vertices,	// å¤šè¾¹å½¢é¡¶ç‚¹
+		std::initializer_list<Point> vertices,	// ¶à±ßĞÎ¶¥µã
 		DrawingStyle style = DrawingStyle{}
 	);
 
-	// åˆ›å»ºå¤šè¾¹å½¢èŠ‚ç‚¹
+	// ´´½¨¶à±ßĞÎ½Úµã
 	ShapeNode(
 		Shape::PolygonType,
 		const Point* vertices,
@@ -865,51 +833,51 @@ public:
 
 	virtual ~ShapeNode();
 
-	// è·å–å½¢çŠ¶
+	// »ñÈ¡ĞÎ×´
 	Shape* getShape() const;
 
-	// è®¾ç½®å½¢çŠ¶
+	// ÉèÖÃĞÎ×´
 	void setShape(Shape* shape);
 
-	// è·å–å¡«å……é¢œè‰²
+	// »ñÈ¡Ìî³äÑÕÉ«
 	Color getFillColor() const;
 
-	// è®¾ç½®å¡«å……é¢œè‰²
+	// ÉèÖÃÌî³äÑÕÉ«
 	void setFillColor(
 		Color fillColor
 	);
 
-	// è·å–çº¿æ¡é¢œè‰²
+	// »ñÈ¡ÏßÌõÑÕÉ«
 	Color getStrokeColor() const;
 
-	// è®¾ç½®çº¿æ¡é¢œè‰²
+	// ÉèÖÃÏßÌõÑÕÉ«
 	void setStrokeColor(
 		Color strokeColor
 	);
 
-	// è·å–çº¿æ¡å®½åº¦
+	// »ñÈ¡ÏßÌõ¿í¶È
 	float getStrokeWidth() const;
 
-	// è®¾ç½®çº¿æ¡å®½åº¦
+	// ÉèÖÃÏßÌõ¿í¶È
 	void setStrokeWidth(
 		float strokeWidth
 	);
 
-	// è®¾ç½®çº¿æ¡ç›¸äº¤æ ·å¼
+	// ÉèÖÃÏßÌõÏà½»ÑùÊ½
 	void setLineJoin(
 		LineJoin lineJoin
 	);
 
-	// è·å–ç»˜å›¾æ¨¡å¼
+	// »ñÈ¡»æÍ¼Ä£Ê½
 	DrawingStyle::Mode getDrawingMode() const;
 
-	// è®¾ç½®ç»˜å›¾æ¨¡å¼
+	// ÉèÖÃ»æÍ¼Ä£Ê½
 	void setDrawingMode(DrawingStyle::Mode mode);
 
-	// è·å–ç»˜å›¾æ ·å¼
+	// »ñÈ¡»æÍ¼ÑùÊ½
 	DrawingStyle getDrawingStyle() const;
 
-	// è®¾ç½®ç»˜å›¾æ ·å¼
+	// ÉèÖÃ»æÍ¼ÑùÊ½
 	void setDrawingStyle(DrawingStyle style);
 
 	virtual Rect getBounds() const override;

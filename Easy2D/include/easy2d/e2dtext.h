@@ -6,26 +6,26 @@ namespace easy2d
 
 class Renderer;
 
-// æ–‡æœ¬å¯¹é½æ–¹å¼
+// ÎÄ±¾¶ÔÆë·½Ê½
 enum class TextAlign
 {
-	Left,		/* å·¦å¯¹é½ */
-	Right,		/* å³å¯¹é½ */
-	Center		/* å±…ä¸­å¯¹é½ */
+	Left,		/* ×ó¶ÔÆë */
+	Right,		/* ÓÒ¶ÔÆë */
+	Center		/* ¾ÓÖĞ¶ÔÆë */
 };
 
 
-// å­—ä½“
+// ×ÖÌå
 class Font
 {
 public:
-	String	family;			// å­—ä½“æ—
-	float	size;			// å­—å·
-	UINT	weight;			// ç²—ç»†å€¼
-	bool	italic;			// æ–œä½“
+	String	family;			// ×ÖÌå×å
+	float	size;			// ×ÖºÅ
+	UINT	weight;			// ´ÖÏ¸Öµ
+	bool	italic;			// Ğ±Ìå
 
 public:
-	// å­—ä½“ç²—ç»†å€¼
+	// ×ÖÌå´ÖÏ¸Öµ
 	enum Weight : UINT
 	{
 		Thin = 100,
@@ -51,17 +51,17 @@ public:
 };
 
 
-// æ–‡æœ¬æ ·å¼
+// ÎÄ±¾ÑùÊ½
 class TextStyle
 {
 public:
-	Font		font;				// å­—ä½“
-	TextAlign	alignment;			// å¯¹é½æ–¹å¼
-	bool		wrapping;			// æ‰“å¼€è‡ªåŠ¨æ¢è¡Œ
-	float		wrappingWidth;		// è‡ªåŠ¨æ¢è¡Œå®½åº¦
-	float		lineSpacing;		// è¡Œé—´è·
-	bool		hasUnderline;		// ä¸‹åˆ’çº¿
-	bool		hasStrikethrough;	// åˆ é™¤çº¿
+	Font		font;				// ×ÖÌå
+	TextAlign	alignment;			// ¶ÔÆë·½Ê½
+	bool		wrapping;			// ´ò¿ª×Ô¶¯»»ĞĞ
+	float		wrappingWidth;		// ×Ô¶¯»»ĞĞ¿í¶È
+	float		lineSpacing;		// ĞĞ¼ä¾à
+	bool		hasUnderline;		// ÏÂ»®Ïß
+	bool		hasStrikethrough;	// É¾³ıÏß
 
 public:
 	TextStyle(
@@ -78,7 +78,7 @@ public:
 
 class Text;
 
-// æ–‡æœ¬å¸ƒå±€
+// ÎÄ±¾²¼¾Ö
 class TextLayout
 	: public Object
 {
@@ -95,88 +95,88 @@ public:
 
 	virtual ~TextLayout();
 
-	// è·å–æ–‡æœ¬
+	// »ñÈ¡ÎÄ±¾
 	const String& getText() const;
 
-	// è·å–å­—ä½“
+	// »ñÈ¡×ÖÌå
 	Font getFont() const;
 
-	// è·å–æ–‡æœ¬æ ·å¼
+	// »ñÈ¡ÎÄ±¾ÑùÊ½
 	TextStyle getStyle() const;
 
-	// è·å–æ–‡æœ¬æ˜¾ç¤ºè¡Œæ•°
+	// »ñÈ¡ÎÄ±¾ÏÔÊ¾ĞĞÊı
 	int getLineCount() const;
 
-	// æ˜¯å¦æ˜¾ç¤ºåˆ é™¤çº¿
+	// ÊÇ·ñÏÔÊ¾É¾³ıÏß
 	bool hasStrikethrough() const;
 
-	// æ˜¯å¦æ˜¾ç¤ºä¸‹åˆ’çº¿
+	// ÊÇ·ñÏÔÊ¾ÏÂ»®Ïß
 	bool hasUnderline() const;
 
-	// è·å–å¤§å°
+	// »ñÈ¡´óĞ¡
 	Size getSize() const;
 
-	// è®¾ç½®æ–‡æœ¬
+	// ÉèÖÃÎÄ±¾
 	void setText(
 		const String& text
 	);
 
-	// è®¾ç½®æ–‡æœ¬æ ·å¼
+	// ÉèÖÃÎÄ±¾ÑùÊ½
 	void setStyle(
 		const TextStyle& style
 	);
 
-	// è®¾ç½®å­—ä½“
+	// ÉèÖÃ×ÖÌå
 	void setFont(
 		const Font& font
 	);
 
-	// è®¾ç½®å­—ä½“æ—
+	// ÉèÖÃ×ÖÌå×å
 	void setFontFamily(
 		const String& family
 	);
 
-	// è®¾ç½®å­—å·
+	// ÉèÖÃ×ÖºÅ
 	void setFontSize(
 		float size
 	);
 
-	// è®¾ç½®å­—ä½“ç²—ç»†å€¼
+	// ÉèÖÃ×ÖÌå´ÖÏ¸Öµ
 	void setFontWeight(
 		UINT weight
 	);
 
-	// è®¾ç½®æ–‡å­—æ–œä½“
+	// ÉèÖÃÎÄ×ÖĞ±Ìå
 	void setItalic(
 		bool italic
 	);
 
-	// æ‰“å¼€æˆ–å…³é—­æ–‡æœ¬è‡ªåŠ¨æ¢è¡Œ
+	// ´ò¿ª»ò¹Ø±ÕÎÄ±¾×Ô¶¯»»ĞĞ
 	void setWrapping(
 		bool wrapping
 	);
 
-	// è®¾ç½®æ–‡æœ¬è‡ªåŠ¨æ¢è¡Œçš„å®½åº¦
+	// ÉèÖÃÎÄ±¾×Ô¶¯»»ĞĞµÄ¿í¶È
 	void setWrappingWidth(
 		float wrappingWidth
 	);
 
-	// è®¾ç½®è¡Œé—´è·ï¼ˆé»˜è®¤ä¸º 0ï¼‰
+	// ÉèÖÃĞĞ¼ä¾à£¨Ä¬ÈÏÎª 0£©
 	void setLineSpacing(
 		float lineSpacing
 	);
 
-	// è®¾ç½®å¯¹é½æ–¹å¼
+	// ÉèÖÃ¶ÔÆë·½Ê½
 	void setAlignment(
 		TextAlign align
 	);
 
-	// è®¾ç½®ä¸‹åˆ’çº¿
+	// ÉèÖÃÏÂ»®Ïß
 	void setUnderline(
 		bool hasUnderline
 	);
 
-	// è®¾ç½®åˆ é™¤çº¿
+	// ÉèÖÃÉ¾³ıÏß
 	void setStrikethrough(
 		bool hasStrikethrough
 	);
@@ -184,10 +184,10 @@ public:
 	void reset(const String& text, const TextStyle& style);
 
 protected:
-	// åˆ›å»ºæ–‡å­—æ ¼å¼åŒ–
+	// ´´½¨ÎÄ×Ö¸ñÊ½»¯
 	void _recreateFormat();
 
-	// åˆ›å»ºæ–‡å­—å¸ƒå±€
+	// ´´½¨ÎÄ×Ö²¼¾Ö
 	void _recreateLayout();
 
 protected:

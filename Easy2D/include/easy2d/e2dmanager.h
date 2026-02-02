@@ -10,7 +10,6 @@ namespace easy2d
 class Game;
 class Input;
 class Renderer;
-class GLRenderer;
 class Node;
 class Scene;
 class Timer;
@@ -18,61 +17,60 @@ class Action;
 class Transition;
 
 
-// åœºæ™¯ç®¡ç†å™¨
+// ³¡¾°¹ÜÀíÆ÷
 class SceneManager
 {
 	friend class Node;
 	friend class Game;
 	friend class Renderer;
-	friend class GLRenderer;
 
 public:
-	// åˆ‡æ¢åœºæ™¯
+	// ÇĞ»»³¡¾°
 	static void enter(
-		Scene * scene,						/* ä¸‹ä¸€ä¸ªåœºæ™¯çš„æŒ‡é’ˆ */
-		Transition * transition = nullptr,	/* åœºæ™¯åˆ‡æ¢åŠ¨ä½œ */
-		bool saveCurrentScene = true		/* æ˜¯å¦ä¿å­˜å½“å‰åœºæ™¯ */
+		Scene * scene,						/* ÏÂÒ»¸ö³¡¾°µÄÖ¸Õë */
+		Transition * transition = nullptr,	/* ³¡¾°ÇĞ»»¶¯×÷ */
+		bool saveCurrentScene = true		/* ÊÇ·ñ±£´æµ±Ç°³¡¾° */
 	);
 
-	// è¿”å›ä¸Šä¸€åœºæ™¯
+	// ·µ»ØÉÏÒ»³¡¾°
 	static void back(
-		Transition * transition = nullptr	/* åœºæ™¯åˆ‡æ¢åŠ¨ä½œ */
+		Transition * transition = nullptr	/* ³¡¾°ÇĞ»»¶¯×÷ */
 	);
 
-	// æ¸…ç©ºä¿å­˜çš„æ‰€æœ‰åœºæ™¯
+	// Çå¿Õ±£´æµÄËùÓĞ³¡¾°
 	static void clear();
 
-	// è·å–å½“å‰åœºæ™¯
+	// »ñÈ¡µ±Ç°³¡¾°
 	static Scene * getCurrentScene();
 
-	// è·å–åœºæ™¯æ ˆ
+	// »ñÈ¡³¡¾°Õ»
 	static std::stack<Scene*> getSceneStack();
 
-	// æ˜¯å¦æ­£åœ¨è¿›è¡Œè½¬åœºåŠ¨ä½œ
+	// ÊÇ·ñÕıÔÚ½øĞĞ×ª³¡¶¯×÷
 	static bool isTransitioning();
 
-	// åˆ†å‘äº‹ä»¶
+	// ·Ö·¢ÊÂ¼ş
 	static void dispatch(Event* evt);
 
 private:
-	// æ›´æ–°åœºæ™¯å†…å®¹
+	// ¸üĞÂ³¡¾°ÄÚÈİ
 	static void __update();
 
-	// æ¸²æŸ“åœºæ™¯ç”»é¢
+	// äÖÈ¾³¡¾°»­Ãæ
 	static void __render(bool showBodyShape);
 
-	// åˆå§‹åŒ–åœºæ™¯
+	// ³õÊ¼»¯³¡¾°
 	static bool __init();
 
-	// å›æ”¶åœºæ™¯èµ„æº
+	// »ØÊÕ³¡¾°×ÊÔ´
 	static void __uninit();
 
-	// æ·»åŠ äº‹ä»¶ç›‘å¬å™¨
+	// Ìí¼ÓÊÂ¼ş¼àÌıÆ÷
 	static void __pushDispatcher(Node* node);
 };
 
 
-// åŠ¨ä½œç®¡ç†å™¨
+// ¶¯×÷¹ÜÀíÆ÷
 class ActionManager
 {
 	friend class Game;
@@ -80,64 +78,64 @@ class ActionManager
 	friend class Action;
 
 public:
-	// æ‰§è¡ŒåŠ¨ä½œ
+	// Ö´ĞĞ¶¯×÷
 	static void start(
 		Action * action,
 		Node * target,
 		bool paused
 	);
 
-	// ç»§ç»­åç§°ç›¸åŒçš„æ‰€æœ‰åŠ¨ä½œ
+	// ¼ÌĞøÃû³ÆÏàÍ¬µÄËùÓĞ¶¯×÷
 	static void resume(
 		const String& name
 	);
 
-	// æš‚åœåç§°ç›¸åŒçš„æ‰€æœ‰åŠ¨ä½œ
+	// ÔİÍ£Ãû³ÆÏàÍ¬µÄËùÓĞ¶¯×÷
 	static void pause(
 		const String& name
 	);
 
-	// åœæ­¢åç§°ç›¸åŒçš„æ‰€æœ‰åŠ¨ä½œ
+	// Í£Ö¹Ãû³ÆÏàÍ¬µÄËùÓĞ¶¯×÷
 	static void stop(
 		const String& name
 	);
 
-	// è·å–æ‰€æœ‰åç§°ç›¸åŒçš„åŠ¨ä½œ
+	// »ñÈ¡ËùÓĞÃû³ÆÏàÍ¬µÄ¶¯×÷
 	static std::vector<Action *> get(
 		const String& name
 	);
 
-	// è·å–æ‰€æœ‰åŠ¨ä½œ
+	// »ñÈ¡ËùÓĞ¶¯×÷
 	static const std::vector<Action*>& getAll();
 
 private:
-	// æ›´æ–°åŠ¨ä½œçŠ¶æ€
+	// ¸üĞÂ¶¯×÷×´Ì¬
 	static void __update();
 
-	// ç»§ç»­ç»‘å®šåœ¨èŠ‚ç‚¹ä¸Šçš„æ‰€æœ‰åŠ¨ä½œ
+	// ¼ÌĞø°ó¶¨ÔÚ½ÚµãÉÏµÄËùÓĞ¶¯×÷
 	static void __resumeAllBoundWith(
 		Node * target
 	);
 
-	// æš‚åœç»‘å®šåœ¨èŠ‚ç‚¹ä¸Šçš„æ‰€æœ‰åŠ¨ä½œ
+	// ÔİÍ£°ó¶¨ÔÚ½ÚµãÉÏµÄËùÓĞ¶¯×÷
 	static void __pauseAllBoundWith(
 		Node * target
 	);
 
-	// åœæ­¢ç»‘å®šåœ¨èŠ‚ç‚¹ä¸Šçš„æ‰€æœ‰åŠ¨ä½œ
+	// Í£Ö¹°ó¶¨ÔÚ½ÚµãÉÏµÄËùÓĞ¶¯×÷
 	static void __stopAllBoundWith(
 		Node * target
 	);
 
-	// æ¸…ç©ºç»‘å®šåœ¨èŠ‚ç‚¹ä¸Šçš„æ‰€æœ‰åŠ¨ä½œ
+	// Çå¿Õ°ó¶¨ÔÚ½ÚµãÉÏµÄËùÓĞ¶¯×÷
 	static void __removeAllBoundWith(
 		Node * target
 	);
 
-	// é‡ç½®æ‰€æœ‰åŠ¨ä½œçŠ¶æ€
+	// ÖØÖÃËùÓĞ¶¯×÷×´Ì¬
 	static void __resetAll();
 
-	// å›æ”¶èµ„æº
+	// »ØÊÕ×ÊÔ´
 	static void __uninit();
 };
 
