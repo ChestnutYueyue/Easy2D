@@ -289,7 +289,8 @@ cd Easy2D
 xmake
 
 # 编译 Release 版本
-xmake -m release
+xmake f -m release
+xmake
 
 # 指定编译器 (MSVC)
 xmake f --toolchain=msvc

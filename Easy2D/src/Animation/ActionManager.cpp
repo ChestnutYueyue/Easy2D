@@ -12,7 +12,7 @@ void easy2d::ActionManager::__update()
 		return;
 
 	// 循环遍历所有正在运行的动作
-	for (size_t i = 0; i < s_vActions.size(); ++i)
+	for (size_t i = 0; i < s_vActions.size();)
 	{
 		auto action = s_vActions[i];
 		// 获取动作运行状态
@@ -21,15 +21,16 @@ void easy2d::ActionManager::__update()
 			action->_target = nullptr;
 			action->release();
 			s_vActions.erase(s_vActions.begin() + i);
+			continue;
 		}
-		else
+
+		if (action->isRunning())
 		{
-			if (action->isRunning())
-			{
-				// 执行动作
-				action->_update();
-			}
+			// 执行动作
+			action->_update();
 		}
+
+		++i;
 	}
 }
 
