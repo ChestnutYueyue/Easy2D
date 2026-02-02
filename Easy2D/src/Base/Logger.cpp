@@ -251,7 +251,7 @@ void easy2d::Logger::disable()
  * @param format 格式化字符串
  * @param ... 可变参数
  */
-void easy2d::Logger::messageln(const String& format, ...)
+void easy2d::Logger::messageln(String format, ...)
 {
 	InitializeSpdlog();
 
@@ -268,7 +268,7 @@ void easy2d::Logger::messageln(const String& format, ...)
  * @param format 格式化字符串
  * @param ... 可变参数
  */
-void easy2d::Logger::warningln(const String& format, ...)
+void easy2d::Logger::warningln(String format, ...)
 {
 	InitializeSpdlog();
 
@@ -285,7 +285,7 @@ void easy2d::Logger::warningln(const String& format, ...)
  * @param format 格式化字符串
  * @param ... 可变参数
  */
-void easy2d::Logger::errorln(const String& format, ...)
+void easy2d::Logger::errorln(String format, ...)
 {
 	InitializeSpdlog();
 
