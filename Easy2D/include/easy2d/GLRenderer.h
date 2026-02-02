@@ -11,8 +11,7 @@
 
 // 前向声明SDL类型
 struct SDL_Window;
-
-typedef void* SDL_GLContext;
+typedef struct SDL_GLContextState* SDL_GLContext;
 
 namespace easy2d
 {

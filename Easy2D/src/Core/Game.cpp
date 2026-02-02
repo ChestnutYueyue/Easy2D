@@ -2,7 +2,7 @@
 #include <easy2d/e2dmanager.h>
 #include <easy2d/e2dtool.h>
 #include <easy2d/GLRenderer.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 #include <cstdio>  // for std::remove
 
 
@@ -35,11 +35,11 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 	{
 		// 使用文件锁实现单例检测
 		String lockFileName = "Easy2DApp-" + s_sUniqueName + ".lock";
-		SDL_RWops* lockFile = SDL_RWFromFile(lockFileName.c_str(), "r");
+		SDL_IOStream* lockFile = SDL_IOFromFile(lockFileName.c_str(), "r");
 		if (lockFile != nullptr)
 		{
 			// 文件已存在，说明程序已在运行
-			SDL_RWclose(lockFile);
+			SDL_CloseIO(lockFile);
 			// 弹窗提示
 			// SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "提示", "游戏已在其他窗口中打开！", nullptr);
 			E2D_ERROR("游戏已在其他窗口中打开！");
@@ -47,16 +47,17 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 			return false;
 		}
 		// 创建锁文件
-		lockFile = SDL_RWFromFile(lockFileName.c_str(), "w");
+		lockFile = SDL_IOFromFile(lockFileName.c_str(), "w");
 		if (lockFile)
 		{
-			SDL_RWwrite(lockFile, "1", 1, 1);
-			SDL_RWclose(lockFile);
+			const char* data = "1";
+			SDL_WriteIO(lockFile, data, 1);
+			SDL_CloseIO(lockFile);
 		}
 	}
 
-	// 初始化SDL
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) < 0)
+	// 初始化SDL (SDL3中计时器总是启用的，不需要SDL_INIT_TIMER)
+	if (!SDL_Init(SDL_INIT_VIDEO))
 	{
 		E2D_ERROR("SDL_Init Failed: %s", SDL_GetError());
 		return false;

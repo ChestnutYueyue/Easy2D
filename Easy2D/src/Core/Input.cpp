@@ -1,7 +1,7 @@
 #include <unordered_map>
 #include <easy2d/e2dbase.h>
 #include <easy2d/e2dmanager.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 
 using namespace easy2d;
@@ -9,8 +9,8 @@ using namespace easy2d;
 namespace
 {
 	// 键盘状态缓冲区
-	Uint8 s_KeyState[SDL_NUM_SCANCODES] = { 0 };
-	Uint8 s_KeyRecordState[SDL_NUM_SCANCODES] = { 0 };
+	Uint8 s_KeyState[SDL_SCANCODE_COUNT] = { 0 };
+	Uint8 s_KeyRecordState[SDL_SCANCODE_COUNT] = { 0 };
 
 	// 鼠标状态
 	Uint32 s_MouseState = 0;
@@ -21,7 +21,7 @@ namespace
 	int s_MouseDeltaY = 0;
 	int s_MouseWheel = 0;
 
-	// SDL键码到Easy2D键码的映射
+	// SDL键码到Easy2D键码的映射 (SDL3使用大写字母键名)
 	const std::unordered_map<SDL_Keycode, KeyCode::Value> s_SDLToKeyCode = {
 		{ SDLK_UNKNOWN, KeyCode::Unknown },
 		{ SDLK_UP, KeyCode::Up },
@@ -41,32 +41,32 @@ namespace
 		{ SDLK_DELETE, KeyCode::Delete },
 		{ SDLK_BACKSPACE, KeyCode::Back },
 
-		{ SDLK_a, KeyCode::A },
-		{ SDLK_b, KeyCode::B },
-		{ SDLK_c, KeyCode::C },
-		{ SDLK_d, KeyCode::D },
-		{ SDLK_e, KeyCode::E },
-		{ SDLK_f, KeyCode::F },
-		{ SDLK_g, KeyCode::G },
-		{ SDLK_h, KeyCode::H },
-		{ SDLK_i, KeyCode::I },
-		{ SDLK_j, KeyCode::J },
-		{ SDLK_k, KeyCode::K },
-		{ SDLK_l, KeyCode::L },
-		{ SDLK_m, KeyCode::M },
-		{ SDLK_n, KeyCode::N },
-		{ SDLK_o, KeyCode::O },
-		{ SDLK_p, KeyCode::P },
-		{ SDLK_q, KeyCode::Q },
-		{ SDLK_r, KeyCode::R },
-		{ SDLK_s, KeyCode::S },
-		{ SDLK_t, KeyCode::T },
-		{ SDLK_u, KeyCode::U },
-		{ SDLK_v, KeyCode::V },
-		{ SDLK_w, KeyCode::W },
-		{ SDLK_x, KeyCode::X },
-		{ SDLK_y, KeyCode::Y },
-		{ SDLK_z, KeyCode::Z },
+		{ SDLK_A, KeyCode::A },
+		{ SDLK_B, KeyCode::B },
+		{ SDLK_C, KeyCode::C },
+		{ SDLK_D, KeyCode::D },
+		{ SDLK_E, KeyCode::E },
+		{ SDLK_F, KeyCode::F },
+		{ SDLK_G, KeyCode::G },
+		{ SDLK_H, KeyCode::H },
+		{ SDLK_I, KeyCode::I },
+		{ SDLK_J, KeyCode::J },
+		{ SDLK_K, KeyCode::K },
+		{ SDLK_L, KeyCode::L },
+		{ SDLK_M, KeyCode::M },
+		{ SDLK_N, KeyCode::N },
+		{ SDLK_O, KeyCode::O },
+		{ SDLK_P, KeyCode::P },
+		{ SDLK_Q, KeyCode::Q },
+		{ SDLK_R, KeyCode::R },
+		{ SDLK_S, KeyCode::S },
+		{ SDLK_T, KeyCode::T },
+		{ SDLK_U, KeyCode::U },
+		{ SDLK_V, KeyCode::V },
+		{ SDLK_W, KeyCode::W },
+		{ SDLK_X, KeyCode::X },
+		{ SDLK_Y, KeyCode::Y },
+		{ SDLK_Z, KeyCode::Z },
 
 		{ SDLK_0, KeyCode::Num0 },
 		{ SDLK_1, KeyCode::Num1 },
@@ -219,17 +219,26 @@ void easy2d::Input::__update()
 	memcpy(s_KeyRecordState, s_KeyState, sizeof(s_KeyState));
 
 	// 获取当前键盘状态
-	const Uint8* currentKeyState = SDL_GetKeyboardState(nullptr);
-	memcpy(s_KeyState, currentKeyState, SDL_NUM_SCANCODES);
+	const bool* currentKeyState = SDL_GetKeyboardState(nullptr);
+	for (int i = 0; i < SDL_SCANCODE_COUNT; ++i)
+	{
+		s_KeyState[i] = currentKeyState[i] ? 1 : 0;
+	}
 
 	// 保存上一帧的鼠标状态
 	s_MouseRecordState = s_MouseState;
 
-	// 获取当前鼠标状态
-	s_MouseState = SDL_GetMouseState(&s_MouseX, &s_MouseY);
+	// 获取当前鼠标状态 (SDL3使用浮点数坐标)
+	float mouseX, mouseY;
+	s_MouseState = SDL_GetMouseState(&mouseX, &mouseY);
+	s_MouseX = static_cast<int>(mouseX);
+	s_MouseY = static_cast<int>(mouseY);
 
-	// 获取相对鼠标移动
-	SDL_GetRelativeMouseState(&s_MouseDeltaX, &s_MouseDeltaY);
+	// 获取相对鼠标移动 (SDL3使用浮点数坐标)
+	float deltaX, deltaY;
+	SDL_GetRelativeMouseState(&deltaX, &deltaY);
+	s_MouseDeltaX = static_cast<int>(deltaX);
+	s_MouseDeltaY = static_cast<int>(deltaY);
 }
 
 bool Input::isDown(KeyCode::Value key)

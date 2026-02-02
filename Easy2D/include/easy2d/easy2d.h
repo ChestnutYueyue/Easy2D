@@ -41,4 +41,4 @@
 #include <easy2d/GLTextureAtlas.h>
 
 // 窗口组件
-#include <SDL.h>
+#include <SDL3/SDL.h>

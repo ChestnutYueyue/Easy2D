@@ -144,7 +144,14 @@ bool easy2d::Path::__init(const String& uniqueName)
 
 void easy2d::Path::add(String path)
 {
-    if (path[path.length() - 1] != L'\\' && path[path.length() - 1] != L'/')
+    // 处理空路径，空路径表示当前目录
+    if (path.empty())
+    {
+        path = ".";
+    }
+
+    // 确保路径以分隔符结尾
+    if (path.length() > 0 && path[path.length() - 1] != L'\\' && path[path.length() - 1] != L'/')
     {
 #ifdef _WIN32
         path.append("\\");

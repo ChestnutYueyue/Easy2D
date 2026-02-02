@@ -7,8 +7,8 @@
 #include <easy2d/e2dtext.h>
 #include <easy2d/e2dshape.h>
 #include <easy2d/GLTextRenderer.h>
-#include <SDL.h>
-#include <SDL_opengl.h>
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_opengl.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <string>
@@ -90,13 +90,12 @@ bool GLRenderer::initialize(SDL_Window* window, int width, int height)
     // 设置默认投影矩阵（正交投影，原点在左上角）
     setProjection(0.0f, static_cast<float>(width), static_cast<float>(height), 0.0f);
 
-    // 获取DPI缩放
-    int displayIndex = SDL_GetWindowDisplayIndex(window);
-    float dpi;
-    if (SDL_GetDisplayDPI(displayIndex, &dpi, nullptr, nullptr) == 0)
+    // 获取DPI缩放 (SDL3使用SDL_GetWindowDisplayScale)
+    float scale = SDL_GetWindowDisplayScale(window);
+    if (scale > 0.0f)
     {
-        _dpiScaleX = dpi;
-        _dpiScaleY = dpi;
+        _dpiScaleX = 96.0f * scale;
+        _dpiScaleY = 96.0f * scale;
     }
     else
     {
@@ -168,10 +167,10 @@ bool GLRenderer::initializeGLContext(SDL_Window* window)
     }
 
     // 使上下文当前
-    if (SDL_GL_MakeCurrent(window, _glContext) != 0)
+    if (!SDL_GL_MakeCurrent(window, _glContext))
     {
         E2D_ERROR("Failed to make OpenGL context current: %s", SDL_GetError());
-        SDL_GL_DeleteContext(_glContext);
+        SDL_GL_DestroyContext(_glContext);
         _glContext = nullptr;
         return false;
     }
@@ -186,7 +185,7 @@ void GLRenderer::destroyGLContext()
 {
     if (_glContext)
     {
-        SDL_GL_DeleteContext(_glContext);
+        SDL_GL_DestroyContext(_glContext);
         _glContext = nullptr;
     }
     _window = nullptr;

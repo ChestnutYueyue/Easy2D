@@ -4,7 +4,7 @@
 #include <easy2d/e2dtext.h>
 #include <easy2d/GLRenderer.h>
 #include <easy2d/GLTexture.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 namespace easy2d
 {
@@ -81,13 +81,12 @@ bool easy2d::Renderer::__createDeviceResources()
     int width, height;
     SDL_GetWindowSize(window, &width, &height);
 
-    // 获取DPI缩放
-    int displayIndex = SDL_GetWindowDisplayIndex(window);
-    float dpi;
-    if (SDL_GetDisplayDPI(displayIndex, &dpi, nullptr, nullptr) == 0)
+    // 获取DPI缩放 (SDL3使用SDL_GetWindowDisplayScale)
+    float scale = SDL_GetWindowDisplayScale(window);
+    if (scale > 0.0f)
     {
-        s_fDpiScaleX = dpi;
-        s_fDpiScaleY = dpi;
+        s_fDpiScaleX = 96.0f * scale;
+        s_fDpiScaleY = 96.0f * scale;
     }
     else
     {

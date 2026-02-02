@@ -1,9 +1,9 @@
 #include <easy2d/e2dbase.h>
 #include <easy2d/e2dmanager.h>
 #include <easy2d/e2dnode.h>
+#include <easy2d/e2dtool.h>
 #include <easy2d/GLRenderer.h>
-#include <SDL.h>
-#include <SDL_syswm.h>
+#include <SDL3/SDL.h>
 #include <stb_image.h>
 
 
@@ -82,8 +82,8 @@ static easy2d::CustomCursor s_customCursor;
 
 bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 {
-	// 初始化SDL视频子系统
-	if (SDL_InitSubSystem(SDL_INIT_VIDEO) < 0)
+	// 初始化SDL视频子系统 (SDL3返回bool)
+	if (!SDL_InitSubSystem(SDL_INIT_VIDEO))
 	{
 		Window::error("SDL_Init Video Failed!");
 		return false;
@@ -92,11 +92,9 @@ bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 	// 创建SDL窗口
 	s_Window = SDL_CreateWindow(
 		title.c_str(),
-		SDL_WINDOWPOS_CENTERED,
-		SDL_WINDOWPOS_CENTERED,
 		nWidth,
 		nHeight,
-		SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE
+		SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
 	);
 
 	if (!s_Window)
@@ -107,7 +105,7 @@ bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 	}
 
 	// 禁用最大化按钮和边框调整（保持与原Win32行为一致）
-	SDL_SetWindowResizable(s_Window, SDL_FALSE);
+	SDL_SetWindowResizable(s_Window, false);
 
 	return true;
 }
@@ -134,7 +132,7 @@ void easy2d::Window::__poll()
 	{
 		switch (event.type)
 		{
-		case SDL_QUIT:
+		case SDL_EVENT_QUIT:
 		{
 			easy2d::Scene* pCurrentScene = easy2d::SceneManager::getCurrentScene();
 			if (!pCurrentScene || pCurrentScene->onCloseWindow())
@@ -144,23 +142,23 @@ void easy2d::Window::__poll()
 		}
 		break;
 
-		case SDL_KEYDOWN:
+		case SDL_EVENT_KEY_DOWN:
 		{
-			KeyCode::Value vk = static_cast<KeyCode::Value>(event.key.keysym.sym);
+			KeyCode::Value vk = static_cast<KeyCode::Value>(event.key.key);
 			KeyDownEvent evt(vk, event.key.repeat);
 			SceneManager::dispatch(&evt);
 		}
 		break;
 
-		case SDL_KEYUP:
+		case SDL_EVENT_KEY_UP:
 		{
-			KeyCode::Value vk = static_cast<KeyCode::Value>(event.key.keysym.sym);
+			KeyCode::Value vk = static_cast<KeyCode::Value>(event.key.key);
 			KeyUpEvent evt(vk, event.key.repeat);
 			SceneManager::dispatch(&evt);
 		}
 		break;
 
-		case SDL_MOUSEBUTTONDOWN:
+		case SDL_EVENT_MOUSE_BUTTON_DOWN:
 		{
 			MouseCode::Value btn = MouseCode::Left;
 			if (event.button.button == SDL_BUTTON_LEFT) btn = MouseCode::Left;
@@ -168,15 +166,15 @@ void easy2d::Window::__poll()
 			else if (event.button.button == SDL_BUTTON_MIDDLE) btn = MouseCode::Middle;
 
 			MouseDownEvent evt(
-				static_cast<float>(event.button.x),
-				static_cast<float>(event.button.y),
+				event.button.x,
+				event.button.y,
 				btn
 			);
 			SceneManager::dispatch(&evt);
 		}
 		break;
 
-		case SDL_MOUSEBUTTONUP:
+		case SDL_EVENT_MOUSE_BUTTON_UP:
 		{
 			MouseCode::Value btn = MouseCode::Left;
 			if (event.button.button == SDL_BUTTON_LEFT) btn = MouseCode::Left;
@@ -184,78 +182,71 @@ void easy2d::Window::__poll()
 			else if (event.button.button == SDL_BUTTON_MIDDLE) btn = MouseCode::Middle;
 
 			MouseUpEvent evt(
-				static_cast<float>(event.button.x),
-				static_cast<float>(event.button.y),
+				event.button.x,
+				event.button.y,
 				btn
 			);
 			SceneManager::dispatch(&evt);
 		}
 		break;
 
-		case SDL_MOUSEMOTION:
+		case SDL_EVENT_MOUSE_MOTION:
 		{
 			MouseMoveEvent evt(
-				static_cast<float>(event.motion.x),
-				static_cast<float>(event.motion.y)
+				event.motion.x,
+				event.motion.y
 			);
 			SceneManager::dispatch(&evt);
 		}
 		break;
 
-		case SDL_MOUSEWHEEL:
+		case SDL_EVENT_MOUSE_WHEEL:
 		{
-			int mouseX, mouseY;
+			float mouseX, mouseY;
 			SDL_GetMouseState(&mouseX, &mouseY);
 			MouseWheelEvent evt(
-				static_cast<float>(mouseX),
-				static_cast<float>(mouseY),
-				static_cast<float>(event.wheel.y)
+				mouseX,
+				mouseY,
+				event.wheel.y
 			);
 			SceneManager::dispatch(&evt);
 		}
 		break;
 
-		case SDL_WINDOWEVENT:
+		case SDL_EVENT_WINDOW_RESIZED:
 		{
-			switch (event.window.event)
+			int width = event.window.data1;
+			int height = event.window.data2;
+			auto glRenderer = Renderer::getGLRenderer();
+			if (glRenderer) glRenderer->resize(width, height);
+		}
+		break;
+
+		case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+		{
+			easy2d::Scene* pCurrentScene = easy2d::SceneManager::getCurrentScene();
+			if (!pCurrentScene || pCurrentScene->onCloseWindow())
 			{
-			case SDL_WINDOWEVENT_SIZE_CHANGED:
-			{
-				int width = event.window.data1;
-				int height = event.window.data2;
-				auto glRenderer = Renderer::getGLRenderer();
-				if (glRenderer) glRenderer->resize(width, height);
-			}
-			break;
-
-			case SDL_WINDOWEVENT_CLOSE:
-			{
-				easy2d::Scene* pCurrentScene = easy2d::SceneManager::getCurrentScene();
-				if (!pCurrentScene || pCurrentScene->onCloseWindow())
-				{
-					easy2d::Game::quit();
-				}
-			}
-			break;
-
-			case SDL_WINDOWEVENT_FOCUS_GAINED:
-				// 窗口获得焦点
-				break;
-
-			case SDL_WINDOWEVENT_FOCUS_LOST:
-				// 窗口失去焦点
-				break;
-
-			case SDL_WINDOWEVENT_MINIMIZED:
-				// 窗口最小化
-				break;
-
-			case SDL_WINDOWEVENT_RESTORED:
-				// 窗口恢复
-				break;
+				easy2d::Game::quit();
 			}
 		}
 		break;
+
+		case SDL_EVENT_WINDOW_FOCUS_GAINED:
+			// 窗口获得焦点
+			break;
+
+		case SDL_EVENT_WINDOW_FOCUS_LOST:
+			// 窗口失去焦点
+			break;
+
+		case SDL_EVENT_WINDOW_MINIMIZED:
+			// 窗口最小化
+			break;
+
+		case SDL_EVENT_WINDOW_RESTORED:
+			// 窗口恢复
+			break;
 		}
 	}
 }
@@ -265,23 +256,23 @@ void easy2d::Window::__updateCursor()
 	s_customCursor.update(s_currentCursor);
 	if (s_customCursor)
 	{
-		SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW));
+		SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT));
 		return;
 	}
 
-	SDL_SystemCursor cursorType = SDL_SYSTEM_CURSOR_ARROW;
+	SDL_SystemCursor cursorType = SDL_SYSTEM_CURSOR_DEFAULT;
 	switch (s_currentCursor)
 	{
 	case Cursor::Normal:
-		cursorType = SDL_SYSTEM_CURSOR_ARROW;
+		cursorType = SDL_SYSTEM_CURSOR_DEFAULT;
 		break;
 
 	case Cursor::Hand:
-		cursorType = SDL_SYSTEM_CURSOR_HAND;
+		cursorType = SDL_SYSTEM_CURSOR_POINTER;
 		break;
 
 	case Cursor::No:
-		cursorType = SDL_SYSTEM_CURSOR_NO;
+		cursorType = SDL_SYSTEM_CURSOR_NOT_ALLOWED;
 		break;
 
 	case Cursor::Wait:
@@ -289,11 +280,11 @@ void easy2d::Window::__updateCursor()
 		break;
 
 	case Cursor::ArrowWait:
-		cursorType = SDL_SYSTEM_CURSOR_WAITARROW;
+		cursorType = SDL_SYSTEM_CURSOR_PROGRESS;
 		break;
 
 	default:
-		cursorType = SDL_SYSTEM_CURSOR_ARROW;
+		cursorType = SDL_SYSTEM_CURSOR_DEFAULT;
 		break;
 	}
 
@@ -330,17 +321,11 @@ void* easy2d::Window::getNativeWindowHandle()
 {
 	if (!s_Window) return nullptr;
 
-	SDL_SysWMinfo info;
-	SDL_VERSION(&info.version);
-	if (SDL_GetWindowWMInfo(s_Window, &info))
-	{
-#ifdef SDL_VIDEO_DRIVER_WINDOWS
-		return info.info.win.window;
+#ifdef SDL_PLATFORM_WIN32
+	return SDL_GetPointerProperty(SDL_GetWindowProperties(s_Window), SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
 #else
-		return nullptr;
-#endif
-	}
 	return nullptr;
+#endif
 }
 
 void easy2d::Window::setSize(int width, int height)
@@ -374,13 +359,21 @@ void easy2d::Window::setIcon(const String& filePath)
 		return;
 	}
 
+	// 使用 Path::searchForFile 搜索文件
+	String actualPath = Path::searchForFile(filePath);
+	if (actualPath.empty())
+	{
+		E2D_ERROR("Failed to find icon image: %s", filePath.c_str());
+		return;
+	}
+
 	// 使用stb_image加载图片
 	int width, height, channels;
-	unsigned char* pixels = stbi_load(filePath.c_str(), &width, &height, &channels, 4);
+	unsigned char* pixels = stbi_load(actualPath.c_str(), &width, &height, &channels, 4);
 
 	if (!pixels)
 	{
-		E2D_ERROR("Failed to load icon image: %s", filePath.c_str());
+		E2D_ERROR("Failed to load icon image: %s", actualPath.c_str());
 		return;
 	}
 
@@ -394,24 +387,15 @@ void easy2d::Window::setIcon(const String& filePath)
 		argbPixels[i * 4 + 3] = pixels[i * 4 + 2]; // B
 	}
 
-	// 创建SDL_Surface
-	SDL_Surface* surface = SDL_CreateRGBSurfaceFrom(
-		argbPixels,
-		width,
-		height,
-		32,
-		width * 4,
-		0x00FF0000, // R mask
-		0x0000FF00, // G mask
-		0x000000FF, // B mask
-		0xFF000000  // A mask
-	);
-
+	// 创建SDL_Surface (SDL3使用SDL_CreateSurface)
+	SDL_Surface* surface = SDL_CreateSurface(width, height, SDL_PIXELFORMAT_ARGB8888);
 	if (surface)
 	{
+		// 复制像素数据到surface
+		SDL_memcpy(surface->pixels, argbPixels, width * height * 4);
 		SDL_SetWindowIcon(s_Window, surface);
-		SDL_FreeSurface(surface);
-		E2D_LOG("Window icon set successfully: %s", filePath.c_str());
+		SDL_DestroySurface(surface);
+		E2D_LOG("Window icon set successfully: %s", actualPath.c_str());
 	}
 	else
 	{
@@ -459,14 +443,15 @@ easy2d::String easy2d::Window::getTitle()
 
 void easy2d::Window::setTypewritingEnable(bool enable)
 {
-	// SDL2中输入法管理由SDL_StartTextInput/SDL_StopTextInput处理
+	// SDL3中输入法管理由SDL_StartTextInput/SDL_StopTextInput处理
+	// SDL3需要传入窗口参数
 	if (enable)
 	{
-		SDL_StartTextInput();
+		SDL_StartTextInput(s_Window);
 	}
 	else
 	{
-		SDL_StopTextInput();
+		SDL_StopTextInput(s_Window);
 	}
 }
 

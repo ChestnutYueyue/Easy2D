@@ -1,5 +1,5 @@
 #include <easy2d/e2dbase.h>
-#include <SDL.h>
+#include <SDL3/SDL.h>
 
 
 // 游戏开始时间（毫秒）
