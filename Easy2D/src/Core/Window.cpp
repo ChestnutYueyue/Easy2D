@@ -79,6 +79,30 @@ private:
 }
 
 static easy2d::CustomCursor s_customCursor;
+static SDL_Cursor* s_systemCursor = nullptr;
+static SDL_SystemCursor s_systemCursorType = SDL_SYSTEM_CURSOR_DEFAULT;
+
+static void SetSystemCursor(SDL_SystemCursor cursorType)
+{
+	if (s_systemCursor && s_systemCursorType == cursorType)
+	{
+		SDL_SetCursor(s_systemCursor);
+		return;
+	}
+
+	if (s_systemCursor)
+	{
+		SDL_DestroyCursor(s_systemCursor);
+		s_systemCursor = nullptr;
+	}
+
+	s_systemCursor = SDL_CreateSystemCursor(cursorType);
+	s_systemCursorType = cursorType;
+	if (s_systemCursor)
+	{
+		SDL_SetCursor(s_systemCursor);
+	}
+}
 
 bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 {
@@ -113,6 +137,11 @@ bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
 void easy2d::Window::__uninit()
 {
 	s_customCursor.clear();
+	if (s_systemCursor)
+	{
+		SDL_DestroyCursor(s_systemCursor);
+		s_systemCursor = nullptr;
+	}
 
 	// 销毁SDL窗口
 	if (s_Window)
@@ -204,6 +233,7 @@ void easy2d::Window::__poll()
 		{
 			float mouseX, mouseY;
 			SDL_GetMouseState(&mouseX, &mouseY);
+			Input::__onMouseWheel(event.wheel.y);
 			MouseWheelEvent evt(
 				mouseX,
 				mouseY,
@@ -256,7 +286,7 @@ void easy2d::Window::__updateCursor()
 	s_customCursor.update(s_currentCursor);
 	if (s_customCursor)
 	{
-		SDL_SetCursor(SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT));
+		SetSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
 		return;
 	}
 
@@ -288,7 +318,7 @@ void easy2d::Window::__updateCursor()
 		break;
 	}
 
-	SDL_SetCursor(SDL_CreateSystemCursor(cursorType));
+	SetSystemCursor(cursorType);
 }
 
 float easy2d::Window::getWidth()

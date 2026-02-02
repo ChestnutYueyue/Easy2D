@@ -19,7 +19,7 @@ namespace
 	int s_MouseY = 0;
 	int s_MouseDeltaX = 0;
 	int s_MouseDeltaY = 0;
-	int s_MouseWheel = 0;
+	float s_MouseWheel = 0.0f;
 
 	// SDL键码到Easy2D键码的映射 (SDL3使用大写字母键名)
 	const std::unordered_map<SDL_Keycode, KeyCode::Value> s_SDLToKeyCode = {
@@ -241,6 +241,11 @@ void easy2d::Input::__update()
 	s_MouseDeltaY = static_cast<int>(deltaY);
 }
 
+void easy2d::Input::__onMouseWheel(float delta)
+{
+	s_MouseWheel += delta;
+}
+
 bool Input::isDown(KeyCode::Value key)
 {
 	auto it = s_KeyCodeToSDL.find(key);
@@ -370,7 +375,7 @@ float Input::getMouseDeltaY()
 
 float Input::getMouseDeltaZ()
 {
-	// SDL2中鼠标滚轮通过事件处理，这里返回0
-	// 如需支持滚轮增量，需要在Window的事件处理中记录
-	return 0.0f;
+	float delta = s_MouseWheel;
+	s_MouseWheel = 0.0f;
+	return delta;
 }

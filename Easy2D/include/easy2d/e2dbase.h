@@ -215,6 +215,7 @@ private:
 class Input
 {
 	friend class Game;
+	friend class Window;
 
 public:
 	// 检测键盘某按键是否正被按下
@@ -310,6 +311,8 @@ private:
 
 	// 卸载 DirectInput
 	static void __uninit();
+
+	static void __onMouseWheel(float delta);
 };
 
 // 前向声明
