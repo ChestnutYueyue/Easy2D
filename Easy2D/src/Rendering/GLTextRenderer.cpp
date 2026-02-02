@@ -11,6 +11,9 @@ namespace easy2d
 
 GLTextRenderer::GLTextRenderer()
 	: _ftLibrary(nullptr)
+	, _maxCacheSize(1000)
+	, _cacheHits(0)
+	, _cacheMisses(0)
 	, _initialized(false)
 {
 }
@@ -51,15 +54,16 @@ void GLTextRenderer::cleanup()
 		return;
 	}
 	
-	// 清理所有字形纹理
-	for (auto& pair : _glyphs)
+	// 清理所有字形纹理（LRU缓存）
+	for (auto& node : _lruList)
 	{
-		if (pair.second.texture)
+		if (node.info.texture)
 		{
-			delete pair.second.texture;
+			delete node.info.texture;
 		}
 	}
-	_glyphs.clear();
+	_lruList.clear();
+	_lruMap.clear();
 	
 	// 清理所有字体
 	for (auto& pair : _fonts)
@@ -77,6 +81,10 @@ void GLTextRenderer::cleanup()
 		FT_Done_FreeType(_ftLibrary);
 		_ftLibrary = nullptr;
 	}
+	
+	// 重置统计信息
+	_cacheHits = 0;
+	_cacheMisses = 0;
 	
 	_initialized = false;
 }
@@ -109,7 +117,7 @@ bool GLTextRenderer::loadFont(const String& family, const String& path)
 	return true;
 }
 
-GLTexture* GLTextRenderer::createGlyphTexture(FT_Face face, wchar_t charCode)
+GLTexture* GLTextRenderer::createGlyphTexture(FT_Face face, wchar_t charCode, float fontSize)
 {
 	// 加载字符字形，使用优化的加载标志提高渲染质量
 	// FT_LOAD_TARGET_LIGHT: 使用轻量级抗锯齿，适合小字号
@@ -153,10 +161,34 @@ GLTexture* GLTextRenderer::createGlyphTexture(FT_Face face, wchar_t charCode)
 		}
 	}
 	
-	// 使用专门的方法创建字形纹理，使用NEAREST过滤保持边缘锐利
-	texture->createFromRawDataForGlyph(static_cast<int>(width), static_cast<int>(height), rgbaData.data());
+	// 根据字号选择合适的纹理过滤模式
+	GLenum filterMode = getFilterModeForFontSize(fontSize);
+	
+	// 创建字形纹理
+	texture->createFromRawData(width, height, rgbaData.data(), false);
+	
+	// 设置纹理过滤模式
+	texture->setFilterMode(filterMode, filterMode);
 	
 	return texture;
+}
+
+GLenum GLTextRenderer::getFilterModeForFontSize(float fontSize) const
+{
+	// 小字号使用线性过滤以获得更平滑的效果
+	// 大字号使用最近邻过滤以保持边缘锐利
+	if (fontSize < 16.0f)
+	{
+		return GL_LINEAR;
+	}
+	else if (fontSize < 32.0f)
+	{
+		return GL_LINEAR;
+	}
+	else
+	{
+		return GL_NEAREST;
+	}
 }
 
 std::string GLTextRenderer::getFontKey(const String& fontFamily, float fontSize, UINT fontWeight, wchar_t charCode)
@@ -172,12 +204,18 @@ GlyphInfo* GLTextRenderer::getGlyph(const String& fontFamily, wchar_t charCode, 
 {
 	std::string key = getFontKey(fontFamily, fontSize, fontWeight, charCode);
 	
-	// 检查缓存
-	auto it = _glyphs.find(key);
-	if (it != _glyphs.end())
+	// 检查LRU缓存
+	auto it = _lruMap.find(key);
+	if (it != _lruMap.end())
 	{
-		return &it->second;
+		// 缓存命中，更新LRU
+		_cacheHits++;
+		_lruList.splice(_lruList.begin(), _lruList, it->second);
+		return &(it->second->info);
 	}
+	
+	// 缓存未命中
+	_cacheMisses++;
 	
 	// 查找字体
 	auto fontIt = _fonts.find(fontFamily);
@@ -205,7 +243,7 @@ GlyphInfo* GLTextRenderer::getGlyph(const String& fontFamily, wchar_t charCode, 
 	// 实际应用中可能需要使用支持多字重的字体文件
 	
 	// 创建字符纹理
-	GLTexture* texture = createGlyphTexture(face, charCode);
+	GLTexture* texture = createGlyphTexture(face, charCode, fontSize);
 	if (!texture)
 	{
 		return nullptr;
@@ -221,10 +259,80 @@ GlyphInfo* GLTextRenderer::getGlyph(const String& fontFamily, wchar_t charCode, 
 	info.width = static_cast<float>(face->glyph->bitmap.width);
 	info.height = static_cast<float>(face->glyph->bitmap.rows);
 	
-	// 缓存字形信息
-	_glyphs[key] = info;
+	// 更新LRU缓存
+	updateLRU(key, info);
 	
-	return &_glyphs[key];
+	// 检查缓存限制
+	checkCacheLimit();
+	
+	// 返回新添加的节点（在列表头部）
+	return &(_lruList.front().info);
+}
+
+void GLTextRenderer::updateLRU(const std::string& key, const GlyphInfo& info)
+{
+	// 如果已存在，先删除旧的
+	auto it = _lruMap.find(key);
+	if (it != _lruMap.end())
+	{
+		// 删除旧的纹理
+		if (it->second->info.texture)
+		{
+			delete it->second->info.texture;
+		}
+		_lruList.erase(it->second);
+	}
+	
+	// 添加到列表头部（最近使用）
+	_lruList.emplace_front(key, info);
+	_lruMap[key] = _lruList.begin();
+}
+
+void GLTextRenderer::checkCacheLimit()
+{
+	// 如果缓存超过限制，删除最久未使用的项
+	while (_lruList.size() > _maxCacheSize)
+	{
+		// 删除列表尾部（最久未使用）
+		auto lastNode = _lruList.back();
+		
+		// 删除纹理
+		if (lastNode.info.texture)
+		{
+			delete lastNode.info.texture;
+		}
+		
+		// 从映射中移除
+		_lruMap.erase(lastNode.key);
+		
+		// 从列表中移除
+		_lruList.pop_back();
+	}
+}
+
+void GLTextRenderer::getCacheStats(int& totalGlyphs, int& cacheHits, int& cacheMisses) const
+{
+	totalGlyphs = static_cast<int>(_lruList.size());
+	cacheHits = _cacheHits;
+	cacheMisses = _cacheMisses;
+}
+
+void GLTextRenderer::clearGlyphCache()
+{
+	// 清理所有字形纹理
+	for (auto& node : _lruList)
+	{
+		if (node.info.texture)
+		{
+			delete node.info.texture;
+		}
+	}
+	_lruList.clear();
+	_lruMap.clear();
+	
+	// 重置统计信息
+	_cacheHits = 0;
+	_cacheMisses = 0;
 }
 
 Size GLTextRenderer::calculateTextSize(const String& text, const TextStyle& style)
@@ -274,6 +382,32 @@ Size GLTextRenderer::calculateTextSize(const String& text, const TextStyle& styl
 	}
 	
 	return Size(maxWidth, y + lineHeight);
+}
+
+void GLTextRenderer::renderDecorationLine(const Point& startPos, float lineWidth, float yPos, const Color& color, float fontSize, bool isUnderline)
+{
+	GLRenderer* glRenderer = Renderer::getGLRenderer();
+	if (!glRenderer)
+	{
+		return;
+	}
+	
+	// 计算装饰线的位置
+	float decorationY;
+	if (isUnderline)
+	{
+		// 下划线位置
+		decorationY = yPos + fontSize * 0.1f;
+	}
+	else
+	{
+		// 删除线位置
+		decorationY = yPos - fontSize * 0.3f;
+	}
+	
+	// 渲染装饰线
+	Rect decorationRect(Point(startPos.x, decorationY), Size(lineWidth, 1.0f));
+	glRenderer->drawRect(decorationRect, color);
 }
 
 void GLTextRenderer::renderText(const String& text, const Point& pos, const TextStyle& style, const Color& color)
@@ -331,16 +465,12 @@ void GLTextRenderer::renderText(const String& text, const Point& pos, const Text
 				// 渲染当前行的下划线和删除线
 				if (style.hasUnderline)
 				{
-					float underlineY = y + fontSize * 0.1f;
-					Rect underlineRect(Point(lineStartX, underlineY), Size(lineWidth, 1.0f));
-					glRenderer->drawRect(underlineRect, color);
+					renderDecorationLine(Point(lineStartX, y), lineWidth, y, color, fontSize, true);
 				}
 				
 				if (style.hasStrikethrough)
 				{
-					float strikeY = y - fontSize * 0.3f;
-					Rect strikeRect(Point(lineStartX, strikeY), Size(lineWidth, 1.0f));
-					glRenderer->drawRect(strikeRect, color);
+					renderDecorationLine(Point(lineStartX, y), lineWidth, y, color, fontSize, false);
 				}
 				
 				// 换行
@@ -360,16 +490,12 @@ void GLTextRenderer::renderText(const String& text, const Point& pos, const Text
 					// 渲染当前行的下划线和删除线
 					if (style.hasUnderline)
 					{
-						float underlineY = y + fontSize * 0.1f;
-						Rect underlineRect(Point(lineStartX, underlineY), Size(lineWidth, 1.0f));
-						glRenderer->drawRect(underlineRect, color);
+						renderDecorationLine(Point(lineStartX, y), lineWidth, y, color, fontSize, true);
 					}
 					
 					if (style.hasStrikethrough)
 					{
-						float strikeY = y - fontSize * 0.3f;
-						Rect strikeRect(Point(lineStartX, strikeY), Size(lineWidth, 1.0f));
-						glRenderer->drawRect(strikeRect, color);
+						renderDecorationLine(Point(lineStartX, y), lineWidth, y, color, fontSize, false);
 					}
 					
 					lineWidth = glyph->advanceX;
@@ -399,16 +525,12 @@ void GLTextRenderer::renderText(const String& text, const Point& pos, const Text
 		// 渲染最后一行的下划线和删除线
 		if (style.hasUnderline)
 		{
-			float underlineY = y + fontSize * 0.1f;
-			Rect underlineRect(Point(lineStartX, underlineY), Size(lineWidth, 1.0f));
-			glRenderer->drawRect(underlineRect, color);
+			renderDecorationLine(Point(lineStartX, y), lineWidth, y, color, fontSize, true);
 		}
 		
 		if (style.hasStrikethrough)
 		{
-			float strikeY = y - fontSize * 0.3f;
-			Rect strikeRect(Point(lineStartX, strikeY), Size(lineWidth, 1.0f));
-			glRenderer->drawRect(strikeRect, color);
+			renderDecorationLine(Point(lineStartX, y), lineWidth, y, color, fontSize, false);
 		}
 	}
 	else
@@ -424,16 +546,12 @@ void GLTextRenderer::renderText(const String& text, const Point& pos, const Text
 				// 渲染当前行的下划线和删除线
 				if (style.hasUnderline)
 				{
-					float underlineY = y + fontSize * 0.1f;
-					Rect underlineRect(Point(lineStartX, underlineY), Size(x - lineStartX, 1.0f));
-					glRenderer->drawRect(underlineRect, color);
+					renderDecorationLine(Point(lineStartX, y), x - lineStartX, y, color, fontSize, true);
 				}
 				
 				if (style.hasStrikethrough)
 				{
-					float strikeY = y - fontSize * 0.3f;
-					Rect strikeRect(Point(lineStartX, strikeY), Size(x - lineStartX, 1.0f));
-					glRenderer->drawRect(strikeRect, color);
+					renderDecorationLine(Point(lineStartX, y), x - lineStartX, y, color, fontSize, false);
 				}
 				
 				// 换行
@@ -463,16 +581,12 @@ void GLTextRenderer::renderText(const String& text, const Point& pos, const Text
 		// 渲染最后一行的下划线和删除线
 		if (style.hasUnderline)
 		{
-			float underlineY = y + fontSize * 0.1f;
-			Rect underlineRect(Point(lineStartX, underlineY), Size(x - lineStartX, 1.0f));
-			glRenderer->drawRect(underlineRect, color);
+			renderDecorationLine(Point(lineStartX, y), x - lineStartX, y, color, fontSize, true);
 		}
 		
 		if (style.hasStrikethrough)
 		{
-			float strikeY = y - fontSize * 0.3f;
-			Rect strikeRect(Point(lineStartX, strikeY), Size(x - lineStartX, 1.0f));
-			glRenderer->drawRect(strikeRect, color);
+			renderDecorationLine(Point(lineStartX, y), x - lineStartX, y, color, fontSize, false);
 		}
 	}
 }

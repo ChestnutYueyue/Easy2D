@@ -3,6 +3,9 @@
 #include <easy2d/e2dtext.h>
 #include <map>
 #include <string>
+#include <list>
+#include <memory>
+#include <glad/glad.h>
 
 struct FT_FaceRec_;
 typedef struct FT_FaceRec_* FT_Face;
@@ -13,6 +16,7 @@ namespace easy2d
 {
 
 class GLTexture;
+class GLBatchRenderer;
 
 // 文本字符信息
 struct GlyphInfo
@@ -33,6 +37,19 @@ struct GlyphInfo
 		, bearingY(0)
 		, width(0)
 		, height(0)
+	{
+	}
+};
+
+// LRU缓存节点
+struct GlyphCacheNode
+{
+	std::string key;
+	GlyphInfo info;
+	
+	GlyphCacheNode(const std::string& k, const GlyphInfo& i)
+		: key(k)
+		, info(i)
 	{
 	}
 };
@@ -61,6 +78,12 @@ public:
 	// 渲染文本
 	void renderText(const String& text, const Point& pos, const TextStyle& style, const Color& color);
 	
+	// 获取缓存统计信息
+	void getCacheStats(int& totalGlyphs, int& cacheHits, int& cacheMisses) const;
+	
+	// 清空字形缓存
+	void clearGlyphCache();
+
 private:
 	GLTextRenderer();
 	~GLTextRenderer();
@@ -70,15 +93,36 @@ private:
 	GLTextRenderer& operator=(const GLTextRenderer&) = delete;
 	
 	// 创建字符纹理
-	GLTexture* createGlyphTexture(FT_Face face, wchar_t charCode);
+	GLTexture* createGlyphTexture(FT_Face face, wchar_t charCode, float fontSize);
 	
 	// 生成字体键
 	std::string getFontKey(const String& fontFamily, float fontSize, UINT fontWeight, wchar_t charCode);
 	
+	// 根据字号选择纹理过滤模式
+	GLenum getFilterModeForFontSize(float fontSize) const;
+	
+	// 更新LRU缓存
+	void updateLRU(const std::string& key, const GlyphInfo& info);
+	
+	// 检查并清理缓存（如果超过限制）
+	void checkCacheLimit();
+	
+	// 渲染下划线或删除线
+	void renderDecorationLine(const Point& startPos, float lineWidth, float yPos, const Color& color, float fontSize, bool isUnderline);
+
 private:
 	FT_Library _ftLibrary;
 	std::map<std::string, FT_Face> _fonts;
-	std::map<std::string, GlyphInfo> _glyphs;
+	
+	// LRU缓存
+	std::list<GlyphCacheNode> _lruList;
+	std::map<std::string, std::list<GlyphCacheNode>::iterator> _lruMap;
+	size_t _maxCacheSize;
+	
+	// 统计信息
+	int _cacheHits;
+	int _cacheMisses;
+	
 	bool _initialized;
 };
 
