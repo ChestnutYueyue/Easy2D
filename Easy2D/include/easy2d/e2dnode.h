@@ -758,12 +758,6 @@ public:
 	);
 
 	// 设置文本居中显示在指定位置
-	// 自动设置锚点为 (0.5, 0.5) 并将位置设为指定点
-	void setCenter(
-		const Point& center
-	);
-
-	// 设置文本居中显示在指定位置
 	void setCenter(
 		float x,
 		float y

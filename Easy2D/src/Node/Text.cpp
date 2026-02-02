@@ -166,12 +166,6 @@ void easy2d::Text::setLineJoin(LineJoin lineJoin)
 	_style.lineJoin = lineJoin;
 }
 
-void easy2d::Text::setCenter(const Point& center)
-{
-	setAnchor(0.5f, 0.5f);
-	setPos(center);
-}
-
 void easy2d::Text::setCenter(float x, float y)
 {
 	setAnchor(0.5f, 0.5f);
