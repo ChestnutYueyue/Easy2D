@@ -1,91 +1,164 @@
 #include <easy2d/e2dbase.h>
+#include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/ostream_sink.h>
+
+#ifdef _WIN32
+#include <spdlog/sinks/msvc_sink.h>
+#include <windows.h>
+#endif
+
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <memory>
+#include <vector>
 
 namespace
 {
+	// Debug 模式下默认启用，Release 模式下默认禁用
+#ifdef _DEBUG
 	bool s_bEnable = true;
+#else
+	bool s_bEnable = false;
+#endif
+	bool s_bConsoleAllocated = false;
 
-	std::streambuf* s_cinBuffer, * s_coutBuffer, * s_cerrBuffer;
-	std::fstream s_consoleInput, s_consoleOutput, s_consoleError;
+	// 保存原始流缓冲区
+	std::streambuf* s_cinBuffer = nullptr;
+	std::streambuf* s_coutBuffer = nullptr;
+	std::streambuf* s_cerrBuffer = nullptr;
 
-	std::wstreambuf* s_wcinBuffer, * s_wcoutBuffer, * s_wcerrBuffer;
-	std::wfstream s_wconsoleInput, s_wconsoleOutput, s_wconsoleError;
+	// 控制台文件流
+	std::fstream s_consoleInput;
+	std::fstream s_consoleOutput;
+	std::fstream s_consoleError;
+
+#ifdef _WIN32
+	HWND s_allocatedConsole = nullptr;
+#endif
 }
 
-namespace 
+namespace
 {
-	void Output(std::ostream& os, const char* prompt, const char* format, va_list args)
+	/**
+	 * @brief 使用 spdlog 格式化并输出日志
+	 * @param prompt 日志前缀提示
+	 * @param format 格式化字符串
+	 * @param args 可变参数列表
+	 * @return 格式化后的字符串
+	 */
+	std::string FormatLogMessage(const char* prompt, const char* format, va_list args)
 	{
-		if (s_bEnable)
+		std::string result;
+		
+		if (prompt)
 		{
-			static char tempBuffer[1024 * 3 + 1];
-
-			std::stringstream ss;
-
-			if (prompt)
-				ss << prompt;
-
-			if (format)
-			{
-				const auto len = ::_vscprintf(format, args) + 1;
-				::_vsnprintf_s(tempBuffer, len, len, format, args);
-
-				ss << tempBuffer << std::endl;
-			}
-
-			std::string output = ss.str();
-			os << output << std::flush;
-			::OutputDebugStringA(output.c_str());
+			result = prompt;
 		}
+
+		if (format)
+		{
+			// 使用 vsnprintf 进行格式化
+			va_list argsCopy;
+			va_copy(argsCopy, args);
+			
+#ifdef _WIN32
+			int len = ::_vscprintf(format, argsCopy);
+#else
+			int len = ::vsnprintf(nullptr, 0, format, argsCopy);
+#endif
+			va_end(argsCopy);
+
+			if (len > 0)
+			{
+				std::vector<char> buffer(len + 1);
+				::vsnprintf(buffer.data(), buffer.size(), format, args);
+				result += buffer.data();
+			}
+		}
+
+		return result;
 	}
 
+	/**
+	 * @brief 输出日志到控制台和调试器
+	 * @param level 日志级别
+	 * @param prompt 日志前缀
+	 * @param format 格式化字符串
+	 * @param args 可变参数列表
+	 */
+	void OutputLog(spdlog::level::level_enum level, const char* prompt, const char* format, va_list args)
+	{
+		if (!s_bEnable)
+			return;
+
+		std::string message = FormatLogMessage(prompt, format, args);
+
+		// 使用 spdlog 输出
+		auto logger = spdlog::default_logger();
+		if (logger)
+		{
+			switch (level)
+			{
+			case spdlog::level::debug:
+				logger->debug(message);
+				break;
+			case spdlog::level::warn:
+				logger->warn(message);
+				break;
+			case spdlog::level::err:
+				logger->error(message);
+				break;
+			default:
+				logger->info(message);
+				break;
+			}
+		}
+
+#ifdef _WIN32
+		// Windows 平台额外输出到调试器
+		message += "\n";
+		::OutputDebugStringA(message.c_str());
+#endif
+	}
+
+#ifdef _WIN32
+	/**
+	 * @brief 重定向标准 IO 流到控制台
+	 */
 	void RedirectStdIO()
 	{
 		s_cinBuffer = std::cin.rdbuf();
 		s_coutBuffer = std::cout.rdbuf();
 		s_cerrBuffer = std::cerr.rdbuf();
-		s_wcinBuffer = std::wcin.rdbuf();
-		s_wcoutBuffer = std::wcout.rdbuf();
-		s_wcerrBuffer = std::wcerr.rdbuf();
 
 		s_consoleInput.open("CONIN$", std::ios::in);
 		s_consoleOutput.open("CONOUT$", std::ios::out);
 		s_consoleError.open("CONOUT$", std::ios::out);
-		s_wconsoleInput.open("CONIN$", std::ios::in);
-		s_wconsoleOutput.open("CONOUT$", std::ios::out);
-		s_wconsoleError.open("CONOUT$", std::ios::out);
 
-		FILE* dummy;
+		FILE* dummy = nullptr;
 		::freopen_s(&dummy, "CONOUT$", "w+t", stdout);
 		::freopen_s(&dummy, "CONIN$", "r+t", stdin);
 		::freopen_s(&dummy, "CONOUT$", "w+t", stderr);
-		(void)dummy;
 
 		std::cin.rdbuf(s_consoleInput.rdbuf());
 		std::cout.rdbuf(s_consoleOutput.rdbuf());
 		std::cerr.rdbuf(s_consoleError.rdbuf());
-		std::wcin.rdbuf(s_wconsoleInput.rdbuf());
-		std::wcout.rdbuf(s_wconsoleOutput.rdbuf());
-		std::wcerr.rdbuf(s_wconsoleError.rdbuf());
 	}
 
+	/**
+	 * @brief 恢复标准 IO 流
+	 */
 	void ResetStdIO()
 	{
 		s_consoleInput.close();
 		s_consoleOutput.close();
 		s_consoleError.close();
-		s_wconsoleInput.close();
-		s_wconsoleOutput.close();
-		s_wconsoleError.close();
 
 		std::cin.rdbuf(s_cinBuffer);
 		std::cout.rdbuf(s_coutBuffer);
 		std::cerr.rdbuf(s_cerrBuffer);
-		std::wcin.rdbuf(s_wcinBuffer);
-		std::wcout.rdbuf(s_wcoutBuffer);
-		std::wcerr.rdbuf(s_wcerrBuffer);
 
 		fclose(stdout);
 		fclose(stdin);
@@ -94,85 +167,124 @@ namespace
 		s_cinBuffer = nullptr;
 		s_coutBuffer = nullptr;
 		s_cerrBuffer = nullptr;
-		s_wcinBuffer = nullptr;
-		s_wcoutBuffer = nullptr;
-		s_wcerrBuffer = nullptr;
 	}
-
-	HWND allocated_console = nullptr;
-
-	HWND AllocateConsole()
-	{
-		if (::AllocConsole())
-		{
-			allocated_console = ::GetConsoleWindow();
-
-			if (allocated_console)
-			{
-				RedirectStdIO();
-			}
-		}
-		return allocated_console;
-	}
-
-	void FreeAllocatedConsole()
-	{
-		if (allocated_console)
-		{
-			ResetStdIO();
-			::FreeConsole();
-			allocated_console = nullptr;
-		}
-	}
-
-	HWND GetAllocatedConsole()
-	{
-		return allocated_console;
-	}
+#endif
 }
 
+/**
+ * @brief 初始化 spdlog 日志系统
+ */
+static void InitializeSpdlog()
+{
+	static bool initialized = false;
+	if (initialized)
+		return;
+
+	// 创建多目标 sink
+	std::vector<spdlog::sink_ptr> sinks;
+
+	// 添加彩色控制台输出
+	auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+	consoleSink->set_level(spdlog::level::debug);
+	sinks.push_back(consoleSink);
+
+#ifdef _WIN32
+	// Windows 平台添加 Visual Studio 调试输出
+	auto msvcSink = std::make_shared<spdlog::sinks::msvc_sink_mt>();
+	msvcSink->set_level(spdlog::level::debug);
+	sinks.push_back(msvcSink);
+#endif
+
+	// 创建 logger
+	auto logger = std::make_shared<spdlog::logger>("easy2d", sinks.begin(), sinks.end());
+	logger->set_level(spdlog::level::debug);
+	
+	// 设置日志格式: [时间] [级别] 消息
+	logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+
+	// 注册为默认 logger
+	spdlog::set_default_logger(logger);
+
+	initialized = true;
+}
+
+/**
+ * @brief 启用日志输出
+ */
 void easy2d::Logger::enable()
 {
 	s_bEnable = true;
+	InitializeSpdlog();
 }
 
+/**
+ * @brief 禁用日志输出
+ */
 void easy2d::Logger::disable()
 {
 	s_bEnable = false;
 }
 
+/**
+ * @brief 输出普通日志消息
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::messageln(String format, ...)
 {
+	InitializeSpdlog();
+	
 	va_list args = nullptr;
 	va_start(args, format);
 
-	Output(std::cout, "Debug: ", format.c_str(), args);
+	OutputLog(spdlog::level::debug, "Debug: ", format.c_str(), args);
 
 	va_end(args);
 }
 
+/**
+ * @brief 输出警告日志消息
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::warningln(String format, ...)
 {
+	InitializeSpdlog();
+	
 	va_list args = nullptr;
 	va_start(args, format);
 
-	Output(std::cout, "Warning: ", format.c_str(), args);
+	OutputLog(spdlog::level::warn, "Warning: ", format.c_str(), args);
 
 	va_end(args);
 }
 
+/**
+ * @brief 输出错误日志消息
+ * @param format 格式化字符串
+ * @param ... 可变参数
+ */
 void easy2d::Logger::errorln(String format, ...)
 {
+	InitializeSpdlog();
+	
 	va_list args = nullptr;
 	va_start(args, format);
 
-	Output(std::cout, "Error: ", format.c_str(), args);
+	OutputLog(spdlog::level::err, "Error: ", format.c_str(), args);
 
 	va_end(args);
 }
 
+/**
+ * @brief 显示或隐藏控制台窗口
+ * @param show true 显示控制台，false 隐藏控制台
+ * @note Windows 平台支持完整的控制台操作
+ *       其他平台仅支持基本的 stdout 输出
+ */
 void easy2d::Logger::showConsole(bool show)
 {
+#ifdef _WIN32
 	HWND currConsole = ::GetConsoleWindow();
 	if (show)
 	{
@@ -182,16 +294,26 @@ void easy2d::Logger::showConsole(bool show)
 		}
 		else
 		{
-			HWND console = ::AllocateConsole();
-			if (!console)
+			if (::AllocConsole())
 			{
-				E2D_WARNING("AllocConsole failed");
+				s_allocatedConsole = ::GetConsoleWindow();
+				s_bConsoleAllocated = true;
+
+				if (s_allocatedConsole)
+				{
+					RedirectStdIO();
+
+					// 禁用关闭按钮
+					HMENU hmenu = ::GetSystemMenu(s_allocatedConsole, FALSE);
+					if (hmenu)
+					{
+						::RemoveMenu(hmenu, SC_CLOSE, MF_BYCOMMAND);
+					}
+				}
 			}
 			else
 			{
-				// disable the close button of console
-				HMENU hmenu = ::GetSystemMenu(console, FALSE);
-				::RemoveMenu(hmenu, SC_CLOSE, MF_BYCOMMAND);
+				E2D_WARNING("AllocConsole failed");
 			}
 		}
 	}
@@ -199,9 +321,12 @@ void easy2d::Logger::showConsole(bool show)
 	{
 		if (currConsole)
 		{
-			if (currConsole == GetAllocatedConsole())
+			if (s_bConsoleAllocated && currConsole == s_allocatedConsole)
 			{
-				FreeAllocatedConsole();
+				ResetStdIO();
+				::FreeConsole();
+				s_allocatedConsole = nullptr;
+				s_bConsoleAllocated = false;
 			}
 			else
 			{
@@ -209,4 +334,9 @@ void easy2d::Logger::showConsole(bool show)
 			}
 		}
 	}
+#else
+	// 非 Windows 平台：仅记录状态，实际控制台由启动环境决定
+	// 日志输出仍然通过 spdlog 工作
+	(void)show;
+#endif
 }

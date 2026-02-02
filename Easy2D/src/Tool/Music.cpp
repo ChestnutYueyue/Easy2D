@@ -25,13 +25,14 @@ namespace
 }
 
 
-inline bool TraceError(char* sPrompt)
+inline bool TraceError(const char* sPrompt)
 {
 	E2D_WARNING("%s!", sPrompt);
 	return false;
 }
 
-inline bool TraceError(char* sPrompt, ma_result result)
+
+inline bool TraceError(const char* sPrompt, ma_result result)
 {
 	E2D_WARNING("%s (%d)", sPrompt, result);
 	return false;
@@ -77,7 +78,7 @@ private:
 	int _loopCount;
 	ma_sound _sound;
 	ma_decoder _decoder;
-	void* _pResourceData;
+	BYTE* _pResourceData;
 	size_t _resourceDataSize;
 
 	bool _initSoundFromDecoder();

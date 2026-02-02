@@ -1,9 +1,8 @@
 #include <easy2d/e2dtool.h>
+#include <easy2d/portable-file-dialogs.h>
 #include <algorithm>
 #include <list>
-#include <commdlg.h>
-#include <io.h> // _access
-#include <direct.h> // _mkdir
+#include <filesystem> // C++17 filesystem
 #include <shlobj.h> // SHGetFolderPathA, CSIDL_LOCAL_APPDATA
 
 static easy2d::String s_sLocalAppDataPath;
@@ -67,7 +66,8 @@ bool easy2d::Path::__init(const String& uniqueName)
 
 void easy2d::Path::add(String path)
 {
-	if (path[path.length() - 1] != L'\\' && path[path.length() - 1] != L'/')
+	// 检查路径是否为空，避免访问空字符串导致越界
+	if (!path.empty() && path[path.length() - 1] != L'\\' && path[path.length() - 1] != L'/')
 	{
 		path.append("\\");
 	}
@@ -145,61 +145,116 @@ easy2d::String easy2d::Path::getDataSavePath()
 	return s_sDataSavePath;
 }
 
+/**
+ * @brief 获取保存文件路径（使用 portable-file-dialogs）
+ * @param title 对话框标题
+ * @param defExt 默认扩展名
+ * @return 用户选择的文件路径，取消则返回空字符串
+ */
 easy2d::String easy2d::Path::getSaveFilePath(const String& title, const String& defExt)
 {
-	// 弹出保存对话框
-	OPENFILENAMEA ofn = { 0 };
-	char strFilename[MAX_PATH] = { 0 };					// 用于接收文件名
-	ofn.lStructSize = sizeof(OPENFILENAME);				// 结构体大小
-	ofn.hwndOwner = Window::getHWnd();					// 窗口句柄
-	ofn.lpstrFilter = "所有文件\0*.*\0\0";				// 设置过滤
-	ofn.nFilterIndex = 1;								// 过滤器索引
-	ofn.lpstrFile = strFilename;						// 接收返回的文件路径和文件名
-	ofn.nMaxFile = sizeof(strFilename);					// 缓冲区长度
-	ofn.lpstrInitialDir = nullptr;						// 初始目录为默认
-	ofn.Flags = OFN_PATHMUSTEXIST | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT;
-	ofn.lpstrTitle = title.c_str();						// 标题
-	ofn.lpstrDefExt = defExt.c_str();					// 默认追加的扩展名
-
-	if (GetSaveFileNameA(&ofn))
+	// 使用 portable-file-dialogs 创建保存文件对话框
+	pfd::opt options = pfd::opt::none;
+	
+	// 构建过滤器列表
+	std::vector<std::string> filters;
+	if (!defExt.empty())
 	{
-		return strFilename;
+		// 如果有默认扩展名，添加对应的过滤器
+		filters.push_back(defExt + " Files");
+		filters.push_back("*." + std::string(defExt.c_str()));
 	}
-	return "";
-}
-
-bool easy2d::Path::createFolder(const String& dirPath)
-{
-	if (dirPath.empty() || dirPath.length() >= MAX_PATH)
+	filters.push_back("All Files");
+	filters.push_back("*");
+	
+	// 创建保存文件对话框
+	pfd::save_file dialog(
+		title.empty() ? "Save File" : title.c_str(),
+		"",  // 默认路径
+		filters,
+		options
+	);
+	
+	// 获取结果
+	std::string result = dialog.result();
+	
+	// 如果用户选择了文件，自动添加默认扩展名（如果没有扩展名）
+	if (!result.empty() && !defExt.empty())
 	{
-		return false;
-	}
-
-	char tmpDirPath[_MAX_PATH] = { 0 };
-	int length = (int)dirPath.length();
-
-	for (int i = 0; i < length; ++i)
-	{
-		tmpDirPath[i] = dirPath.at(i);
-		if (tmpDirPath[i] == L'\\' || tmpDirPath[i] == L'/' || i == (length - 1))
+		// 检查是否已有扩展名
+		size_t dotPos = result.rfind('.');
+		size_t sepPos = result.rfind('\\');
+		size_t slashPos = result.rfind('/');
+		size_t lastSep = std::string::npos;
+		if (sepPos == std::string::npos)
 		{
-			if (_access_s(tmpDirPath, 0) != 0)
-			{
-				if (_mkdir(tmpDirPath) != 0)
-				{
-					return false;
-				}
-			}
+			lastSep = slashPos;
+		}
+		else if (slashPos == std::string::npos)
+		{
+			lastSep = sepPos;
+		}
+		else
+		{
+			lastSep = (sepPos > slashPos) ? sepPos : slashPos;
+		}
+		
+		// 如果没有扩展名或扩展名部分为空
+		if (dotPos == std::string::npos || dotPos < lastSep)
+		{
+			result += ".";
+			result += defExt.c_str();
 		}
 	}
-	return true;
+	
+	return result.empty() ? String() : String(result.c_str());
 }
 
-bool easy2d::Path::exists(const String & path)
+/**
+ * @brief 创建文件夹（递归创建所有父目录）
+ * @param dirPath 目录路径
+ * @return 创建成功返回 true，失败返回 false
+ */
+bool easy2d::Path::createFolder(const String& dirPath)
 {
-	if (path.empty() || path.length() >= MAX_PATH)
+	if (dirPath.empty())
 	{
 		return false;
 	}
-	return _access_s(path.c_str(), 0) == 0;
+
+	try
+	{
+		std::filesystem::path path(dirPath.c_str());
+		// create_directories 会递归创建所有不存在的父目录
+		return std::filesystem::create_directories(path);
+	}
+	catch (const std::filesystem::filesystem_error&)
+	{
+		// 如果目录已存在，create_directories 返回 false，但这不算错误
+		// 所以再检查一次目录是否存在
+		return exists(dirPath);
+	}
+}
+
+/**
+ * @brief 检查路径是否存在（文件或目录）
+ * @param path 文件或目录路径
+ * @return 存在返回 true，不存在返回 false
+ */
+bool easy2d::Path::exists(const String & path)
+{
+	if (path.empty())
+	{
+		return false;
+	}
+
+	try
+	{
+		std::filesystem::path fsPath(path.c_str());
+		return std::filesystem::exists(fsPath);
+	}
+	catch (const std::filesystem::filesystem_error&)
+	{
+		return false;
+	}
 }
