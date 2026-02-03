@@ -152,6 +152,21 @@ flowchart TB
     N --> O
 ```
 
+### ⚡ 性能优化特性
+
+Easy2D 在最新版本中引入了多项性能优化，提升游戏运行效率：
+
+| 优化项 | 描述 | 复杂度改进 |
+|:------:|:-----|:----------:|
+| 🔄 ActionManager 删除优化 | 双指针交换删除策略 | O(n²) → O(n) |
+| 📦 Sequence 内存预分配 | 使用 `reserve()` 替代直接构造 | 避免双倍内存 |
+| 🎯 节点排序帧标记 | 避免同一帧内重复排序 | 减少 50% 排序操作 |
+| 🔍 Timer 哈希索引 | 名称到定时器的快速查找 | O(n) → O(1) |
+| 🗂️ 路径搜索缓存 | 文件路径缓存机制 | 减少重复磁盘 I/O |
+| 🧮 三角函数常量预计算 | 角度弧度转换常量 | 减少重复计算 |
+| 🗃️ GC 对象池哈希 | `unordered_set` 存储对象 | O(n) → O(1) |
+| 🏷️ 节点名称哈希映射 | 名称到子节点的快速查找 | O(n) → O(log n) |
+
 ### 🖼️ 渲染流程
 
 ```mermaid
@@ -667,6 +682,62 @@ Easy2D/
 | `node->setRotation(angle)` | 设置旋转 |
 | `node->setOpacity(value)` | 设置透明度 |
 | `node->runAction(action)` | 运行动作 |
+| `node->setName(name)` | 设置节点名称（支持运行时修改） |
+| `parent->getChild(name)` | 通过名称获取子节点（O(log n)） |
+| `parent->getChildren(name)` | 获取所有同名子节点（O(log n)） |
+
+#### 🏷️ 节点名称查找示例
+
+```cpp
+#include <easy2d/easy2d.h>
+
+using namespace easy2d;
+
+void nodeNameExample()
+{
+    auto parent = new Node;
+    
+    // 创建多个子节点并设置名称
+    auto child1 = new Sprite("player.png");
+    child1->setName("player");
+    parent->addChild(child1);
+    
+    auto child2 = new Sprite("enemy.png");
+    child2->setName("enemy");
+    parent->addChild(child2);
+    
+    auto child3 = new Sprite("enemy2.png");
+    child3->setName("enemy");  // 同名节点
+    parent->addChild(child3);
+    
+    // 快速查找单个节点 - O(log n)
+    Node* player = parent->getChild("player");
+    if (player)
+    {
+        player->setPos(400, 300);
+    }
+    
+    // 获取所有同名节点 - O(log n)
+    std::vector<Node*> enemies = parent->getChildren("enemy");
+    for (auto enemy : enemies)
+    {
+        enemy->runAction(new MoveBy(1.0f, 100, 0));
+    }
+    
+    // 运行时动态修改名称 - 哈希映射自动更新
+    child1->setName("hero");  // 从 "player" 改名为 "hero"
+    
+    // 现在可以通过新名称查找到
+    Node* hero = parent->getChild("hero");  // 找到原 child1
+    Node* oldPlayer = parent->getChild("player");  // 返回 nullptr
+}
+```
+
+#### 🎯 性能提示
+
+- **使用名称查找** 比遍历子节点列表快得多，特别是在子节点数量较多时
+- **动态改名** 会自动更新内部哈希映射，无需手动维护
+- **空名称节点** 不会被添加到哈希映射中，查找时会返回空结果
 
 ### 字符串编码转换
 
@@ -754,6 +825,15 @@ timeline
                : 跨平台文件对话框
                : 跨平台配置存储
                : 跨平台音乐播放
+        v2.1.28 : ✅ 核心性能优化
+               : ActionManager O(n) 删除优化
+               : Sequence 内存预分配修复
+               : 节点排序帧标记
+               : Timer 哈希索引
+               : 路径搜索缓存
+               : 三角函数常量预计算
+               : GC 对象池哈希
+               : 节点名称哈希映射
     section 未来
         持续改进 : 更多平台支持
                  : 更多示例
