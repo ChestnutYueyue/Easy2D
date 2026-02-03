@@ -11,16 +11,17 @@ void easy2d::ActionManager::__update()
 	if (s_vActions.empty() || Game::isPaused())
 		return;
 
-	// 循环遍历所有正在运行的动作
-	for (size_t i = 0; i < s_vActions.size(); ++i)
+	// 使用双指针交换删除策略，将复杂度从 O(n²) 降为 O(n)
+	size_t writeIndex = 0;
+	for (size_t readIndex = 0; readIndex < s_vActions.size(); ++readIndex)
 	{
-		auto action = s_vActions[i];
+		auto action = s_vActions[readIndex];
 		// 获取动作运行状态
 		if (action->_isDone())
 		{
 			action->_target = nullptr;
 			action->release();
-			s_vActions.erase(s_vActions.begin() + i);
+			// 不保留已完成的动作，跳过写入
 		}
 		else
 		{
@@ -29,7 +30,18 @@ void easy2d::ActionManager::__update()
 				// 执行动作
 				action->_update();
 			}
+			// 将未完成的动作移动到 writeIndex 位置
+			if (writeIndex != readIndex)
+			{
+				s_vActions[writeIndex] = action;
+			}
+			++writeIndex;
 		}
+	}
+	// 删除尾部多余的元素
+	if (writeIndex < s_vActions.size())
+	{
+		s_vActions.erase(s_vActions.begin() + writeIndex, s_vActions.end());
 	}
 }
 
