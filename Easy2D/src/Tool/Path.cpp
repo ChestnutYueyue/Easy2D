@@ -115,8 +115,7 @@ easy2d::String easy2d::Path::searchForFile(const String& path)
 easy2d::String easy2d::Path::extractResource(int resNameId, const String & resType, const String & destFileName)
 {
 	String destFilePath = s_sTempPath + destFileName;
-	// 创建文件
-	HANDLE hFile = ::CreateFileA(destFilePath.c_str(), GENERIC_WRITE, NULL, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY, NULL);
+	HANDLE hFile = ::CreateFileA(destFilePath.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY, nullptr);
 	if (hFile == INVALID_HANDLE_VALUE)
 		return String();
 

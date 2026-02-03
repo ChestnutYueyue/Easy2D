@@ -8,6 +8,7 @@
 set_project("Easy2D")
 set_version("2.1.27")
 set_languages("c++17")
+set_encodings("utf-8")
 add_rules("mode.debug", "mode.release")
 
 -- 定义项目根目录下的核心路径（避免硬编码，提升可维护性）
@@ -25,58 +26,25 @@ target("easy2d")
     local lib_basename
     -- 判断是否为 MinGW 平台（MinGW 会自动给 .a 文件添加 lib 前缀，无需手动指定）
     if is_plat("mingw") then
-        -- MinGW 平台：基础名称不带 lib 前缀
         lib_basename = "easy2d"
     else
-        -- 其他平台（MSVC/Clang-Cl 等）：保留 lib 前缀
         lib_basename = "libeasy2d"
     end
 
     -- 按构建模式追加 d 后缀（保持原有调试版命名规则）
     if is_mode("debug") then
-        -- Debug 模式：追加 d 后缀
-        -- MinGW: easy2dd -> 最终生成 libeasy2dd.a
-        -- 其他平台: libeasy2dd -> 最终生成 libeasy2dd.lib
         set_basename(lib_basename .. "d")
     else
-        -- Release 模式：保持基础名称
-        -- MinGW: easy2d -> 最终生成 libeasy2d.a
-        -- 其他平台: libeasy2d -> 最终生成 libeasy2d.lib
         set_basename(lib_basename)
     end
 
-    -- 收集所有 C++ 源码文件（递归匹配 src 目录下所有 .cpp）
     add_files(path.join(EASY2D_SRC_DIR, "**.cpp"))
 
     -- 声明头文件（用于 xmake install 安装，保留 easy2d 目录层级）
     add_headerfiles(path.join(EASY2D_INC_DIR, "easy2d/**.h"), {prefixdir = "easy2d"})
-    add_headerfiles(path.join(EASY2D_INC_DIR, "**.h"), {exclude = path.join(EASY2D_INC_DIR, "easy2d/**.h"), prefixdir = ""})
-
+    add_headerfiles(path.join(EASY2D_INC_DIR, "spdlog/**.h"), {prefixdir = "spdlog"})
     -- 公开头文件目录（其他依赖该库的目标会自动继承这个头文件路径）
     add_includedirs(EASY2D_INC_DIR, {public = true})
-
-    -- ==============================================
-    -- 全局 Debug/Release 模式通用配置（所有编译器生效）
-    -- ==============================================
-    if is_mode("debug") then
-        -- 生成完整调试符号（核心：方便断点调试、查看变量、调用栈）
-        set_symbols("debug")
-        -- 禁止代码优化（O0 级别，避免编译器修改代码逻辑，保证调试和源码一致）
-        set_optimize("none")
-        -- 定义 Debug 专属宏（项目源码中可通过 #ifdef EASY2D_DEBUG 区分调试模式）
-        add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
-    -- Release 模式：侧重运行效率
-    elseif is_mode("release") then
-        -- 生成精简调试符号（可选，方便线上问题排查，不影响运行效率）
-        set_symbols("hidden")
-        -- 开启最高级别优化（O3 级别，提升运行速度和减小文件体积）
-        set_optimize("fastest")
-        -- 定义 Release 专属宏
-        add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
-        -- 开启代码混淆（可选，防止反编译，不影响功能）
-        set_strip("all")
-    end
-
     -- ==============================================
     -- Windows 平台通用配置（包含 MSVC/Clang-Cl/MinGW）
     -- ==============================================
@@ -84,63 +52,31 @@ target("easy2d")
         -- 定义宏，减少 Windows 头文件的冗余定义和编译时间
         add_defines("WIN32_LEAN_AND_MEAN", "NOMINMAX")
 
-        -- Windows 平台必需的系统库（通用，Xmake 会自动适配编译器格式）
-        local win_sys_libs = {
-            "user32", "gdi32", "shell32", "winmm", 
-            "imm32", "version", "ole32", "comdlg32", 
-            "dinput8", "d2d1", "dwrite", "dxguid"
-        }
-        add_syslinks(win_sys_libs)
+        add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "dinput8", "d2d1", "dwrite", "dxguid")
 
-        -- ==============================================
-        -- MSVC / Clang-Cl 编译器专属配置
-        -- ==============================================
-        local toolchain = get_config("toolchain") or "msvc"
-        if toolchain == "msvc" or toolchain == "clang-cl" then
-            -- 强制设置 C++ 编译选项（所有模式生效）
-            add_cxxflags("/EHsc", "/Zc:__cplusplus", "/utf-8", {force = true})
-            -- 禁用不安全函数警告（避免 Windows 头文件报 C4996 错误）
+        if get_config("toolchain") == "msvc" or get_config("toolchain") == "clang-cl" then
+            add_cxxflags("/EHsc", "/Zc:__cplusplus", {force = true})
             add_cxxflags("/wd4996", {force = true})
-
-            -- 按构建模式配置运行时库
             if is_mode("debug") then
                 set_runtimes("MDd")
+                add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
                 add_cxxflags("/Od", "/Zi", {force = true})
             else
                 set_runtimes("MD")
+                add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
                 add_cxxflags("/O2", "/Ob2", {force = true})
             end
         end
-
-        -- ==============================================
-        -- MinGW 编译器专属配置
-        -- ==============================================
-        -- 使用 is_plat("mingw") 判断 MinGW 环境
-        if is_plat("mingw") then
-
-            -- 开启更多警告，帮助发现潜在问题
+        if get_config("toolchain") == "mingw" then
             add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
-            -- 禁用部分无意义的警告
             add_cxxflags("-Wno-unused-parameter", "-Wno-missing-field-initializers", {force = true})
-
-            -- 配置 UTF-8 编码
-            add_cxxflags("-finput-charset=UTF-8", "-fexec-charset=UTF-8", {force = true})
-
-            -- 启用异常处理和 RTTI
-            add_cxxflags("-fexceptions", "-frtti", {force = true})
-
-            -- MinGW 按构建模式配置专属选项
             if is_mode("debug") then
+                add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
                 add_cxxflags("-O0", "-g", "-ggdb", {force = true})
                 set_runtimes("MDd")
             else
-                -- Release 模式：优化但保留关键检查，避免退出卡顿问题
-                -- -O2 替代 -O3：减少激进优化导致的资源释放顺序问题
-                -- -fno-strict-aliasing：避免严格别名优化导致的异常行为
-                -- -fno-delete-null-pointer-checks：防止删除看似无用的空指针检查
+                add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
                 add_cxxflags("-O2", "-fno-strict-aliasing", "-fno-delete-null-pointer-checks", {force = true})
-                -- 可选：如需完全关闭优化以排查问题，使用 -O0
-                -- add_cxxflags("-O0", {force = true})
                 set_runtimes("MD")
             end
         end
