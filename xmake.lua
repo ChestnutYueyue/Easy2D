@@ -43,8 +43,10 @@ target("easy2d")
     -- 声明头文件（用于 xmake install 安装，保留 easy2d 目录层级）
     add_headerfiles(path.join(EASY2D_INC_DIR, "easy2d/**.h"), {prefixdir = "easy2d"})
     add_headerfiles(path.join(EASY2D_INC_DIR, "spdlog/**.h"), {prefixdir = "spdlog"})
+
     -- 公开头文件目录（其他依赖该库的目标会自动继承这个头文件路径）
     add_includedirs(EASY2D_INC_DIR, {public = true})
+
     -- ==============================================
     -- Windows 平台通用配置（包含 MSVC/Clang-Cl/MinGW）
     -- ==============================================
@@ -54,9 +56,11 @@ target("easy2d")
 
         add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "dinput8", "d2d1", "dwrite", "dxguid")
 
+        -- MSVC / Clang-Cl 工具链配置
         if get_config("toolchain") == "msvc" or get_config("toolchain") == "clang-cl" then
             add_cxxflags("/EHsc", "/Zc:__cplusplus", {force = true})
             add_cxxflags("/wd4996", {force = true})
+
             if is_mode("debug") then
                 set_runtimes("MDd")
                 add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
@@ -67,9 +71,12 @@ target("easy2d")
                 add_cxxflags("/O2", "/Ob2", {force = true})
             end
         end
-        if get_config("toolchain") == "mingw" then
+
+        -- MinGW 平台配置
+        if is_plat("mingw") then
             add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
             add_cxxflags("-Wno-unused-parameter", "-Wno-missing-field-initializers", {force = true})
+
             if is_mode("debug") then
                 add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
                 add_cxxflags("-O0", "-g", "-ggdb", {force = true})
@@ -81,3 +88,4 @@ target("easy2d")
             end
         end
     end
+target_end()
