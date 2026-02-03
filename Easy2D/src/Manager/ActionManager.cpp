@@ -158,18 +158,31 @@ void easy2d::ActionManager::__removeAllBoundWith(Node * target)
 {
 	if (target)
 	{
-		for (size_t i = 0; i < s_vActions.size();)
+		// 使用双指针交换删除策略，将复杂度从 O(n²) 降为 O(n)
+		size_t writeIndex = 0;
+		for (size_t readIndex = 0; readIndex < s_vActions.size(); ++readIndex)
 		{
-			auto a = s_vActions[i];
+			auto a = s_vActions[readIndex];
 			if (a->getTarget() == target)
 			{
+				// 释放与目标节点绑定的动作
 				GC::release(a);
-				s_vActions.erase(s_vActions.begin() + i);
+				// 不保留已删除的动作，跳过写入
 			}
 			else
 			{
-				++i;
+				// 保留未删除的动作，移动到 writeIndex 位置
+				if (writeIndex != readIndex)
+				{
+					s_vActions[writeIndex] = a;
+				}
+				++writeIndex;
 			}
+		}
+		// 删除尾部多余的元素
+		if (writeIndex < s_vActions.size())
+		{
+			s_vActions.erase(s_vActions.begin() + writeIndex, s_vActions.end());
 		}
 	}
 }
