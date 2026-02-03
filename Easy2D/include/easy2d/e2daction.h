@@ -1,6 +1,7 @@
 #pragma once
 #include <easy2d/e2dcommon.h>
 #include <easy2d/e2dbase.h>
+#include <easy2d/e2dobjectpool.h>
 #include <vector>
 
 namespace easy2d
@@ -12,6 +13,23 @@ class Spawn;
 class ActionManager;
 class Node;
 class Sprite;
+
+
+class ActionPoolHelper
+{
+public:
+	template<typename T, typename... Args>
+	static T* acquire(Args&&... args)
+	{
+		return ObjectPoolManager::getInstance().getPool<T>()->acquire(std::forward<Args>(args)...);
+	}
+
+	template<typename T>
+	static void release(T* obj)
+	{
+		ObjectPoolManager::getInstance().getPool<T>()->release(obj);
+	}
+};
 
 
 // 基础动作

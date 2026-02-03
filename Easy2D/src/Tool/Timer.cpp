@@ -1,5 +1,6 @@
 #include <easy2d/e2dtool.h>
 #include <easy2d/e2dnode.h>
+#include <easy2d/e2dobjectpool.h>
 #include <atomic>
 #include <map>
 
@@ -56,6 +57,15 @@ namespace easy2d
 			return false;
 		}
 
+		void reset()
+		{
+			running = true;
+			removed = false;
+			runTimes = 0;
+			lastTime = easy2d::Time::getTotalTime();
+			node = nullptr;
+		}
+
 	public:
 		bool	running;
 		bool	removed;
@@ -77,13 +87,13 @@ static std::map<easy2d::String, std::vector<size_t>> s_nameIndex;
 
 size_t easy2d::Timer::add(const Function<void()>& func, float interval, int updateTimes, const String& name)
 {
-	auto timer = gcnew TimerEntity(func, name, interval, updateTimes);
+	auto pool = ObjectPoolManager::getInstance().getPool<TimerEntity>();
+	auto timer = pool->acquire(func, name, interval, updateTimes);
 	GC::retain(timer);
 
 	const auto id = s_vTimerId++;
 	s_vTimers.insert(std::make_pair(id, timer));
 	
-	// 如果指定了名称，添加到名称索引
 	if (!name.empty())
 	{
 		s_nameIndex[name].push_back(id);
@@ -262,20 +272,20 @@ void easy2d::Timer::__update()
 	if (s_vTimers.empty() || Game::isPaused())
 		return;
 
+	auto pool = ObjectPoolManager::getInstance().getPool<TimerEntity>();
+
 	for (auto iter = s_vTimers.begin(); iter != s_vTimers.end();)
 	{
 		auto timer = iter->second;
-		// 清除已停止的定时器
 		if (timer->removed)
 		{
-			// 从名称索引中移除
 			removeIdFromNameIndex(timer->name, iter->first);
 			GC::release(timer);
+			pool->release(timer);
 			iter = s_vTimers.erase(iter);
 		}
 		else
 		{
-			// 更新定时器
 			if (timer->isReady())
 			{
 				timer->update();
@@ -296,10 +306,13 @@ void easy2d::Timer::__resetAll()
 
 void easy2d::Timer::__uninit()
 {
+	auto pool = ObjectPoolManager::getInstance().getPool<TimerEntity>();
+	
 	for (const auto& pair : s_vTimers)
 	{
 		auto timer = pair.second;
 		GC::release(timer);
+		pool->release(timer);
 	}
 	s_vTimers.clear();
 	s_nameIndex.clear();

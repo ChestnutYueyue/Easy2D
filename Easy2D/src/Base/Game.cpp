@@ -1,6 +1,7 @@
 #include <easy2d/e2dbase.h>
 #include <easy2d/e2dmanager.h>
 #include <easy2d/e2dtool.h>
+#include <easy2d/e2dobjectpool.h>
 
 
 // 控制游戏终止
@@ -199,15 +200,12 @@ void easy2d::Game::destroy()
 	if (!s_bInitialized)
 		return;
 
-	// 清空图片缓存
+	ObjectPoolManager::getInstance().clearAll();
+
 	Image::clearCache();
-	// 回收音乐相关资源
 	Music::__uninit();
-	// 关闭输入
 	Input::__uninit();
-	// 回收渲染相关资源
 	Renderer::__discardResources();
-	// 销毁窗口
 	Window::__uninit();
 
 	CoUninitialize();

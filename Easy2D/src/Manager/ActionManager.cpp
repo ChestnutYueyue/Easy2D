@@ -1,6 +1,7 @@
 #include <easy2d/e2dmanager.h>
 #include <easy2d/e2daction.h>
 #include <easy2d/e2dnode.h>
+#include <easy2d/e2dobjectpool.h>
 #include <algorithm>
 
 static std::vector<easy2d::Action*> s_vActions;
@@ -11,26 +12,21 @@ void easy2d::ActionManager::__update()
 	if (s_vActions.empty() || Game::isPaused())
 		return;
 
-	// 使用双指针交换删除策略，将复杂度从 O(n²) 降为 O(n)
 	size_t writeIndex = 0;
 	for (size_t readIndex = 0; readIndex < s_vActions.size(); ++readIndex)
 	{
 		auto action = s_vActions[readIndex];
-		// 获取动作运行状态
 		if (action->_isDone())
 		{
 			action->_target = nullptr;
-			action->release();
-			// 不保留已完成的动作，跳过写入
+			ActionPoolHelper::release(action);
 		}
 		else
 		{
 			if (action->isRunning())
 			{
-				// 执行动作
 				action->_update();
 			}
-			// 将未完成的动作移动到 writeIndex 位置
 			if (writeIndex != readIndex)
 			{
 				s_vActions[writeIndex] = action;
@@ -38,7 +34,6 @@ void easy2d::ActionManager::__update()
 			++writeIndex;
 		}
 	}
-	// 删除尾部多余的元素
 	if (writeIndex < s_vActions.size())
 	{
 		s_vActions.erase(s_vActions.begin() + writeIndex, s_vActions.end());
@@ -158,20 +153,16 @@ void easy2d::ActionManager::__removeAllBoundWith(Node * target)
 {
 	if (target)
 	{
-		// 使用双指针交换删除策略，将复杂度从 O(n²) 降为 O(n)
 		size_t writeIndex = 0;
 		for (size_t readIndex = 0; readIndex < s_vActions.size(); ++readIndex)
 		{
 			auto a = s_vActions[readIndex];
 			if (a->getTarget() == target)
 			{
-				// 释放与目标节点绑定的动作
-				GC::release(a);
-				// 不保留已删除的动作，跳过写入
+				ActionPoolHelper::release(a);
 			}
 			else
 			{
-				// 保留未删除的动作，移动到 writeIndex 位置
 				if (writeIndex != readIndex)
 				{
 					s_vActions[writeIndex] = a;
@@ -179,7 +170,6 @@ void easy2d::ActionManager::__removeAllBoundWith(Node * target)
 				++writeIndex;
 			}
 		}
-		// 删除尾部多余的元素
 		if (writeIndex < s_vActions.size())
 		{
 			s_vActions.erase(s_vActions.begin() + writeIndex, s_vActions.end());
@@ -191,7 +181,7 @@ void easy2d::ActionManager::__uninit()
 {
 	for (auto action : s_vActions)
 	{
-		GC::release(action);
+		ActionPoolHelper::release(action);
 	}
 	s_vActions.clear();
 }
