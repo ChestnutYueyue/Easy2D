@@ -668,6 +668,71 @@ Easy2D/
 | `node->setOpacity(value)` | 设置透明度 |
 | `node->runAction(action)` | 运行动作 |
 
+### 字符串编码转换
+
+Easy2D 提供了便捷的字符串编码转换工具函数，支持 UTF-8、ANSI 和宽字符之间的相互转换。
+
+#### 类型定义
+
+```cpp
+using ByteString = std::string;   // UTF-8/ANSI 字符串
+using WideString = std::wstring;  // 宽字符串
+using String = ByteString;        // 默认字符串类型（UTF-8）
+```
+
+#### 转换函数
+
+| 函数 | 功能 | 示例 |
+|:-----|:-----|:-----|
+| `WideToNarrow(wstr)` | 宽字符串 → UTF-8 | `ByteString utf8 = WideToNarrow(L"中文");` |
+| `NarrowToWide(str)` | UTF-8 → 宽字符串 | `WideString wide = NarrowToWide(utf8Str);` |
+| `AnsiToUtf8(str)` | **ANSI → UTF-8** | `ByteString utf8 = AnsiToUtf8(gbkStr);` |
+| `Utf8ToAnsi(str)` | **UTF-8 → ANSI** | `ByteString ansi = Utf8ToAnsi(utf8Str);` |
+| `AnsiToWide(str)` | **ANSI → 宽字符串** | `WideString wide = AnsiToWide(gbkStr);` |
+| `WideToAnsi(wstr)` | **宽字符串 → ANSI** | `ByteString ansi = WideToAnsi(L"中文");` |
+
+#### 使用示例
+
+```cpp
+#include <easy2d/easy2d.h>
+
+using namespace easy2d;
+
+void stringExample()
+{
+    // ========== ANSI 与 UTF-8 转换 ==========
+    // 从 GBK/ANSI 编码的文件读取内容后转换为 UTF-8
+    ByteString gbkContent = "中文字符串";  // 假设这是 GBK 编码
+    ByteString utf8Content = AnsiToUtf8(gbkContent);
+    
+    // 将 UTF-8 字符串转换为 ANSI 用于旧版 API
+    ByteString ansiContent = Utf8ToAnsi(utf8Content);
+    
+    // ========== 宽字符转换 ==========
+    // ANSI 转宽字符串（用于 Windows API）
+    WideString wideStr = AnsiToWide(gbkContent);
+    
+    // 宽字符串转 ANSI
+    ByteString ansiFromWide = WideToAnsi(wideStr);
+    
+    // ========== 在 Text 节点中使用 ==========
+    // 如果文本文件是 GBK 编码，需要转换后显示
+    auto text = new Text(AnsiToUtf8(gbkContent));
+    text->setPos(400, 300);
+    
+    // ========== 格式化字符串 ==========
+    ByteString formatted = FormatString("Score: %d", 100);
+    WideString wideFormatted = FormatString(L"得分: %d", 100);
+}
+```
+
+#### 注意事项
+
+- **Windows 中文系统**：默认 ANSI 代码页为 GBK (936)
+- **空字符串处理**：所有转换函数对空字符串返回空字符串，不会出错
+- **转换失败**：如果转换失败，返回空字符串
+- **内部实现**：基于 Windows API `MultiByteToWideChar` 和 `WideCharToMultiByte`
+
 ---
 
 ## 🗓️ 开发计划
