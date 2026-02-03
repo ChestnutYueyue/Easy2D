@@ -9,6 +9,8 @@ static easy2d::String s_sLocalAppDataPath;
 static easy2d::String s_sTempPath;
 static easy2d::String s_sDataSavePath;
 static std::list<easy2d::String> s_vPathList;
+// 文件路径缓存，避免重复搜索和磁盘 I/O
+static std::map<easy2d::String, easy2d::String> s_filePathCache;
 
 bool easy2d::Path::__init(const String& uniqueName)
 {
@@ -75,6 +77,8 @@ void easy2d::Path::add(String path)
 	if (iter == s_vPathList.cend())
 	{
 		s_vPathList.push_front(path);
+		// 添加新路径后，清空文件缓存（因为搜索优先级可能改变）
+		s_filePathCache.clear();
 	}
 }
 
@@ -95,21 +99,45 @@ easy2d::String easy2d::Path::getExecutableFilePath()
 
 easy2d::String easy2d::Path::searchForFile(const String& path)
 {
+	// 先检查缓存
+	auto cacheIter = s_filePathCache.find(path);
+	if (cacheIter != s_filePathCache.end())
+	{
+		// 缓存命中，验证文件是否仍然存在
+		if (Path::exists(cacheIter->second))
+		{
+			return cacheIter->second;
+		}
+		// 文件已不存在，从缓存中移除
+		s_filePathCache.erase(cacheIter);
+	}
+
+	// 缓存未命中，执行搜索
+	String fullPath;
 	if (Path::exists(path))
 	{
-		return path;
+		fullPath = path;
 	}
 	else
 	{
 		for (auto& resPath : s_vPathList)
 		{
-			if (Path::exists(resPath + path))
+			String candidatePath = resPath + path;
+			if (Path::exists(candidatePath))
 			{
-				return resPath + path;
+				fullPath = candidatePath;
+				break;
 			}
 		}
 	}
-	return String();
+
+	// 将结果存入缓存（即使是空字符串也缓存，表示文件不存在）
+	if (!fullPath.empty())
+	{
+		s_filePathCache[path] = fullPath;
+	}
+
+	return fullPath;
 }
 
 easy2d::String easy2d::Path::extractResource(int resNameId, const String & resType, const String & destFileName)

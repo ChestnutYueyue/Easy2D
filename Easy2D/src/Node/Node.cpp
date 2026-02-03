@@ -29,6 +29,7 @@ easy2d::Node::Node()
 	, _autoUpdate(true)
 	, _showBodyShape(false)
 	, _removed(false)
+	, _lastSortFrame(0)
 {
 }
 
@@ -239,6 +240,16 @@ void easy2d::Node::_sortChildren()
 {
 	if (_needSort)
 	{
+		// 获取当前帧数
+		uint32_t currentFrame = Game::getCurrentFrame();
+		// 如果本帧已经排序过，则跳过
+		if (_lastSortFrame == currentFrame)
+		{
+			return;
+		}
+		// 记录本次排序的帧数
+		_lastSortFrame = currentFrame;
+
 		std::sort(
 			std::begin(_children),
 			std::end(_children),
@@ -586,6 +597,13 @@ void easy2d::Node::addChild(Node* child, int order)
 
 		_children.push_back(child);
 
+		// 更新名称哈希映射
+		String childName = child->getName();
+		if (!childName.empty())
+		{
+			_childrenNameMap[childName].push_back(child);
+		}
+
 		child->setOrder(order);
 
 		child->retain();
@@ -655,29 +673,22 @@ bool easy2d::Node::containsPoint(Point const& point) const
 
 std::vector<easy2d::Node*> easy2d::Node::getChildren(const String& name) const
 {
-	std::vector<Node*> vChildren;
-	size_t hash = std::hash<String>{}(name);
-
-	for (auto child : _children)
+	// 使用名称哈希映射进行 O(log n) 查找，替代 O(n) 线性查找
+	auto iter = _childrenNameMap.find(name);
+	if (iter != _childrenNameMap.end())
 	{
-		if (child->isName(name, hash))
-		{
-			vChildren.push_back(child);
-		}
+		return iter->second;
 	}
-	return vChildren;
+	return std::vector<Node*>();
 }
 
 easy2d::Node* easy2d::Node::getChild(const String& name) const
 {
-	size_t hash = std::hash<String>{}(name);
-
-	for (auto child : _children)
+	// 使用名称哈希映射进行 O(log n) 查找，替代 O(n) 线性查找
+	auto iter = _childrenNameMap.find(name);
+	if (iter != _childrenNameMap.end() && !iter->second.empty())
 	{
-		if (child->isName(name, hash))
-		{
-			return child;
-		}
+		return iter->second.front();
 	}
 	return nullptr;
 }
@@ -690,6 +701,62 @@ const std::vector<easy2d::Node*>& easy2d::Node::getAllChildren() const
 int easy2d::Node::getChildrenCount() const
 {
 	return static_cast<int>(_children.size());
+}
+
+// 辅助函数：从名称哈希映射中移除子节点
+void easy2d::Node::__removeChildFromNameMap(Node* child)
+{
+	if (!child) return;
+
+	String childName = child->getName();
+	if (!childName.empty())
+	{
+		auto iter = _childrenNameMap.find(childName);
+		if (iter != _childrenNameMap.end())
+		{
+			auto& nodeList = iter->second;
+			// 使用双指针交换删除策略移除节点
+			size_t writeIdx = 0;
+			for (size_t readIdx = 0; readIdx < nodeList.size(); ++readIdx)
+			{
+				if (nodeList[readIdx] != child)
+				{
+					if (writeIdx != readIdx)
+					{
+						nodeList[writeIdx] = nodeList[readIdx];
+					}
+					++writeIdx;
+				}
+			}
+			if (writeIdx < nodeList.size())
+			{
+				nodeList.erase(nodeList.begin() + writeIdx, nodeList.end());
+			}
+			// 如果该名称下没有节点了，删除该映射条目
+			if (nodeList.empty())
+			{
+				_childrenNameMap.erase(iter);
+			}
+		}
+	}
+}
+
+void easy2d::Node::setName(const String& name)
+{
+	// 如果有父节点，先通知父节点移除旧名称的映射
+	if (_parent)
+	{
+		_parent->__removeChildFromNameMap(this);
+	}
+
+	// 调用基类方法设置新名称
+	Object::setName(name);
+
+	// 如果有父节点，添加新名称的映射
+	if (_parent && !name.empty())
+	{
+		_parent->_childrenNameMap[name].push_back(this);
+	}
 }
 
 void easy2d::Node::removeSelfInNextUpdate()
@@ -712,6 +779,8 @@ bool easy2d::Node::removeChild(Node* child)
 		if (iter != _children.end())
 		{
 			_children.erase(iter);
+			// 从名称哈希映射中移除
+			__removeChildFromNameMap(child);
 			child->__clearParents();
 			child->release();
 			return true;
@@ -729,34 +798,25 @@ void easy2d::Node::removeChildren(const String& childName)
 		return;
 	}
 
-	// 计算名称 Hash 值
-	size_t hash = std::hash<String>{}(childName);
-	auto equals = [&](Node* child)
-		{
-			return child->isName(childName, hash);
-		};
-
-	auto last = _children.end();
-	auto first = std::find_if(_children.begin(), last, equals);
-	if (first != last)
+	// 从名称哈希映射中获取所有同名子节点
+	auto mapIter = _childrenNameMap.find(childName);
+	if (mapIter != _childrenNameMap.end())
 	{
-		for (auto i = first; i != last; ++i)
+		// 释放所有同名子节点
+		for (auto child : mapIter->second)
 		{
-			auto child = *i;
-			if (equals(child))
+			// 从 _children 向量中移除
+			auto iter = std::find(_children.begin(), _children.end(), child);
+			if (iter != _children.end())
 			{
-				// 移除子节点
-				child->__clearParents();
-				child->release();
+				_children.erase(iter);
 			}
-			else
-			{
-				*first = std::move(child);
-				++first;
-			}
+			child->__clearParents();
+			child->release();
 		}
+		// 从名称哈希映射中移除该名称
+		_childrenNameMap.erase(mapIter);
 	}
-	_children.erase(first, last);
 }
 
 void easy2d::Node::removeAllChildren()
@@ -769,6 +829,8 @@ void easy2d::Node::removeAllChildren()
 	}
 	// 清空储存节点的容器
 	_children.clear();
+	// 清空名称哈希映射
+	_childrenNameMap.clear();
 }
 
 void easy2d::Node::__clearParents()

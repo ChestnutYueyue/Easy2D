@@ -1,5 +1,6 @@
 #include <easy2d/e2dbase.h>
 #include <vector>
+#include <unordered_set>
 
 //
 // gcnew helper
@@ -14,6 +15,8 @@ easy2d::__gc_helper::GCNewHelper easy2d::__gc_helper::GCNewHelper::instance;
 namespace
 {
 	std::vector<easy2d::Object*> s_vObjectPool;
+	// 使用 unordered_set 存储对象指针，实现 O(1) 查找
+	std::unordered_set<easy2d::Object*> s_objectSet;
 	bool s_bClearing = false;
 }
 
@@ -21,11 +24,8 @@ bool easy2d::GC::isInPool(Object* pObject)
 {
 	if (pObject)
 	{
-		for (const auto& pObj : s_vObjectPool)
-		{
-			if (pObj == pObject)
-				return true;
-		}
+		// 使用 unordered_set 实现 O(1) 查找
+		return s_objectSet.find(pObject) != s_objectSet.end();
 	}
 	return false;
 }
@@ -39,6 +39,8 @@ void easy2d::GC::clear()
 {
 	std::vector<Object*> releaseThings;
 	releaseThings.swap(s_vObjectPool);
+	// 清空 unordered_set
+	s_objectSet.clear();
 
 	s_bClearing = true;
 	for (auto pObj : releaseThings)
@@ -53,5 +55,7 @@ void easy2d::GC::trace(easy2d::Object * pObject)
 	if (pObject)
 	{
 		s_vObjectPool.push_back(pObject);
+		// 同时添加到 unordered_set
+		s_objectSet.insert(pObject);
 	}
 }

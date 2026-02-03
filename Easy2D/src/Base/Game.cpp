@@ -11,6 +11,8 @@ static bool s_bPaused = false;
 static bool s_bInitialized = false;
 // 游戏唯一标识
 static easy2d::String s_sUniqueName;
+// 帧计数器
+static uint32_t s_uFrameCount = 0;
 
 
 bool easy2d::Game::init(const String& title, int width, int height, const String& uniqueName, bool singleton)
@@ -127,6 +129,7 @@ void easy2d::Game::start(int fpsLimit)
 		// 判断是否达到了刷新状态
 		if (Time::__isReady())
 		{
+			++s_uFrameCount;			// 递增帧计数器
 			Input::__update();			// 获取用户输入
 			Timer::__update();			// 更新定时器
 			ActionManager::__update();	// 更新动作管理器
@@ -215,4 +218,9 @@ void easy2d::Game::destroy()
 easy2d::String easy2d::Game::getUniqueName()
 {
 	return s_sUniqueName;
+}
+
+uint32_t easy2d::Game::getCurrentFrame()
+{
+	return s_uFrameCount;
 }

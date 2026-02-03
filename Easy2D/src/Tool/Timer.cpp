@@ -71,6 +71,8 @@ namespace easy2d
 
 static std::atomic<size_t> s_vTimerId = 0;
 static std::map<size_t, easy2d::TimerEntity*> s_vTimers;
+// 名称到定时器 ID 的哈希索引，用于 O(1) 查找
+static std::map<easy2d::String, std::vector<size_t>> s_nameIndex;
 
 
 size_t easy2d::Timer::add(const Function<void()>& func, float interval, int updateTimes, const String& name)
@@ -80,6 +82,13 @@ size_t easy2d::Timer::add(const Function<void()>& func, float interval, int upda
 
 	const auto id = s_vTimerId++;
 	s_vTimers.insert(std::make_pair(id, timer));
+	
+	// 如果指定了名称，添加到名称索引
+	if (!name.empty())
+	{
+		s_nameIndex[name].push_back(id);
+	}
+	
 	return id;
 }
 
@@ -136,38 +145,87 @@ void easy2d::Timer::remove(size_t id)
 	}
 }
 
+// 辅助函数：从名称索引中移除指定的定时器 ID
+static void removeIdFromNameIndex(const easy2d::String& name, size_t id)
+{
+	if (name.empty()) return;
+	
+	auto indexIter = s_nameIndex.find(name);
+	if (indexIter != s_nameIndex.end())
+	{
+		auto& idList = indexIter->second;
+		// 使用双指针交换删除策略移除 ID
+		size_t writeIdx = 0;
+		for (size_t readIdx = 0; readIdx < idList.size(); ++readIdx)
+		{
+			if (idList[readIdx] != id)
+			{
+				if (writeIdx != readIdx)
+				{
+					idList[writeIdx] = idList[readIdx];
+				}
+				++writeIdx;
+			}
+		}
+		if (writeIdx < idList.size())
+		{
+			idList.erase(idList.begin() + writeIdx, idList.end());
+		}
+		// 如果该名称下没有定时器了，删除该索引条目
+		if (idList.empty())
+		{
+			s_nameIndex.erase(indexIter);
+		}
+	}
+}
+
 void easy2d::Timer::start(const String& name)
 {
-	for (const auto& pair : s_vTimers)
+	// 使用哈希索引进行 O(1) 查找，替代 O(n) 线性查找
+	auto indexIter = s_nameIndex.find(name);
+	if (indexIter != s_nameIndex.end())
 	{
-		auto timer = pair.second;
-		if (timer->name == name)
+		for (size_t id : indexIter->second)
 		{
-			timer->running = true;
+			auto timerIter = s_vTimers.find(id);
+			if (timerIter != s_vTimers.end())
+			{
+				timerIter->second->running = true;
+			}
 		}
 	}
 }
 
 void easy2d::Timer::stop(const String& name)
 {
-	for (const auto& pair : s_vTimers)
+	// 使用哈希索引进行 O(1) 查找，替代 O(n) 线性查找
+	auto indexIter = s_nameIndex.find(name);
+	if (indexIter != s_nameIndex.end())
 	{
-		auto timer = pair.second;
-		if (timer->name == name)
+		for (size_t id : indexIter->second)
 		{
-			timer->running = false;
+			auto timerIter = s_vTimers.find(id);
+			if (timerIter != s_vTimers.end())
+			{
+				timerIter->second->running = false;
+			}
 		}
 	}
 }
 
 void easy2d::Timer::remove(const String& name)
 {
-	for (const auto& pair : s_vTimers)
+	// 使用哈希索引进行 O(1) 查找，替代 O(n) 线性查找
+	auto indexIter = s_nameIndex.find(name);
+	if (indexIter != s_nameIndex.end())
 	{
-		auto timer = pair.second;
-		if (timer->name == name)
+		for (size_t id : indexIter->second)
 		{
-			timer->removed = true;
+			auto timerIter = s_vTimers.find(id);
+			if (timerIter != s_vTimers.end())
+			{
+				timerIter->second->removed = true;
+			}
 		}
 	}
 }
@@ -210,6 +268,8 @@ void easy2d::Timer::__update()
 		// 清除已停止的定时器
 		if (timer->removed)
 		{
+			// 从名称索引中移除
+			removeIdFromNameIndex(timer->name, iter->first);
 			GC::release(timer);
 			iter = s_vTimers.erase(iter);
 		}
@@ -242,4 +302,5 @@ void easy2d::Timer::__uninit()
 		GC::release(timer);
 	}
 	s_vTimers.clear();
+	s_nameIndex.clear();
 }

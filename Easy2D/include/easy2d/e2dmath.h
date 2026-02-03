@@ -15,6 +15,13 @@ namespace easy2d
 			const auto PI_D = 3.14159265358979323846;
 			const auto PI_D_2 = 1.57079632679489661923;
 			const auto PI_D_X_2 = 6.28318530717958647692;
+
+			// 预计算角度转弧度常量 (PI / 180)
+			const auto DEG_TO_RAD_F = 0.017453292519943295f;
+			const auto DEG_TO_RAD_D = 0.017453292519943295769236907684886;
+			// 预计算弧度转角度常量 (180 / PI)
+			const auto RAD_TO_DEG_F = 57.29577951308232f;
+			const auto RAD_TO_DEG_D = 57.295779513082320876798154814105;
 		}
 
 		inline int Abs(int val) { return ::abs(val); }
@@ -37,29 +44,29 @@ namespace easy2d
 
 		inline double Sign(double val) { return val < 0 ? -1.0 : 1.0; }
 
-		inline float Sin(float val) { return ::sinf(val * constants::PI_F / 180.f); }
+		inline float Sin(float val) { return ::sinf(val * constants::DEG_TO_RAD_F); }
 
-		inline double Sin(double val) { return ::sin(val * constants::PI_D / 180.0); }
+		inline double Sin(double val) { return ::sin(val * constants::DEG_TO_RAD_D); }
 
-		inline float Cos(float val) { return ::cosf(val * constants::PI_F / 180.f); }
+		inline float Cos(float val) { return ::cosf(val * constants::DEG_TO_RAD_F); }
 
-		inline double Cos(double val) { return ::cos(val * constants::PI_D / 180.0); }
+		inline double Cos(double val) { return ::cos(val * constants::DEG_TO_RAD_D); }
 
-		inline float Tan(float val) { return ::tanf(val * constants::PI_F / 180.f); }
+		inline float Tan(float val) { return ::tanf(val * constants::DEG_TO_RAD_F); }
 
-		inline double Tan(double val) { return ::tan(val * constants::PI_D / 180.0); }
+		inline double Tan(double val) { return ::tan(val * constants::DEG_TO_RAD_D); }
 
-		inline float Asin(float val) { return ::asinf(val) * 180.f / constants::PI_F; }
+		inline float Asin(float val) { return ::asinf(val) * constants::RAD_TO_DEG_F; }
 
-		inline double Asin(double val) { return ::asin(val) * 180.f / constants::PI_F; }
+		inline double Asin(double val) { return ::asin(val) * constants::RAD_TO_DEG_D; }
 
-		inline float Acos(float val) { return ::acosf(val) * 180.f / constants::PI_F; }
+		inline float Acos(float val) { return ::acosf(val) * constants::RAD_TO_DEG_F; }
 
-		inline double Acos(double val) { return ::acos(val) * 180.f / constants::PI_F; }
+		inline double Acos(double val) { return ::acos(val) * constants::RAD_TO_DEG_D; }
 
-		inline float Atan(float val) { return ::atanf(val) * 180.f / constants::PI_F; }
+		inline float Atan(float val) { return ::atanf(val) * constants::RAD_TO_DEG_F; }
 
-		inline double Atan(double val) { return ::atan(val) * 180.f / constants::PI_F; }
+		inline double Atan(double val) { return ::atan(val) * constants::RAD_TO_DEG_D; }
 
 		inline float Ceil(float val) { return ::ceil(val); }
 

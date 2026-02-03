@@ -47,6 +47,9 @@ public:
 
 	// 获取游戏唯一标识
 	static String getUniqueName();
+
+	// 获取当前帧数（用于避免同一帧内重复操作）
+	static uint32_t getCurrentFrame();
 };
 
 class Node;

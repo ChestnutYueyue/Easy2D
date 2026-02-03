@@ -115,7 +115,9 @@ easy2d::Sequence * easy2d::Sequence::reverse() const
 	auto sequence = gcnew Sequence;
 	if (sequence && !_actions.empty())
 	{
-		std::vector<Action*> newActions(_actions.size());
+		// 使用 reserve 预分配容量，避免构造默认元素后再 push_back 导致大小翻倍
+		std::vector<Action*> newActions;
+		newActions.reserve(_actions.size());
 		for (auto iter = _actions.crbegin(), iterCrend = _actions.crend(); iter != iterCrend; ++iter)
 		{
 			if (*iter)
