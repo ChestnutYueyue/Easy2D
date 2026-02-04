@@ -43,6 +43,8 @@ target("easy2d")
     add_files(path.join(EASY2D_SRC_DIR, "**.cpp"))
     -- 添加 GLEW 源文件编译
     add_files(path.join(EASY2D_SRC_DIR, "glew/glew.c"))
+    -- 添加 GLFW 通用源文件编译
+    add_files(path.join(EASY2D_SRC_DIR, "glfw/common/*.c"))
 
     -- 声明头文件（用于 xmake install 安装，保留 easy2d 目录层级）
     add_headerfiles(path.join(EASY2D_INC_DIR, "easy2d/**.h"), {prefixdir = "easy2d"})
@@ -52,16 +54,36 @@ target("easy2d")
     add_headerfiles(path.join(EASY2D_INC_DIR, "GL/**.h"), {prefixdir = "GL"})
     add_headerfiles(path.join(EASY2D_INC_DIR, "stb/**.h"), {prefixdir = "stb"})
     add_headerfiles(path.join(EASY2D_INC_DIR, "ini/**.h"), {prefixdir = "ini"})
+    add_headerfiles(path.join(EASY2D_INC_DIR, "GLFW/**.h"), {prefixdir = "GLFW"})
 
     -- 公开头文件目录（其他依赖该库的目标会自动继承这个头文件路径）
     add_includedirs(EASY2D_INC_DIR, {public = true})
     
     if is_plat("windows") or is_plat("mingw") then
+        -- 添加 Windows 平台 GLFW 源文件
+        add_files(path.join(EASY2D_SRC_DIR, "glfw/windows/*.c"))
+        -- 添加 GLFW 头文件路径（common 和 windows 目录）
+        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/common"), {public = false})
+        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/windows"), {public = false})
         -- 使用 public = true 确保依赖该静态库的目标也能继承这些系统库链接
         add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "dinput8", "d2d1", "dwrite", "dxguid", "oleaut32", "uuid", "opengl32", {public = true})
     elseif is_plat("linux") then
+        -- 添加 Linux 平台 GLFW 源文件（X11 后端）
+        add_files(path.join(EASY2D_SRC_DIR, "glfw/linux/linux_x11/*.c"))
+        add_files(path.join(EASY2D_SRC_DIR, "glfw/linux/*.c"))
+        -- 添加 GLFW 头文件路径（common、linux 和 linux_x11 目录）
+        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/common"), {public = false})
+        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/linux/linux_x11"), {public = false})
+        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/linux"), {public = false})
         add_syslinks("GL")
         add_deps("libx11", "xorgproto")
+    elseif is_plat("macosx") then
+        -- 添加 macOS 平台 GLFW 源文件
+        add_files(path.join(EASY2D_SRC_DIR, "glfw/macos/*.c"))
+        add_files(path.join(EASY2D_SRC_DIR, "glfw/macos/*.m"))
+        -- 添加 GLFW 头文件路径（common 和 macos 目录）
+        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/common"), {public = false})
+        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/macos"), {public = false})
     end
     -- ==============================================
     -- Windows 平台通用配置（包含 MSVC/Clang-Cl）
