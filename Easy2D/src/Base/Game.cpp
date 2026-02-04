@@ -85,7 +85,7 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 	// 初始化播放器
 	if (!Music::__init())
 	{
-		E2D_ERROR("初始化 XAudio2 失败");
+		E2D_ERROR("初始化音频系统失败");
 		return false;
 	}
 
