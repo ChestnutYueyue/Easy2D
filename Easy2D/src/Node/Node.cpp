@@ -207,10 +207,10 @@ void easy2d::Node::_updateTransform() const
 	_dirtyTransform = false;
 	_dirtyInverseTransform = true;
 
-	_transform = Matrix32::scaling(_scale.x, _scale.y)
-		* Matrix32::skewing(_skewAngle.x, _skewAngle.y)
-		* Matrix32::rotation(_rotation)
-		* Matrix32::translation(_pos.x, _pos.y);
+	_transform = Matrix33::scaling(_scale.x, _scale.y)
+		* Matrix33::skewing(_skewAngle.x, _skewAngle.y)
+		* Matrix33::rotation(_rotation)
+		* Matrix33::translation(_pos.x, _pos.y);
 
 	_transform.translate(-_size.width * _anchor.x, -_size.height * _anchor.y);
 
@@ -231,7 +231,7 @@ void easy2d::Node::_updateInverseTransform() const
 	_updateTransform();
 	if (_dirtyInverseTransform)
 	{
-		_inverseTransform = Matrix32::invert(_transform);
+		_inverseTransform = Matrix33::invert(_transform);
 		_dirtyInverseTransform = false;
 	}
 }
@@ -1093,10 +1093,10 @@ easy2d::BodyRelation easy2d::Node::compareWithBody(Node* other) const
 	const auto geo1 = _body->_geo;
 	const auto geo2 = other->_body->_geo;
 	D2D1_GEOMETRY_RELATION relation = D2D1_GEOMETRY_RELATION::D2D1_GEOMETRY_RELATION_UNKNOWN;
-	Matrix32 transform = other->getTransform() * getInverseTransform();
+	Matrix33 transform = other->getTransform() * getInverseTransform();
 	HRESULT hr = geo1->CompareWithGeometry(
 		geo2,
-		reinterpret_cast<D2D1_MATRIX_3X2_F&>(transform),
+		transform.toD2DMatrix(),
 		&relation
 	);
 

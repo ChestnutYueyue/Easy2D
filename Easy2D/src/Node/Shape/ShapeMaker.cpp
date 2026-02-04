@@ -15,7 +15,14 @@ easy2d::Shape* easy2d::ShapeMaker::combine(Shape* shape1, Shape* shape2, Combine
 	{
 		auto geo1 = shape1->_geo;
 		auto geo2 = shape2->_geo;
-		geo1->CombineWithGeometry(geo2, D2D1_COMBINE_MODE(mode), reinterpret_cast<const D2D1_MATRIX_3X2_F&>(matrix), maker._sink);
+		if (matrix)
+		{
+			geo1->CombineWithGeometry(geo2, D2D1_COMBINE_MODE(mode), matrix->toD2DMatrix(), maker._sink);
+		}
+		else
+		{
+			geo1->CombineWithGeometry(geo2, D2D1_COMBINE_MODE(mode), D2D1::Matrix3x2F::Identity(), maker._sink);
+		}
 	}
 
 	maker.closeSink();

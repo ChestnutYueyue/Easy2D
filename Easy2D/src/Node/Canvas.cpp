@@ -1,7 +1,7 @@
 #include <easy2d/e2dcanvas.h>
 
 easy2d::Canvas::Canvas(const Size &size)
-    : _outputImage(nullptr), _rt(nullptr), _state(nullptr), _size(size) {}
+    : _rt(nullptr), _state(nullptr), _outputImage(nullptr), _size(size) {}
 
 easy2d::Canvas::~Canvas() {
   SafeRelease(_state);
@@ -69,10 +69,9 @@ void easy2d::Canvas::endDraw() {
 //
 
 easy2d::CanvasBrush::CanvasBrush(easy2d::Canvas *canvas)
-    : _rt(canvas->_rt), _brush(nullptr),
-      _interpolationMode(InterpolationMode::Linear), _dirtyTransform(false),
-      _opacity(1.0f), _pos(), _rotation(0.f), _scale(1.f, 1.f), _skew(),
-      _style() {
+    : _dirtyTransform(false), _rt(canvas->_rt), _brush(nullptr),
+      _interpolationMode(InterpolationMode::Linear), _opacity(1.0f),
+      _rotation(0.f), _pos(), _scale(1.f, 1.f), _skew(), _style() {
   _rt->AddRef();
 
   HRESULT hr =
@@ -90,11 +89,11 @@ easy2d::CanvasBrush::~CanvasBrush() {
 
 void easy2d::CanvasBrush::_updateTransform() {
   if (_dirtyTransform) {
-    Matrix32 transform = Matrix32::scaling(_scale.x, _scale.y) *
-                         Matrix32::skewing(_skew.x, _skew.y) *
-                         Matrix32::rotation(_rotation) *
-                         Matrix32::translation(_pos.x, _pos.y);
-    _rt->SetTransform(reinterpret_cast<const D2D1_MATRIX_3X2_F &>(transform));
+    Matrix33 transform = Matrix33::scaling(_scale.x, _scale.y) *
+                         Matrix33::skewing(_skew.x, _skew.y) *
+                         Matrix33::rotation(_rotation) *
+                         Matrix33::translation(_pos.x, _pos.y);
+    _rt->SetTransform(transform.toD2DMatrix());
     _dirtyTransform = false;
   }
 }
@@ -268,8 +267,13 @@ void easy2d::CanvasBrush::setSkew(const Vector2 &skew) {
 }
 
 easy2d::Matrix32 easy2d::CanvasBrush::getTransform() const {
-  Matrix32 transform;
-  _rt->GetTransform(reinterpret_cast<D2D1_MATRIX_3X2_F *>(&transform));
+  D2D1_MATRIX_3X2_F d2dMatrix;
+  _rt->GetTransform(&d2dMatrix);
+  // 将D2D1::Matrix3x2F转换为Matrix33（使用6参数构造函数）
+  // D2D矩阵: _11 _12 0 | _21 _22 0 | _31 _32 1
+  // 对应:     m00 m01 m02 | m10 m11 m12
+  Matrix33 transform(d2dMatrix._11, d2dMatrix._12, d2dMatrix._31,
+                     d2dMatrix._21, d2dMatrix._22, d2dMatrix._32);
   return transform;
 }
 
