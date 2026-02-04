@@ -9,26 +9,26 @@ static float s_fDefaultAnchorX = 0;
 static float s_fDefaultAnchorY = 0;
 
 easy2d::Node::Node()
-	: _order(0)
+	: _visible(true)
+	, _autoUpdate(true)
+	, _needSort(false)
+	, _showBodyShape(false)
+	, _removed(false)
+	, _order(0)
+	, _rotation(0)
+	, _displayOpacity(1.0f)
+	, _realOpacity(1.0f)
 	, _pos()
 	, _size()
 	, _scale(1.0f, 1.0f)
-	, _rotation(0)
 	, _skewAngle()
-	, _displayOpacity(1.0f)
-	, _realOpacity(1.0f)
 	, _anchor(s_fDefaultAnchorX, s_fDefaultAnchorY)
-	, _transform()
-	, _visible(true)
-	, _parent(nullptr)
 	, _parentScene(nullptr)
+	, _parent(nullptr)
 	, _body(nullptr)
-	, _needSort(false)
 	, _dirtyTransform(false)
+	, _transform()
 	, _dirtyInverseTransform(false)
-	, _autoUpdate(true)
-	, _showBodyShape(false)
-	, _removed(false)
 	, _lastSortFrame(0)
 {
 }
@@ -207,16 +207,20 @@ void easy2d::Node::_updateTransform() const
 	_dirtyTransform = false;
 	_dirtyInverseTransform = true;
 
-	_transform = Matrix33::scaling(_scale.x, _scale.y)
-		* Matrix33::skewing(_skewAngle.x, _skewAngle.y)
+	// 构建变换矩阵：缩放 -> 倾斜 -> 旋转 -> 平移
+	// 注意：矩阵乘法从右向左应用，所以要把先应用的变换放在右边
+	_transform = Matrix33::translation(_pos.x, _pos.y)
 		* Matrix33::rotation(_rotation)
-		* Matrix33::translation(_pos.x, _pos.y);
+		* Matrix33::skewing(_skewAngle.x, _skewAngle.y)
+		* Matrix33::scaling(_scale.x, _scale.y);
 
 	_transform.translate(-_size.width * _anchor.x, -_size.height * _anchor.y);
 
 	if (_parent)
 	{
-		_transform = _transform * _parent->_transform;
+		// 矩阵累积：子节点变换先应用，父节点变换后应用
+		// 对于列向量 v，计算为：parent_transform * child_transform * v
+		_transform = _parent->_transform * _transform;
 	}
 
 	// 通知子节点进行转换
