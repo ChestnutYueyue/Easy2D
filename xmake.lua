@@ -41,24 +41,36 @@ target("easy2d")
     end
 
     add_files(path.join(EASY2D_SRC_DIR, "**.cpp"))
+    -- 添加 GLEW 源文件编译
+    add_files(path.join(EASY2D_SRC_DIR, "glew.c"))
 
     -- 声明头文件（用于 xmake install 安装，保留 easy2d 目录层级）
     add_headerfiles(path.join(EASY2D_INC_DIR, "easy2d/**.h"), {prefixdir = "easy2d"})
     add_headerfiles(path.join(EASY2D_INC_DIR, "spdlog/**.h"), {prefixdir = "spdlog"})
+    add_headerfiles(path.join(EASY2D_INC_DIR, "audio/**.h"), {prefixdir = "audio"})
+    add_headerfiles(path.join(EASY2D_INC_DIR, "path/**.h"), {prefixdir = "path"})
+    add_headerfiles(path.join(EASY2D_INC_DIR, "GL/**.h"), {prefixdir = "GL"})
+    add_headerfiles(path.join(EASY2D_INC_DIR, "stb/**.h"), {prefixdir = "stb"})
+    add_headerfiles(path.join(EASY2D_INC_DIR, "ini/**.h"), {prefixdir = "ini"})
 
     -- 公开头文件目录（其他依赖该库的目标会自动继承这个头文件路径）
     add_includedirs(EASY2D_INC_DIR, {public = true})
-
+    
+    if is_plat("windows") or is_plat("mingw") then
+        -- 使用 public = true 确保依赖该静态库的目标也能继承这些系统库链接
+        add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "dinput8", "d2d1", "dwrite", "dxguid", "oleaut32", "uuid", "opengl32", {public = true})
+    elseif is_plat("linux") then
+        add_syslinks("GL")
+        add_deps("libx11", "xorgproto")
+    end
     -- ==============================================
-    -- Windows 平台通用配置（包含 MSVC/Clang-Cl/MinGW）
+    -- Windows 平台通用配置（包含 MSVC/Clang-Cl）
     -- ==============================================
     if is_plat("windows") then
         -- 定义宏，减少 Windows 头文件的冗余定义和编译时间
         add_defines("WIN32_LEAN_AND_MEAN", "NOMINMAX")
-
-        -- 添加 Windows 系统库链接
-        add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "dinput8", "d2d1", "dwrite", "dxguid", "oleaut32", "uuid")
-
+        -- 定义 GLEW 静态库宏，确保 GLEW 以静态方式编译
+        add_defines("GLEW_STATIC")
         -- MSVC / Clang-Cl 工具链配置
         if get_config("toolchain") == "msvc" or get_config("toolchain") == "clang-cl" then
             add_cxxflags("/EHsc", "/Zc:__cplusplus", {force = true})
@@ -92,4 +104,122 @@ target("easy2d")
     end
 target_end()
 
+-- ==============================================
+-- 3. PushBox 示例程序配置
+-- ==============================================
+target("PushBox")
+    -- 设置目标产物为可执行程序
+    set_kind("binary")
+    
+    -- 设置目标名称
+    set_basename("PushBox")
+    
+    -- 定义 PushBox 源代码目录
+    local PUSHBOX_SRC_DIR = "PushBox-Easy2D-v2.1.12/src"
+    
+    -- 添加源文件
+    add_files(path.join(PUSHBOX_SRC_DIR, "**.cpp"))
+    
+    -- 添加资源文件（Windows 资源脚本）
+    add_files(path.join(PUSHBOX_SRC_DIR, "resources/PushBox.rc"))
+    
+    -- 链接 Easy2D 静态库
+    add_deps("easy2d")
+    
+    -- 设置输出目录
+    set_targetdir("$(builddir)/bin")
+    if is_plat("windows") then
+        if is_mode("debug") then
+            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
+        else
+            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
+        end
+    else 
+        if is_mode("debug") then
+            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
+            add_cxxflags("-O0", "-g", "-ggdb", {force = true})
+            set_runtimes("MDd")
+        else
+            add_ldflags("-mwindows", {force = true})
+            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
+            add_cxxflags("-O2", "-fno-strict-aliasing", "-fno-delete-null-pointer-checks", {force = true})
+            set_runtimes("MD")
+        end
+    end    
+    -- 复制资源文件到输出目录
+    after_build(function (target)
+        import("core.project.config")
+        import("core.base.option")
+        local targetfile = target:targetfile()
+        local targetdir = path.directory(targetfile)
+        local srcdir = path.join(PUSHBOX_SRC_DIR, "assets")
+        -- 复制 assets 目录到输出目录
+        if os.isdir(srcdir) then
+            local dstdir = path.join(targetdir, "assets")
+            if not os.isdir(dstdir) then
+                os.mkdir(dstdir)
+            end
+            os.cp(srcdir .. "/*", dstdir)
+        end
+    end)
+target_end()
 
+-- ==============================================
+-- 4. FlappyBird 示例程序配置
+-- ==============================================
+target("FlappyBird")
+    -- 设置目标产物为可执行程序
+    set_kind("binary")
+    
+    -- 设置目标名称
+    set_basename("FlappyBird")
+    
+    -- 定义 FlappyBird 源代码目录
+    local FLAPPYBIRD_SRC_DIR = "FlappyBird"
+    
+    -- 添加源文件
+    add_files(path.join(FLAPPYBIRD_SRC_DIR, "**.cpp"))
+    
+    -- 添加资源文件（Windows 资源脚本）
+    add_files(path.join(FLAPPYBIRD_SRC_DIR, "FlappyBird.rc"))
+    
+    -- 链接 Easy2D 静态库
+    add_deps("easy2d")
+    
+    -- 设置输出目录
+    set_targetdir("$(builddir)/bin")
+    if is_plat("windows") then
+        if is_mode("debug") then
+            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
+        else
+            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
+        end
+    else 
+        if is_mode("debug") then
+            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
+            add_cxxflags("-O0", "-g", "-ggdb", {force = true})
+            set_runtimes("MDd")
+        else
+            add_ldflags("-mwindows", {force = true})
+            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
+            add_cxxflags("-O2", "-fno-strict-aliasing", "-fno-delete-null-pointer-checks", {force = true})
+            set_runtimes("MD")
+        end
+    end    
+    -- 复制资源文件到输出目录
+    after_build(function (target)
+        import("core.project.config")
+        import("core.base.option")
+        local targetfile = target:targetfile()
+        local targetdir = path.directory(targetfile)
+        local srcdir = path.join(FLAPPYBIRD_SRC_DIR, "res")
+        -- 复制 res 目录到输出目录
+        if os.isdir(srcdir) then
+            local dstdir = path.join(targetdir, "res")
+            if not os.isdir(dstdir) then
+                os.mkdir(dstdir)
+            end
+            os.cp(srcdir .. "/*", dstdir)
+        end
+    end)
+target_end()

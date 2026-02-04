@@ -6,7 +6,7 @@
 
 // 定义 STB_IMAGE_IMPLEMENTATION 以创建实现
 #define STB_IMAGE_IMPLEMENTATION
-#include <easy2d/stb_image.h>
+#include <stb/stb_image.h>
 
 namespace {
 std::unordered_map<easy2d::String, easy2d::Image *> s_mImagesFromFile;
