@@ -38,7 +38,6 @@
 #include <d2d1helper.h>
 #include <dwrite.h>
 #include <mmsystem.h>
-#include <wincodec.h>
 #include <windows.h>
 
 #ifndef HINST_THISCOMPONENT

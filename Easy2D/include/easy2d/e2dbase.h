@@ -1,500 +1,413 @@
 #pragma once
-#include <easy2d/e2dmacros.h>
+#include <cstdint>
 #include <easy2d/e2dcommon.h>
-
+#include <easy2d/e2dmacros.h>
 
 // Base Classes
 
-namespace easy2d
-{
-
+namespace easy2d {
 
 // 游戏控制
-class Game
-{
+class Game {
 public:
-	// 初始化游戏
-	static bool init(
-		const String& title = "Easy2D Game",	/* 窗口标题 */
-		int width = 640,						/* 窗口宽度 */
-		int height = 480,						/* 窗口高度 */
-		const String& uniqueName = "",			/* 唯一标识 */
-		bool singleton = false					/* 仅能启动一个游戏实例 */
-	);
+  // 初始化游戏
+  static bool init(const String &title = "Easy2D Game", /* 窗口标题 */
+                   int width = 640,                     /* 窗口宽度 */
+                   int height = 480,                    /* 窗口高度 */
+                   const String &uniqueName = "",       /* 唯一标识 */
+                   bool singleton = false /* 仅能启动一个游戏实例 */
+  );
 
-	// 启动游戏
-	static void start(
-		int fpsLimit = 0					/* FPS 限制，0为不限制 */
-	);
+  // 启动游戏
+  static void start(int fpsLimit = 0 /* FPS 限制，0为不限制 */
+  );
 
-	// 暂停游戏
-	static void pause();
+  // 暂停游戏
+  static void pause();
 
-	// 继续游戏
-	static void resume();
+  // 继续游戏
+  static void resume();
 
-	// 结束游戏
-	static void quit();
+  // 结束游戏
+  static void quit();
 
-	// 回收游戏资源
-	static void destroy();
+  // 回收游戏资源
+  static void destroy();
 
-	// 重置游戏内部计时
-	static void reset();
+  // 重置游戏内部计时
+  static void reset();
 
-	// 游戏是否暂停
-	static bool isPaused();
+  // 游戏是否暂停
+  static bool isPaused();
 
-	// 获取游戏唯一标识
-	static String getUniqueName();
+  // 获取游戏唯一标识
+  static String getUniqueName();
 
-	// 获取当前帧数（用于避免同一帧内重复操作）
-	static uint32_t getCurrentFrame();
+  // 获取当前帧数（用于避免同一帧内重复操作）
+  static uint32_t getCurrentFrame();
 };
 
 class Node;
 
 // 窗口控制
-class Window
-{
-	friend class Game;
+class Window {
+  friend class Game;
 
 public:
-	// 鼠标指针样式
-	enum class Cursor : int
-	{
-		None,		/* 无指针 */
-		Normal,		/* 默认指针样式 */
-		Hand,		/* 手状指针 */
-		No,			/* 禁止指针 */
-		Wait,		/* 沙漏指针 */
-		ArrowWait,	/* 默认指针和小沙漏 */
-	};
+  // 鼠标指针样式
+  enum class Cursor : int {
+    None,      /* 无指针 */
+    Normal,    /* 默认指针样式 */
+    Hand,      /* 手状指针 */
+    No,        /* 禁止指针 */
+    Wait,      /* 沙漏指针 */
+    ArrowWait, /* 默认指针和小沙漏 */
+  };
 
 public:
-	// 修改窗口大小
-	static void setSize(
-		int width,			/* 窗口宽度 */
-		int height			/* 窗口高度 */
-	);
+  // 修改窗口大小
+  static void setSize(int width, /* 窗口宽度 */
+                      int height /* 窗口高度 */
+  );
 
-	// 设置窗口标题
-	static void setTitle(
-		const String& title	/* 窗口标题 */
-	);
+  // 设置窗口标题
+  static void setTitle(const String &title /* 窗口标题 */
+  );
 
-	// 设置窗口图标
-	static void setIcon(
-		int iconID
-	);
+  // 设置窗口图标
+  static void setIcon(int iconID);
 
-	// 设置鼠标指针样式
-	static void setCursor(
-		Cursor cursor
-	);
+  // 设置鼠标指针样式
+  static void setCursor(Cursor cursor);
 
-	// 设置自定义鼠标指针
-	static void setCustomCursor(
-		Node* cursor
-	);
+  // 设置自定义鼠标指针
+  static void setCustomCursor(Node *cursor);
 
-	// 设置自定义鼠标指针
-	static void setCustomCursor(
-		Function<Node*(Cursor)> cursorFunc
-	);
+  // 设置自定义鼠标指针
+  static void setCustomCursor(Function<Node *(Cursor)> cursorFunc);
 
-	// 获取自定义鼠标指针
-	static Node* getCustomCursor();
+  // 获取自定义鼠标指针
+  static Node *getCustomCursor();
 
-	// 获取窗口标题
-	static String getTitle();
+  // 获取窗口标题
+  static String getTitle();
 
-	// 获取窗口宽度
-	static float getWidth();
+  // 获取窗口宽度
+  static float getWidth();
 
-	// 获取窗口高度
-	static float getHeight();
+  // 获取窗口高度
+  static float getHeight();
 
-	// 获取窗口大小
-	static Size getSize();
+  // 获取窗口大小
+  static Size getSize();
 
-	// 获取窗口句柄
-	static HWND getHWnd();
+  // 获取窗口句柄
+  static HWND getHWnd();
 
-	// 是否允许响应输入法
-	static void setTypewritingEnable(
-		bool enable
-	);
+  // 是否允许响应输入法
+  static void setTypewritingEnable(bool enable);
 
-	// 弹出提示窗口
-	static void info(
-		const String& text,					/* 内容 */
-		const String& title = "Infomation"	/* 窗口标题 */
-	);
+  // 弹出提示窗口
+  static void info(const String &text,                /* 内容 */
+                   const String &title = "Infomation" /* 窗口标题 */
+  );
 
-	// 弹出警告窗口
-	static void warning(
-		const String& text,					/* 内容 */
-		const String& title = "Warning"		/* 窗口标题 */
-	);
+  // 弹出警告窗口
+  static void warning(const String &text,             /* 内容 */
+                      const String &title = "Warning" /* 窗口标题 */
+  );
 
-	// 弹出错误窗口
-	static void error(
-		const String& text,					/* 内容 */
-		const String& title = "Error"		/* 窗口标题 */
-	);
+  // 弹出错误窗口
+  static void error(const String &text,           /* 内容 */
+                    const String &title = "Error" /* 窗口标题 */
+  );
 
 private:
-	// 初始化窗口
-	static bool __init(
-		const String& title,
-		int width,
-		int height
-	);
+  // 初始化窗口
+  static bool __init(const String &title, int width, int height);
 
-	// 重置窗口属性
-	static void __uninit();
+  // 重置窗口属性
+  static void __uninit();
 
-	// 处理窗口消息
-	static void __poll();
+  // 处理窗口消息
+  static void __poll();
 
-	// 更新指针
-	static void __updateCursor();
+  // 更新指针
+  static void __updateCursor();
 
-	// Win32 窗口消息回调程序
-	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+  // Win32 窗口消息回调程序
+  static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
+                                  LPARAM lParam);
 };
-
 
 // 时间控制
-class Time
-{
-	friend class Game;
+class Time {
+  friend class Game;
 
 public:
-	// 获取上一帧与当前帧的时间间隔（秒）
-	static float getDeltaTime();
+  // 获取上一帧与当前帧的时间间隔（秒）
+  static float getDeltaTime();
 
-	// 获取上一帧与当前帧的时间间隔（毫秒）
-	static unsigned int getDeltaTimeMilliseconds();
+  // 获取上一帧与当前帧的时间间隔（毫秒）
+  static unsigned int getDeltaTimeMilliseconds();
 
-	// 获取游戏总时长（秒）
-	static float getTotalTime();
+  // 获取游戏总时长（秒）
+  static float getTotalTime();
 
-	// 获取游戏总时长（毫秒）
-	static unsigned int getTotalTimeMilliseconds();
+  // 获取游戏总时长（毫秒）
+  static unsigned int getTotalTimeMilliseconds();
 
 private:
-	// 初始化计时操作
-	static void __init(int expectedFPS);
+  // 初始化计时操作
+  static void __init(int expectedFPS);
 
-	// 是否达到更新时间
-	static bool __isReady();
+  // 是否达到更新时间
+  static bool __isReady();
 
-	// 更新当前时间
-	static void __updateNow();
+  // 更新当前时间
+  static void __updateNow();
 
-	// 更新时间信息
-	static void __updateLast();
+  // 更新时间信息
+  static void __updateLast();
 
-	// 重置时间信息
-	static void __reset();
+  // 重置时间信息
+  static void __reset();
 
-	// 挂起线程
-	static void __sleep();
+  // 挂起线程
+  static void __sleep();
 };
 
-
 // 输入控制
-class Input
-{
-	friend class Game;
+class Input {
+  friend class Game;
 
 public:
-	// 检测键盘某按键是否正被按下
-	static bool isDown(
-		KeyCode::Value key
-	);
+  // 检测键盘某按键是否正被按下
+  static bool isDown(KeyCode::Value key);
 
-	// 检测键盘某按键是否被点击
-	static bool isPressed(
-		KeyCode::Value key
-	);
+  // 检测键盘某按键是否被点击
+  static bool isPressed(KeyCode::Value key);
 
-	// deprecated: 请使用 isPressed 替代
-	// 检测键盘某按键是否被点击
-	static inline bool isPress(
-		KeyCode::Value key
-	)
-	{
-		return Input::isPressed(key);
-	}
+  // deprecated: 请使用 isPressed 替代
+  // 检测键盘某按键是否被点击
+  static inline bool isPress(KeyCode::Value key) {
+    return Input::isPressed(key);
+  }
 
-	// 检测键盘某按键是否正在松开
-	static bool isReleased(
-		KeyCode::Value key
-	);
+  // 检测键盘某按键是否正在松开
+  static bool isReleased(KeyCode::Value key);
 
-	// deprecated: 请使用 isReleased 替代
-	// 检测键盘某按键是否正在松开
-	static inline bool isRelease(
-		KeyCode::Value key
-	)
-	{
-		return Input::isReleased(key);
-	}
+  // deprecated: 请使用 isReleased 替代
+  // 检测键盘某按键是否正在松开
+  static inline bool isRelease(KeyCode::Value key) {
+    return Input::isReleased(key);
+  }
 
-	// 检测鼠标按键是否正被按下
-	static bool isDown(
-		MouseCode::Value code
-	);
+  // 检测鼠标按键是否正被按下
+  static bool isDown(MouseCode::Value code);
 
-	// 检测鼠标按键是否被点击
-	static bool isPressed(
-		MouseCode::Value code
-	);
+  // 检测鼠标按键是否被点击
+  static bool isPressed(MouseCode::Value code);
 
-	// deprecated: 请使用 isPressed 替代
-	// 检测鼠标按键是否被点击
-	static inline bool isPress(
-		MouseCode::Value code
-	)
-	{
-		return Input::isPressed(code);
-	}
+  // deprecated: 请使用 isPressed 替代
+  // 检测鼠标按键是否被点击
+  static inline bool isPress(MouseCode::Value code) {
+    return Input::isPressed(code);
+  }
 
-	// 检测鼠标按键是否正在松开
-	static bool isReleased(
-		MouseCode::Value code
-	);
+  // 检测鼠标按键是否正在松开
+  static bool isReleased(MouseCode::Value code);
 
-	// deprecated: 请使用 isReleased 替代
-	// 检测鼠标按键是否正在松开
-	static inline bool isRelease(
-		MouseCode::Value code
-	)
-	{
-		return Input::isReleased(code);
-	}
+  // deprecated: 请使用 isReleased 替代
+  // 检测鼠标按键是否正在松开
+  static inline bool isRelease(MouseCode::Value code) {
+    return Input::isReleased(code);
+  }
 
-	// 获得鼠标X轴坐标值
-	static float getMouseX();
+  // 获得鼠标X轴坐标值
+  static float getMouseX();
 
-	// 获得鼠标Y轴坐标值
-	static float getMouseY();
+  // 获得鼠标Y轴坐标值
+  static float getMouseY();
 
-	// 获得鼠标坐标值
-	static Point getMousePos();
+  // 获得鼠标坐标值
+  static Point getMousePos();
 
-	// 获得鼠标X轴坐标增量
-	static float getMouseDeltaX();
+  // 获得鼠标X轴坐标增量
+  static float getMouseDeltaX();
 
-	// 获得鼠标Y轴坐标增量
-	static float getMouseDeltaY();
+  // 获得鼠标Y轴坐标增量
+  static float getMouseDeltaY();
 
-	// 获得鼠标Z轴（鼠标滚轮）坐标增量
-	static float getMouseDeltaZ();
+  // 获得鼠标Z轴（鼠标滚轮）坐标增量
+  static float getMouseDeltaZ();
 
 private:
-	// 初始化 DirectInput 以及键盘鼠标设备
-	static bool __init();
+  // 初始化 DirectInput 以及键盘鼠标设备
+  static bool __init();
 
-	// 刷新输入信息
-	static void __update();
+  // 刷新输入信息
+  static void __update();
 
-	// 卸载 DirectInput
-	static void __uninit();
+  // 卸载 DirectInput
+  static void __uninit();
 };
 
 class TextLayout;
 
 // 渲染器
-class Renderer
-{
-	friend class Game;
-	friend class Window;
+class Renderer {
+  friend class Game;
+  friend class Window;
 
 public:
-	// 获取背景色
-	static Color getBackgroundColor();
+  // 获取背景色
+  static Color getBackgroundColor();
 
-	// 修改背景色
-	static void setBackgroundColor(
-		Color color
-	);
+  // 修改背景色
+  static void setBackgroundColor(Color color);
 
-	// 显示 FPS
-	static void showFps(
-		bool show = true
-	);
+  // 显示 FPS
+  static void showFps(bool show = true);
 
-	// 显示身体形状
-	static void showBodyShapes(
-		bool show = true
-	);
+  // 显示身体形状
+  static void showBodyShapes(bool show = true);
 
-	// 设置垂直同步（会重载资源，可能造成卡顿）
-	static void setVSync(
-		bool enabled
-	);
+  // 设置垂直同步（会重载资源，可能造成卡顿）
+  static void setVSync(bool enabled);
 
-	// 是否开启了垂直同步
-	static bool isVSyncEnabled();
+  // 是否开启了垂直同步
+  static bool isVSyncEnabled();
 
-	// 获取系统 DPI 缩放
-	static float getDpiScaleX();
+  // 获取系统 DPI 缩放
+  static float getDpiScaleX();
 
-	// 获取系统 DPI 缩放
-	static float getDpiScaleY();
+  // 获取系统 DPI 缩放
+  static float getDpiScaleY();
 
-	// 获取 ID2D1Factory 对象
-	static ID2D1Factory * getID2D1Factory();
+  // 获取 ID2D1Factory 对象
+  static ID2D1Factory *getID2D1Factory();
 
-	// 获取 ID2D1HwndRenderTarget 对象
-	static ID2D1HwndRenderTarget * getRenderTarget();
+  // 获取 ID2D1HwndRenderTarget 对象
+  static ID2D1HwndRenderTarget *getRenderTarget();
 
-	// 获取 ID2D1SolidColorBrush 对象
-	static ID2D1SolidColorBrush * getSolidColorBrush();
+  // 获取 ID2D1SolidColorBrush 对象
+  static ID2D1SolidColorBrush *getSolidColorBrush();
 
-	// 获取 IWICImagingFactory 对象
-	static IWICImagingFactory * getIWICImagingFactory();
+  // 获取 IDWriteFactory 对象
+  static IDWriteFactory *getIDWriteFactory();
 
-	// 获取 IDWriteFactory 对象
-	static IDWriteFactory * getIDWriteFactory();
+  // 获取 Miter 样式的 ID2D1StrokeStyle
+  static ID2D1StrokeStyle *getMiterID2D1StrokeStyle();
 
-	// 获取 Miter 样式的 ID2D1StrokeStyle
-	static ID2D1StrokeStyle * getMiterID2D1StrokeStyle();
+  // 获取 Bevel 样式的 ID2D1StrokeStyle
+  static ID2D1StrokeStyle *getBevelID2D1StrokeStyle();
 
-	// 获取 Bevel 样式的 ID2D1StrokeStyle
-	static ID2D1StrokeStyle * getBevelID2D1StrokeStyle();
+  // 获取 Round 样式的 ID2D1StrokeStyle
+  static ID2D1StrokeStyle *getRoundID2D1StrokeStyle();
 
-	// 获取 Round 样式的 ID2D1StrokeStyle
-	static ID2D1StrokeStyle * getRoundID2D1StrokeStyle();
+  // 渲染文字布局
+  static void DrawTextLayout(TextLayout *layout, const DrawingStyle &style,
+                             const Point &offset = Point(),
+                             ID2D1RenderTarget *rt = nullptr,
+                             ID2D1SolidColorBrush *brush = nullptr);
 
-	// 渲染文字布局
-	static void DrawTextLayout(
-		TextLayout* layout,
-		const DrawingStyle& style,
-		const Point& offset = Point(),
-		ID2D1RenderTarget* rt = nullptr,
-		ID2D1SolidColorBrush* brush = nullptr
-	);
-
-	// 设备依赖资源是否刚刚重建
-	static bool isDeviceResourceRecreated();
+  // 设备依赖资源是否刚刚重建
+  static bool isDeviceResourceRecreated();
 
 private:
-	// 渲染游戏画面
-	static void __render();
+  // 渲染游戏画面
+  static void __render();
 
-	// 创建设备无关资源
-	static bool __createDeviceIndependentResources();
+  // 创建设备无关资源
+  static bool __createDeviceIndependentResources();
 
-	// 创建设备相关资源
-	static bool __createDeviceResources();
+  // 创建设备相关资源
+  static bool __createDeviceResources();
 
-	// 删除设备相关资源
-	static void __discardDeviceResources();
+  // 删除设备相关资源
+  static void __discardDeviceResources();
 
-	// 删除所有渲染相关资源
-	static void __discardResources();
+  // 删除所有渲染相关资源
+  static void __discardResources();
 };
-
 
 // 日志
-class Logger
-{
+class Logger {
 public:
-	// 启用日志记录
-	static void enable();
+  // 启用日志记录
+  static void enable();
 
-	// 关闭日志记录
-	static void disable();
+  // 关闭日志记录
+  static void disable();
 
-	// 输出日志消息
-	static void messageln(String format, ...);
+  // 输出日志消息
+  static void messageln(String format, ...);
 
-	// 输出警告
-	static void warningln(String format, ...);
+  // 输出警告
+  static void warningln(String format, ...);
 
-	// 输出错误
-	static void errorln(String format, ...);
+  // 输出错误
+  static void errorln(String format, ...);
 
-	// 打开/关闭控制台
-	static void showConsole(bool show = true);
+  // 打开/关闭控制台
+  static void showConsole(bool show = true);
 };
-
 
 // 垃圾回收装置
-class GC
-{
+class GC {
 public:
-	// 将对象放入 GC 池
-	static void trace(
-		Object* pObject
-	);
+  // 将对象放入 GC 池
+  static void trace(Object *pObject);
 
-	// 清理对象
-	static void clear();
+  // 清理对象
+  static void clear();
 
-	// 检查对象是否在 GC 池中
-	static bool isInPool(Object* pObject);
+  // 检查对象是否在 GC 池中
+  static bool isInPool(Object *pObject);
 
-	// GC 池状态
-	static bool isClearing();
+  // GC 池状态
+  static bool isClearing();
 
-	// 保留对象
-	template <typename Type>
-	static inline void retain(Type*& p)
-	{
-		if (p != nullptr)
-		{
-			p->retain();
-		}
-	}
+  // 保留对象
+  template <typename Type> static inline void retain(Type *&p) {
+    if (p != nullptr) {
+      p->retain();
+    }
+  }
 
-	// 释放对象
-	template <typename Type>
-	static inline void release(Type*& p)
-	{
-		if (p != nullptr)
-		{
-			p->release();
-			p = nullptr;
-		}
-	}
+  // 释放对象
+  template <typename Type> static inline void release(Type *&p) {
+    if (p != nullptr) {
+      p->release();
+      p = nullptr;
+    }
+  }
 };
-
 
 //
 // GC macros
 //
 
-namespace __gc_helper
-{
-	class GCNewHelper
-	{
-	public:
-		template <typename _Ty>
-		inline _Ty* operator<< (_Ty* newObj) const
-		{
-			if (newObj)
-			{
-				newObj->autorelease();
-			}
-			return newObj;
-		}
+namespace __gc_helper {
+class GCNewHelper {
+public:
+  template <typename _Ty> inline _Ty *operator<<(_Ty *newObj) const {
+    if (newObj) {
+      newObj->autorelease();
+    }
+    return newObj;
+  }
 
-		// 使用 static 变量而不是 static inline 函数
-		// 让 IntelliSense 正常工作
-		static GCNewHelper instance;
-	};
-}
+  // 使用 static 变量而不是 static inline 函数
+  // 让 IntelliSense 正常工作
+  static GCNewHelper instance;
+};
+} // namespace __gc_helper
 
 #ifndef gcnew
-#	define gcnew __gc_helper::GCNewHelper::instance << new (std::nothrow)
+#define gcnew __gc_helper::GCNewHelper::instance << new (std::nothrow)
 #endif
-
 
 //
 // Log macros
@@ -502,90 +415,85 @@ namespace __gc_helper
 
 // 使用 C++11 可变参数模板替代宏，提供更好的类型安全和 IDE 支持
 
-namespace __log_helper
-{
-	/**
-	 * @brief 日志辅助函数模板 - Debug 级别
-	 * @tparam Args 可变参数类型
-	 * @param format 格式化字符串
-	 * @param args 可变参数
-	 */
-	template<typename... Args>
-	inline void logDebug(const String& format, Args&&... args)
-	{
+namespace __log_helper {
+/**
+ * @brief 日志辅助函数模板 - Debug 级别
+ * @tparam Args 可变参数类型
+ * @param format 格式化字符串
+ * @param args 可变参数
+ */
+template <typename... Args>
+inline void logDebug(const String &format, Args &&...args) {
 #ifdef E2D_DEBUG
-		Logger::messageln(format.c_str(), std::forward<Args>(args)...);
+  Logger::messageln(format.c_str(), std::forward<Args>(args)...);
 #else
-		(void)format;
-		// 使用折叠表达式消除未使用参数警告 (C++17)
-		// 对于 C++11，使用以下技巧
-		int dummy[] = { 0, (static_cast<void>(args), 0)... };
-		(void)dummy;
+  (void)format;
+  // 使用折叠表达式消除未使用参数警告 (C++17)
+  // 对于 C++11，使用以下技巧
+  int dummy[] = {0, (static_cast<void>(args), 0)...};
+  (void)dummy;
 #endif
-	}
-
-	/**
-	 * @brief 日志辅助函数模板 - Warning 级别
-	 * @tparam Args 可变参数类型
-	 * @param format 格式化字符串
-	 * @param args 可变参数
-	 */
-	template<typename... Args>
-	inline void logWarning(const String& format, Args&&... args)
-	{
-		Logger::warningln(format.c_str(), std::forward<Args>(args)...);
-	}
-
-	/**
-	 * @brief 日志辅助函数模板 - Error 级别
-	 * @tparam Args 可变参数类型
-	 * @param format 格式化字符串
-	 * @param args 可变参数
-	 */
-	template<typename... Args>
-	inline void logError(const String& format, Args&&... args)
-	{
-		Logger::errorln(format.c_str(), std::forward<Args>(args)...);
-	}
-
-	/**
-	 * @brief 检查 HRESULT 错误并记录日志
-	 * @tparam Args 可变参数类型
-	 * @param hr HRESULT 错误码
-	 * @param format 格式化字符串
-	 * @param args 可变参数
-	 */
-	template<typename... Args>
-	inline void logErrorIfFailed(HRESULT hr, const String& format, Args&&... args)
-	{
-		if (FAILED(hr))
-		{
-			Logger::errorln(format.c_str(), std::forward<Args>(args)...);
-		}
-	}
 }
+
+/**
+ * @brief 日志辅助函数模板 - Warning 级别
+ * @tparam Args 可变参数类型
+ * @param format 格式化字符串
+ * @param args 可变参数
+ */
+template <typename... Args>
+inline void logWarning(const String &format, Args &&...args) {
+  Logger::warningln(format.c_str(), std::forward<Args>(args)...);
+}
+
+/**
+ * @brief 日志辅助函数模板 - Error 级别
+ * @tparam Args 可变参数类型
+ * @param format 格式化字符串
+ * @param args 可变参数
+ */
+template <typename... Args>
+inline void logError(const String &format, Args &&...args) {
+  Logger::errorln(format.c_str(), std::forward<Args>(args)...);
+}
+
+/**
+ * @brief 检查 HRESULT 错误并记录日志
+ * @tparam Args 可变参数类型
+ * @param hr HRESULT 错误码
+ * @param format 格式化字符串
+ * @param args 可变参数
+ */
+template <typename... Args>
+inline void logErrorIfFailed(HRESULT hr, const String &format, Args &&...args) {
+  if (FAILED(hr)) {
+    Logger::errorln(format.c_str(), std::forward<Args>(args)...);
+  }
+}
+} // namespace __log_helper
 
 // C++11 兼容的日志宏定义
 // 使用模板函数替代直接宏展开，提供更好的类型检查
 
 #ifndef E2D_LOG
-#	ifdef E2D_DEBUG
-#		define E2D_LOG(...) ::easy2d::__log_helper::logDebug(__VA_ARGS__)
-#	else
-#		define E2D_LOG(...) ((void)0)
-#	endif
+#ifdef E2D_DEBUG
+#define E2D_LOG(...) ::easy2d::__log_helper::logDebug(__VA_ARGS__)
+#else
+#define E2D_LOG(...) ((void)0)
+#endif
 #endif
 
 #ifndef E2D_WARNING
-#	define E2D_WARNING(...) ::easy2d::__log_helper::logWarning(__VA_ARGS__)
+#define E2D_WARNING(...) ::easy2d::__log_helper::logWarning(__VA_ARGS__)
 #endif
 
 #ifndef E2D_ERROR
-#	define E2D_ERROR(...) ::easy2d::__log_helper::logError(__VA_ARGS__)
+#define E2D_ERROR(...) ::easy2d::__log_helper::logError(__VA_ARGS__)
 #endif
 
 #ifndef E2D_ERROR_IF_FAILED
-#	define E2D_ERROR_IF_FAILED(hr, ...) ::easy2d::__log_helper::logErrorIfFailed(hr, __VA_ARGS__)
+#define E2D_ERROR_IF_FAILED(hr, ...)                                           \
+  ::easy2d::__log_helper::logErrorIfFailed(hr, __VA_ARGS__)
 #endif
 
-}
+} // namespace easy2d

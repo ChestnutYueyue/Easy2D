@@ -522,7 +522,6 @@ namespace
 	ID2D1Factory* s_pDirect2dFactory = nullptr;
 	ID2D1HwndRenderTarget* s_pRenderTarget = nullptr;
 	ID2D1SolidColorBrush* s_pSolidBrush = nullptr;
-	IWICImagingFactory* s_pIWICFactory = nullptr;
 	IDWriteFactory* s_pDWriteFactory = nullptr;
 	easy2d::TextRenderer* s_pTextRenderer = nullptr;
 	ID2D1StrokeStyle* s_pMiterStrokeStyle = nullptr;
@@ -594,19 +593,6 @@ bool easy2d::Renderer::__createDeviceIndependentResources()
 			&s_pRoundStrokeStyle
 		);
 		E2D_ERROR_IF_FAILED(hr, "Create ID2D1StrokeStyle failed");
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		// 创建 WIC 绘图工厂，用于统一处理各种格式的图片
-		hr = CoCreateInstance(
-			CLSID_WICImagingFactory,
-			nullptr,
-			CLSCTX_INPROC_SERVER,
-			IID_IWICImagingFactory,
-			reinterpret_cast<void**>(&s_pIWICFactory)
-		);
-		E2D_ERROR_IF_FAILED(hr, "Create IWICImagingFactory failed");
 	}
 
 	if (SUCCEEDED(hr))
@@ -719,7 +705,6 @@ void easy2d::Renderer::__discardResources()
 	SafeRelease(s_pTextRenderer);
 	SafeRelease(s_pTextFormat);
 	SafeRelease(s_pDirect2dFactory);
-	SafeRelease(s_pIWICFactory);
 	SafeRelease(s_pDWriteFactory);
 	SafeRelease(s_pMiterStrokeStyle);
 	SafeRelease(s_pBevelStrokeStyle);
@@ -888,11 +873,6 @@ ID2D1HwndRenderTarget * easy2d::Renderer::getRenderTarget()
 ID2D1SolidColorBrush * easy2d::Renderer::getSolidColorBrush()
 {
 	return s_pSolidBrush;
-}
-
-IWICImagingFactory * easy2d::Renderer::getIWICImagingFactory()
-{
-	return s_pIWICFactory;
 }
 
 IDWriteFactory * easy2d::Renderer::getIDWriteFactory()
