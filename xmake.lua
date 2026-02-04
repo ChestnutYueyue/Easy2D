@@ -42,7 +42,7 @@ target("easy2d")
 
     add_files(path.join(EASY2D_SRC_DIR, "**.cpp"))
     -- 添加 GLEW 源文件编译
-    add_files(path.join(EASY2D_SRC_DIR, "glew.c"))
+    add_files(path.join(EASY2D_SRC_DIR, "glew/glew.c"))
 
     -- 声明头文件（用于 xmake install 安装，保留 easy2d 目录层级）
     add_headerfiles(path.join(EASY2D_INC_DIR, "easy2d/**.h"), {prefixdir = "easy2d"})
