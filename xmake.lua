@@ -6,7 +6,7 @@
 
 -- 1. 项目基础配置（全局）
 set_project("Easy2D")
-set_version("2.1.28")
+set_version("2.1.29")
 set_languages("c++17")
 set_encodings("utf-8")
 add_rules("mode.debug", "mode.release")
