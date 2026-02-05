@@ -68,7 +68,8 @@ target("easy2d")
         -- 定义 GLFW Windows 平台宏
         add_defines("_GLFW_WIN32", {public = false})
         -- 使用 public = true 确保依赖该静态库的目标也能继承这些系统库链接
-        add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "dinput8", "d2d1", "dwrite", "dxguid", "oleaut32", "uuid", "opengl32", {public = true})
+        -- 注意：已移除 dinput8 (DirectInput)，使用 GLFW 处理输入
+        add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "d2d1", "dwrite", "dxguid", "oleaut32", "uuid", "opengl32", {public = true})
     elseif is_plat("linux") then
         -- 添加 Linux 平台 GLFW 源文件（X11 后端）
         add_files(path.join(EASY2D_SRC_DIR, "glfw/linux/linux_x11/*.c"))

@@ -5,6 +5,9 @@
 #include <ostream>    // std::basic_ostream
 #include <string>
 
+// GLFW 前向声明
+struct GLFWwindow;
+
 namespace easy2d {
 class Game;
 class Canvas;
@@ -320,25 +323,25 @@ struct MouseCode {
 struct KeyCode {
   enum Value : int {
     Unknown = 0,
-    Up = VK_UP,          // 方向键 - 上
-    Left = VK_LEFT,      // 方向键 - 左
-    Right = VK_RIGHT,    // 方向键 - 右
-    Down = VK_DOWN,      // 方向键 - 下
-    Enter = VK_RETURN,   // 回车键
-    Space = VK_SPACE,    // 空格键
-    Esc = VK_ESCAPE,     // Esc 键
-    Ctrl = VK_CONTROL,   // 任意 ctrl 键
-    LCtrl = VK_LCONTROL, // 左 ctrl 键
-    RCtrl = VK_RCONTROL, // 右 ctrl 键
-    Shift = VK_SHIFT,    // 任意 shift 键
-    LShift = VK_LSHIFT,  // 左 shift 键
-    RShift = VK_RSHIFT,  // 右 shift 键
-    Alt = VK_MENU,       // 任意 alt 键
-    LAlt = VK_LMENU,     // 左 alt 键
-    RAlt = VK_RMENU,     // 右 alt 键
-    Tab = VK_TAB,        // Tab 键
-    Delete = VK_DELETE,  // 删除键
-    Back = VK_BACK,      // 退格键
+    Up = 1,          // 方向键 - 上
+    Left,            // 方向键 - 左
+    Right,           // 方向键 - 右
+    Down,            // 方向键 - 下
+    Enter,           // 回车键
+    Space,           // 空格键
+    Esc,             // Esc 键
+    Ctrl,            // 任意 ctrl 键
+    LCtrl,           // 左 ctrl 键
+    RCtrl,           // 右 ctrl 键
+    Shift,           // 任意 shift 键
+    LShift,          // 左 shift 键
+    RShift,          // 右 shift 键
+    Alt,             // 任意 alt 键
+    LAlt,            // 左 alt 键
+    RAlt,            // 右 alt 键
+    Tab,             // Tab 键
+    Delete,          // 删除键
+    Back,            // 退格键
 
     A = 0x41,
     B,
@@ -378,7 +381,7 @@ struct KeyCode {
     Num8,
     Num9,
 
-    Numpad0 = VK_NUMPAD0, // 小键盘数字键
+    Numpad0 = 0x100, // 小键盘数字键
     Numpad1,
     Numpad2,
     Numpad3,
@@ -389,7 +392,7 @@ struct KeyCode {
     Numpad8,
     Numpad9,
 
-    F1 = VK_F1,
+    F1 = 0x200,
     F2,
     F3,
     F4,

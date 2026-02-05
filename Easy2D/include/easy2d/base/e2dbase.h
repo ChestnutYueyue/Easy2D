@@ -101,8 +101,8 @@ public:
   // 获取窗口大小
   static Size getSize();
 
-  // 获取窗口句柄
-  static HWND getHWnd();
+  // 获取 GLFW 窗口句柄
+  static GLFWwindow* getGLFWwindow();
 
   // 是否允许响应输入法
   static void setTypewritingEnable(bool enable);
@@ -134,10 +134,6 @@ private:
 
   // 更新指针
   static void __updateCursor();
-
-  // Win32 窗口消息回调程序
-  static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam,
-                                  LPARAM lParam);
 };
 
 // 时间控制

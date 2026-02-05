@@ -1,6 +1,9 @@
 #include <easy2d/base/e2dbase.h>
 #include <easy2d/manager/e2dmanager.h>
 #include <easy2d/node/e2dnode.h>
+#include <GLFW/glfw3.h>
+#define GLFW_EXPOSE_NATIVE_WIN32
+#include <GLFW/glfw3native.h>
 
 // MinGW 兼容性：定义 SAL 注解宏
 #ifdef __MINGW32__
@@ -648,13 +651,29 @@ bool easy2d::Renderer::__createDeviceResources()
 		return true;
 
 	HRESULT hr = S_OK;
-	HWND hWnd = Window::getHWnd();
+	
+	// 从 GLFW 窗口获取 HWND
+	GLFWwindow* window = Window::getGLFWwindow();
+	if (!window)
+	{
+		E2D_ERROR("Window not available for renderer!");
+		return false;
+	}
+	
+	HWND hWnd = glfwGetWin32Window(window);
+	if (!hWnd)
+	{
+		E2D_ERROR("Failed to get HWND from GLFW window!");
+		return false;
+	}
 
 	HDC hdc = ::GetDC(hWnd);
 	s_fDpiScaleX = (float)::GetDeviceCaps(hdc, LOGPIXELSX);
 	s_fDpiScaleY = (float)::GetDeviceCaps(hdc, LOGPIXELSY);
 
 	// 创建设备相关资源。这些资源应在 Direct3D 设备消失时重建
+	// 使用 GetClientRect 获取窗口客户区的逻辑大小
+	// 在 DPI-aware 模式下，Direct2D 会自动处理 DPI 缩放
 	RECT rc;
 	GetClientRect(hWnd, &rc);
 
@@ -664,8 +683,16 @@ bool easy2d::Renderer::__createDeviceResources()
 	);
 
 	// 创建一个 Direct2D 渲染目标
+	// 使用 96 DPI（标准 DPI），这样渲染坐标直接对应像素坐标
+	// 这在游戏开发中是常见的做法，因为游戏通常使用像素坐标
 	hr = s_pDirect2dFactory->CreateHwndRenderTarget(
-		D2D1::RenderTargetProperties(),
+		D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
+			96.0f, 96.0f,  // 使用标准 96 DPI
+			D2D1_RENDER_TARGET_USAGE_NONE,
+			D2D1_FEATURE_LEVEL_DEFAULT
+		),
 		D2D1::HwndRenderTargetProperties(
 			hWnd,
 			size,
@@ -722,6 +749,9 @@ void easy2d::Renderer::__render()
 	s_pRenderTarget->BeginDraw();
 	// 使用背景色清空屏幕
 	s_pRenderTarget->Clear(s_nClearColor);
+	
+	// 重置变换矩阵为单位矩阵，确保从一致的坐标系开始渲染
+	s_pRenderTarget->SetTransform(D2D1::Matrix3x2F::Identity());
 
 	// 渲染场景
 	SceneManager::__render(s_bShowBodyShapes);

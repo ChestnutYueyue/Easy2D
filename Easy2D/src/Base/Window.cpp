@@ -1,13 +1,15 @@
 #include <easy2d/base/e2dbase.h>
 #include <easy2d/manager/e2dmanager.h>
 #include <easy2d/node/e2dnode.h>
-#include <Windowsx.h>
-#include <imm.h>
-#pragma comment (lib ,"imm32.lib")
+#include <GLFW/glfw3.h>
 
-// 窗口句柄
-static HWND s_HWnd = nullptr;
+// GLFW 窗口句柄
+static GLFWwindow* s_Window = nullptr;
 static easy2d::Window::Cursor s_currentCursor = easy2d::Window::Cursor::Normal;
+
+// GLFW 标准光标
+static GLFWcursor* s_pArrowCursor = nullptr;
+static GLFWcursor* s_pHandCursor = nullptr;
 
 namespace easy2d
 {
@@ -78,104 +80,287 @@ private:
 
 static easy2d::CustomCursor s_customCursor;
 
-bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
+// 窗口关闭回调
+static void window_close_callback(GLFWwindow* window)
 {
-	// 注册窗口类
-	WNDCLASSEXA wcex	= { 0 };
-	wcex.cbSize			= sizeof(WNDCLASSEX);
-	wcex.lpszClassName	= "Easy2DApp";
-	wcex.hIcon			= nullptr;
-	wcex.style			= CS_HREDRAW | CS_VREDRAW;
-	wcex.lpfnWndProc	= Window::WndProc;
-	wcex.cbClsExtra		= 0;
-	wcex.cbWndExtra		= 0;
-	wcex.hInstance		= HINST_THISCOMPONENT;
-	wcex.hbrBackground	= nullptr;
-	wcex.lpszMenuName	= nullptr;
-	wcex.hCursor		= ::LoadCursor(HINST_THISCOMPONENT, IDC_ARROW);
-
-	RegisterClassExA(&wcex);
-
-	// 计算窗口大小
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW &~ WS_MAXIMIZEBOX &~ WS_THICKFRAME;
-	RECT wr = { 0, 0, static_cast<LONG>(nWidth), static_cast<LONG>(nHeight) };
-	::AdjustWindowRectEx(&wr, dwStyle, FALSE, NULL);
-	// 获取新的宽高
-	nWidth = static_cast<int>(wr.right - wr.left);
-	nHeight = static_cast<int>(wr.bottom - wr.top);
-
-	// 获取屏幕分辨率
-	int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
-
-	// 创建窗口
-	s_HWnd = ::CreateWindowExA(
-		NULL,
-		"Easy2DApp",
-		title.c_str(),
-		dwStyle,
-		(screenWidth - nWidth) / 2, (screenHeight - nHeight) / 2, 
-		nWidth, nHeight,
-		nullptr,
-		nullptr,
-		HINST_THISCOMPONENT,
-		nullptr
-	);
-
-	HRESULT hr = s_HWnd ? S_OK : E_FAIL;
-
-	if (SUCCEEDED(hr))
+	easy2d::Scene* pCurrentScene = easy2d::SceneManager::getCurrentScene();
+	if (!pCurrentScene || pCurrentScene->onCloseWindow())
 	{
-		// 禁用输入法
-		Window::setTypewritingEnable(false);
-		// 禁用控制台关闭按钮
-		HWND consoleHWnd = ::GetConsoleWindow();
-		if (consoleHWnd)
-		{
-			HMENU hmenu = ::GetSystemMenu(consoleHWnd, FALSE);
-			::RemoveMenu(hmenu, SC_CLOSE, MF_BYCOMMAND);
-		}
+		easy2d::Game::quit();
 	}
 	else
 	{
-		::UnregisterClassA("Easy2DApp", HINST_THISCOMPONENT);
+		// 阻止窗口关闭
+		glfwSetWindowShouldClose(window, GLFW_FALSE);
 	}
+}
 
-	if (FAILED(hr))
+// 窗口大小变化回调
+static void window_size_callback(GLFWwindow* window, int width, int height)
+{
+	// 如果程序接收到窗口大小变化，这个方法将调整渲染目标
+	// 在 DPI-aware 模式下，使用窗口的逻辑大小即可
+	// Direct2D 会自动处理 DPI 缩放
+	auto pRT = easy2d::Renderer::getRenderTarget();
+	if (pRT) pRT->Resize(D2D1::SizeU(static_cast<UINT32>(width), static_cast<UINT32>(height)));
+}
+
+// 窗口内容缩放回调（当DPI变化时触发）
+static void window_content_scale_callback(GLFWwindow* window, float xscale, float yscale)
+{
+	// 当窗口移动到不同DPI的显示器时，需要重新创建设备资源
+	// Direct2D 渲染目标需要根据新的 DPI 重新创建
+	// 通过切换垂直同步状态来触发资源重建
+	bool vsync = easy2d::Renderer::isVSyncEnabled();
+	easy2d::Renderer::setVSync(!vsync);
+	easy2d::Renderer::setVSync(vsync);
+}
+
+// 键盘回调
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	using easy2d::KeyCode;
+	
+	// 将 GLFW 键码转换为 Easy2D 键码
+	KeyCode::Value vk = KeyCode::Unknown;
+	switch (key)
 	{
-		Window::error("Create Window Failed!");
+		case GLFW_KEY_SPACE: vk = KeyCode::Space; break;
+		case GLFW_KEY_APOSTROPHE: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_COMMA: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_MINUS: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_PERIOD: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_SLASH: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_0: vk = KeyCode::Num0; break;
+		case GLFW_KEY_1: vk = KeyCode::Num1; break;
+		case GLFW_KEY_2: vk = KeyCode::Num2; break;
+		case GLFW_KEY_3: vk = KeyCode::Num3; break;
+		case GLFW_KEY_4: vk = KeyCode::Num4; break;
+		case GLFW_KEY_5: vk = KeyCode::Num5; break;
+		case GLFW_KEY_6: vk = KeyCode::Num6; break;
+		case GLFW_KEY_7: vk = KeyCode::Num7; break;
+		case GLFW_KEY_8: vk = KeyCode::Num8; break;
+		case GLFW_KEY_9: vk = KeyCode::Num9; break;
+		case GLFW_KEY_SEMICOLON: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_EQUAL: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_A: vk = KeyCode::A; break;
+		case GLFW_KEY_B: vk = KeyCode::B; break;
+		case GLFW_KEY_C: vk = KeyCode::C; break;
+		case GLFW_KEY_D: vk = KeyCode::D; break;
+		case GLFW_KEY_E: vk = KeyCode::E; break;
+		case GLFW_KEY_F: vk = KeyCode::F; break;
+		case GLFW_KEY_G: vk = KeyCode::G; break;
+		case GLFW_KEY_H: vk = KeyCode::H; break;
+		case GLFW_KEY_I: vk = KeyCode::I; break;
+		case GLFW_KEY_J: vk = KeyCode::J; break;
+		case GLFW_KEY_K: vk = KeyCode::K; break;
+		case GLFW_KEY_L: vk = KeyCode::L; break;
+		case GLFW_KEY_M: vk = KeyCode::M; break;
+		case GLFW_KEY_N: vk = KeyCode::N; break;
+		case GLFW_KEY_O: vk = KeyCode::O; break;
+		case GLFW_KEY_P: vk = KeyCode::P; break;
+		case GLFW_KEY_Q: vk = KeyCode::Q; break;
+		case GLFW_KEY_R: vk = KeyCode::R; break;
+		case GLFW_KEY_S: vk = KeyCode::S; break;
+		case GLFW_KEY_T: vk = KeyCode::T; break;
+		case GLFW_KEY_U: vk = KeyCode::U; break;
+		case GLFW_KEY_V: vk = KeyCode::V; break;
+		case GLFW_KEY_W: vk = KeyCode::W; break;
+		case GLFW_KEY_X: vk = KeyCode::X; break;
+		case GLFW_KEY_Y: vk = KeyCode::Y; break;
+		case GLFW_KEY_Z: vk = KeyCode::Z; break;
+		case GLFW_KEY_LEFT_BRACKET: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_BACKSLASH: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_RIGHT_BRACKET: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_GRAVE_ACCENT: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_ESCAPE: vk = KeyCode::Esc; break;
+		case GLFW_KEY_ENTER: vk = KeyCode::Enter; break;
+		case GLFW_KEY_TAB: vk = KeyCode::Tab; break;
+		case GLFW_KEY_BACKSPACE: vk = KeyCode::Back; break;
+		case GLFW_KEY_INSERT: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_DELETE: vk = KeyCode::Delete; break;
+		case GLFW_KEY_RIGHT: vk = KeyCode::Right; break;
+		case GLFW_KEY_LEFT: vk = KeyCode::Left; break;
+		case GLFW_KEY_DOWN: vk = KeyCode::Down; break;
+		case GLFW_KEY_UP: vk = KeyCode::Up; break;
+		case GLFW_KEY_PAGE_UP: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_PAGE_DOWN: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_HOME: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_END: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_CAPS_LOCK: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_SCROLL_LOCK: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_NUM_LOCK: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_PRINT_SCREEN: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_PAUSE: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_F1: vk = KeyCode::F1; break;
+		case GLFW_KEY_F2: vk = KeyCode::F2; break;
+		case GLFW_KEY_F3: vk = KeyCode::F3; break;
+		case GLFW_KEY_F4: vk = KeyCode::F4; break;
+		case GLFW_KEY_F5: vk = KeyCode::F5; break;
+		case GLFW_KEY_F6: vk = KeyCode::F6; break;
+		case GLFW_KEY_F7: vk = KeyCode::F7; break;
+		case GLFW_KEY_F8: vk = KeyCode::F8; break;
+		case GLFW_KEY_F9: vk = KeyCode::F9; break;
+		case GLFW_KEY_F10: vk = KeyCode::F10; break;
+		case GLFW_KEY_F11: vk = KeyCode::F11; break;
+		case GLFW_KEY_F12: vk = KeyCode::F12; break;
+		case GLFW_KEY_KP_0: vk = KeyCode::Numpad0; break;
+		case GLFW_KEY_KP_1: vk = KeyCode::Numpad1; break;
+		case GLFW_KEY_KP_2: vk = KeyCode::Numpad2; break;
+		case GLFW_KEY_KP_3: vk = KeyCode::Numpad3; break;
+		case GLFW_KEY_KP_4: vk = KeyCode::Numpad4; break;
+		case GLFW_KEY_KP_5: vk = KeyCode::Numpad5; break;
+		case GLFW_KEY_KP_6: vk = KeyCode::Numpad6; break;
+		case GLFW_KEY_KP_7: vk = KeyCode::Numpad7; break;
+		case GLFW_KEY_KP_8: vk = KeyCode::Numpad8; break;
+		case GLFW_KEY_KP_9: vk = KeyCode::Numpad9; break;
+		case GLFW_KEY_LEFT_SHIFT: vk = KeyCode::LShift; break;
+		case GLFW_KEY_LEFT_CONTROL: vk = KeyCode::LCtrl; break;
+		case GLFW_KEY_LEFT_ALT: vk = KeyCode::LAlt; break;
+		case GLFW_KEY_LEFT_SUPER: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_RIGHT_SHIFT: vk = KeyCode::RShift; break;
+		case GLFW_KEY_RIGHT_CONTROL: vk = KeyCode::RCtrl; break;
+		case GLFW_KEY_RIGHT_ALT: vk = KeyCode::RAlt; break;
+		case GLFW_KEY_RIGHT_SUPER: vk = KeyCode::Unknown; break;
+		case GLFW_KEY_MENU: vk = KeyCode::Unknown; break;
+		default: vk = KeyCode::Unknown; break;
 	}
 
-	return SUCCEEDED(hr);
+	if (vk != KeyCode::Unknown)
+	{
+		if (action == GLFW_PRESS)
+		{
+			easy2d::KeyDownEvent evt(vk, scancode);
+			easy2d::SceneManager::dispatch(&evt);
+		}
+		else if (action == GLFW_RELEASE)
+		{
+			easy2d::KeyUpEvent evt(vk, scancode);
+			easy2d::SceneManager::dispatch(&evt);
+		}
+	}
+}
+
+// 鼠标按钮回调
+static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	easy2d::MouseCode::Value btn = easy2d::MouseCode::Left;
+	switch (button)
+	{
+		case GLFW_MOUSE_BUTTON_LEFT: btn = easy2d::MouseCode::Left; break;
+		case GLFW_MOUSE_BUTTON_RIGHT: btn = easy2d::MouseCode::Right; break;
+		case GLFW_MOUSE_BUTTON_MIDDLE: btn = easy2d::MouseCode::Middle; break;
+	}
+
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+
+	if (action == GLFW_PRESS)
+	{
+		easy2d::MouseDownEvent evt(static_cast<float>(xpos), static_cast<float>(ypos), btn);
+		easy2d::SceneManager::dispatch(&evt);
+	}
+	else if (action == GLFW_RELEASE)
+	{
+		easy2d::MouseUpEvent evt(static_cast<float>(xpos), static_cast<float>(ypos), btn);
+		easy2d::SceneManager::dispatch(&evt);
+	}
+}
+
+// 鼠标移动回调
+static void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
+{
+	easy2d::MouseMoveEvent evt(static_cast<float>(xpos), static_cast<float>(ypos));
+	easy2d::SceneManager::dispatch(&evt);
+}
+
+// 鼠标滚轮回调
+static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	double xpos, ypos;
+	glfwGetCursorPos(window, &xpos, &ypos);
+	easy2d::MouseWheelEvent evt(static_cast<float>(xpos), static_cast<float>(ypos), static_cast<float>(yoffset));
+	easy2d::SceneManager::dispatch(&evt);
+}
+
+bool easy2d::Window::__init(const String& title, int nWidth, int nHeight)
+{
+	// 初始化 GLFW
+	if (!glfwInit())
+	{
+		easy2d::Window::error("Failed to initialize GLFW!");
+		return false;
+	}
+
+	// 设置窗口属性
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_MAXIMIZED, GLFW_FALSE);
+	glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE); // 先不显示窗口
+
+	// 创建窗口
+	s_Window = glfwCreateWindow(nWidth, nHeight, title.c_str(), nullptr, nullptr);
+	if (!s_Window)
+	{
+		glfwTerminate();
+		easy2d::Window::error("Failed to create GLFW window!");
+		return false;
+	}
+
+	// 设置回调函数
+	glfwSetWindowCloseCallback(s_Window, window_close_callback);
+	glfwSetWindowSizeCallback(s_Window, window_size_callback);
+	glfwSetWindowContentScaleCallback(s_Window, window_content_scale_callback);
+	glfwSetKeyCallback(s_Window, key_callback);
+	glfwSetMouseButtonCallback(s_Window, mouse_button_callback);
+	glfwSetCursorPosCallback(s_Window, cursor_position_callback);
+	glfwSetScrollCallback(s_Window, scroll_callback);
+
+	// 居中窗口
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	if (monitor)
+	{
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		if (mode)
+		{
+			int xpos = (mode->width - nWidth) / 2;
+			int ypos = (mode->height - nHeight) / 2;
+			glfwSetWindowPos(s_Window, xpos, ypos);
+		}
+	}
+
+	return true;
 }
 
 void easy2d::Window::__uninit()
 {
 	s_customCursor.clear();
-	// 关闭控制台
-	if (::GetConsoleWindow())
+	
+	// 销毁标准光标
+	if (s_pArrowCursor)
 	{
-		::FreeConsole();
+		glfwDestroyCursor(s_pArrowCursor);
+		s_pArrowCursor = nullptr;
 	}
-	// 关闭窗口
-	if (s_HWnd)
+	if (s_pHandCursor)
 	{
-		::DestroyWindow(s_HWnd);
-		s_HWnd = nullptr;
+		glfwDestroyCursor(s_pHandCursor);
+		s_pHandCursor = nullptr;
 	}
-	// 注销窗口类，避免资源泄漏导致退出卡顿
-	::UnregisterClassA("Easy2DApp", HINST_THISCOMPONENT);
+	
+	// 销毁窗口
+	if (s_Window)
+	{
+		glfwDestroyWindow(s_Window);
+		s_Window = nullptr;
+	}
+	
+	// 终止 GLFW
+	glfwTerminate();
 }
 
 void easy2d::Window::__poll()
 {
-	static MSG msg;
-
-	while (::PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-	{
-		::TranslateMessage(&msg);
-		::DispatchMessage(&msg);
-	}
+	glfwPollEvents();
 }
 
 void easy2d::Window::__updateCursor()
@@ -183,45 +368,47 @@ void easy2d::Window::__updateCursor()
 	s_customCursor.update(s_currentCursor);
 	if (s_customCursor)
 	{
-		::SetCursor(NULL); // 保证不显示默认指针
+		// 使用自定义光标，隐藏系统光标
+		glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		return;
 	}
 
-	LPCWSTR pCursorName = nullptr;
+	// 确保标准光标已创建
+	if (!s_pArrowCursor)
+	{
+		s_pArrowCursor = glfwCreateStandardCursor(GLFW_ARROW_CURSOR);
+	}
+	if (!s_pHandCursor)
+	{
+		s_pHandCursor = glfwCreateStandardCursor(GLFW_POINTING_HAND_CURSOR);
+	}
+
+	// 设置系统光标
 	switch (s_currentCursor)
 	{
-	case Cursor::Normal:
-		pCursorName = IDC_ARROW;
+	case Cursor::None:
+		glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
 		break;
 
 	case Cursor::Hand:
-		pCursorName = IDC_HAND;
+		glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		if (s_pHandCursor)
+		{
+			glfwSetCursor(s_Window, s_pHandCursor);
+		}
 		break;
 
+	case Cursor::Normal:
 	case Cursor::No:
-		pCursorName = IDC_NO;
-		break;
-
 	case Cursor::Wait:
-		pCursorName = IDC_WAIT;
-		break;
-
 	case Cursor::ArrowWait:
-		pCursorName = IDC_APPSTARTING;
-		break;
-
 	default:
+		glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		if (s_pArrowCursor)
+		{
+			glfwSetCursor(s_Window, s_pArrowCursor);
+		}
 		break;
-	}
-
-	if (pCursorName)
-	{
-		HCURSOR hCursor = ::LoadCursor(nullptr, pCursorName);
-		::SetCursor(hCursor);
-	}
-	else
-	{
-		::SetCursor(NULL);
 	}
 }
 
@@ -237,61 +424,77 @@ float easy2d::Window::getHeight()
 
 easy2d::Size easy2d::Window::getSize()
 {
-	if (s_HWnd)
+	if (s_Window)
 	{
-		// 获取客户区大小
-		tagRECT rcClient;
-		::GetClientRect(s_HWnd, &rcClient);
-		return Size(float(rcClient.right - rcClient.left), float(rcClient.bottom - rcClient.top));
+		int width, height;
+		glfwGetWindowSize(s_Window, &width, &height);
+		return Size(static_cast<float>(width), static_cast<float>(height));
 	}
 	return Size();
 }
 
-HWND easy2d::Window::getHWnd()
+GLFWwindow* easy2d::Window::getGLFWwindow()
 {
-	return s_HWnd;
+	return s_Window;
 }
 
 void easy2d::Window::setSize(int width, int height)
 {
-	// 计算窗口大小
-	DWORD dwStyle = WS_OVERLAPPEDWINDOW &~ WS_MAXIMIZEBOX &~ WS_THICKFRAME;
-	RECT wr = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
-	::AdjustWindowRectEx(&wr, dwStyle, FALSE, NULL);
-	// 获取新的宽高
-	width = static_cast<int>(wr.right - wr.left);
-	height = static_cast<int>(wr.bottom - wr.top);
-	// 获取屏幕分辨率
-	int screenWidth = ::GetSystemMetrics(SM_CXSCREEN);
-	int screenHeight = ::GetSystemMetrics(SM_CYSCREEN);
-	// 当输入的窗口大小比分辨率大时，给出警告
-	if (screenWidth < width || screenHeight < height)
-		E2D_WARNING("The window is larger than screen!");
-	// 取最小值
-	width = std::min(width, screenWidth);
-	height = std::min(height, screenHeight);
-	// 修改窗口大小，并设置窗口在屏幕居中
-	::MoveWindow(s_HWnd, (screenWidth - width) / 2, (screenHeight - height) / 2, width, height, TRUE);
+	if (s_Window)
+	{
+		// 获取屏幕分辨率
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		if (monitor)
+		{
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			if (mode)
+			{
+				// 当输入的窗口大小比分辨率大时，给出警告
+				if (mode->width < width || mode->height < height)
+					E2D_WARNING("The window is larger than screen!");
+				
+				// 取最小值
+				width = std::min(width, mode->width);
+				height = std::min(height, mode->height);
+			}
+		}
+		
+		// 修改窗口大小，并设置窗口在屏幕居中
+		glfwSetWindowSize(s_Window, width, height);
+		
+		// 重新居中
+		if (monitor)
+		{
+			const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+			if (mode)
+			{
+				int xpos = (mode->width - width) / 2;
+				int ypos = (mode->height - height) / 2;
+				glfwSetWindowPos(s_Window, xpos, ypos);
+			}
+		}
+	}
 }
 
 void easy2d::Window::setTitle(const String& title)
 {
-	// 设置窗口标题
-	::SetWindowTextA(s_HWnd, title.c_str());
+	if (s_Window)
+	{
+		glfwSetWindowTitle(s_Window, title.c_str());
+	}
 }
 
 void easy2d::Window::setIcon(int iconID)
 {
-	HINSTANCE hInstance = ::GetModuleHandleA(nullptr);
-	HICON hIcon = (HICON)::LoadImageA(hInstance, MAKEINTRESOURCEA(iconID), IMAGE_ICON, 0, 0, LR_DEFAULTCOLOR | LR_CREATEDIBSECTION | LR_DEFAULTSIZE);
-	// 设置窗口的图标
-	::SendMessageA(s_HWnd, WM_SETICON, ICON_BIG, (LPARAM)hIcon);
-	::SendMessageA(s_HWnd, WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+	// GLFW 设置图标需要图像数据，这里暂时不实现
+	// 可以通过 glfwSetWindowIcon 实现
+	E2D_WARNING("Window::setIcon is not implemented for GLFW yet!");
 }
 
 void easy2d::Window::setCursor(Cursor cursor)
 {
 	s_currentCursor = cursor;
+	__updateCursor();
 }
 
 void easy2d::Window::setCustomCursor(Node* cursor)
@@ -315,229 +518,34 @@ easy2d::Node* easy2d::Window::getCustomCursor()
 
 easy2d::String easy2d::Window::getTitle()
 {
-	char wszTitle[MAX_PATH] = { 0 };
-	::GetWindowTextA(s_HWnd, wszTitle, MAX_PATH);
-	return wszTitle;
+	if (s_Window)
+	{
+		return glfwGetWindowTitle(s_Window);
+	}
+	return "";
 }
 
 void easy2d::Window::setTypewritingEnable(bool enable)
 {
-	static HIMC hImc = nullptr;
-
-	if (enable)
-	{
-		if (hImc != nullptr)
-		{
-			::ImmAssociateContext(Window::getHWnd(), hImc);
-			hImc = nullptr;
-		}
-	}
-	else
-	{
-		if (hImc == nullptr)
-		{
-			hImc = ::ImmAssociateContext(Window::getHWnd(), nullptr);
-		}
-	}
+	// GLFW 不直接支持输入法控制，暂时不实现
+	// 可以通过平台特定代码实现
 }
 
 void easy2d::Window::info(const String & text, const String & title)
 {
-	::MessageBoxA(s_HWnd, text.c_str(), title.c_str(), MB_ICONINFORMATION | MB_OK);
+	// 使用简单的控制台输出或日志
+	E2D_LOG("[INFO] %s: %s", title.c_str(), text.c_str());
 	Game::reset();
 }
 
 void easy2d::Window::warning(const String& title, const String& text)
 {
-	::MessageBoxA(s_HWnd, text.c_str(), title.c_str(), MB_ICONWARNING | MB_OK);
+	E2D_WARNING("[WARNING] %s: %s", title.c_str(), text.c_str());
 	Game::reset();
 }
 
 void easy2d::Window::error(const String & text, const String & title)
 {
-	::MessageBoxA(s_HWnd, text.c_str(), title.c_str(), MB_ICONERROR | MB_OK);
+	E2D_ERROR("[ERROR] %s: %s", title.c_str(), text.c_str());
 	Game::reset();
-}
-
-easy2d::KeyCode::Value GetMappedKeyCode(WPARAM wParam, LPARAM lParam)
-{
-	using easy2d::KeyCode;
-	KeyCode::Value vk = KeyCode::Value(wParam);
-	bool extended = (HIWORD(lParam) & KF_EXTENDED) == KF_EXTENDED;
-	BYTE scancode = LOBYTE(HIWORD(lParam));
-
-	switch (vk) {
-	case VK_SHIFT:
-		vk = KeyCode::Value(MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX));
-		break;
-	case VK_CONTROL:
-		vk = extended ? KeyCode::RCtrl : KeyCode::LCtrl;
-		break;
-	case VK_MENU:
-		vk = extended ? KeyCode::RAlt : KeyCode::LAlt;
-		break;
-	default:
-		// not a key we map from generic to left/right specialized
-		//  just return it.
-		break;
-	}
-	return vk;
-}
-
-LRESULT easy2d::Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-{
-	LRESULT result = 0;
-	bool hasHandled = false;
-
-	switch (message)
-	{
-
-	case WM_KEYDOWN:
-	case WM_SYSKEYDOWN:
-	{
-		KeyCode::Value vk = KeyCode::Value(wParam);
-		KeyDownEvent evt(vk, int(lParam & 0xFF));
-		SceneManager::dispatch(&evt);
-
-		KeyCode::Value newVk = GetMappedKeyCode(wParam, lParam);
-		if (vk != newVk)
-		{
-			KeyDownEvent evt(newVk, int(lParam & 0xFF));
-			SceneManager::dispatch(&evt);
-		}
-	}
-	break;
-
-	case WM_KEYUP:
-	case WM_SYSKEYUP:
-	{
-		KeyCode::Value vk = KeyCode::Value(wParam);
-		KeyUpEvent evt(vk, int(lParam & 0xFF));
-		SceneManager::dispatch(&evt);
-
-		KeyCode::Value newVk = GetMappedKeyCode(wParam, lParam);
-		if (vk != newVk)
-		{
-			KeyUpEvent evt(newVk, int(lParam & 0xFF));
-			SceneManager::dispatch(&evt);
-		}
-	}
-	break;
-
-	case WM_LBUTTONUP:
-	case WM_MBUTTONUP:
-	case WM_RBUTTONUP:
-	{
-		MouseCode::Value btn = MouseCode::Left;
-		if (message == WM_LBUTTONUP) { btn = MouseCode::Left; }
-		else if (message == WM_RBUTTONUP) { btn = MouseCode::Right; }
-		else if (message == WM_MBUTTONUP) { btn = MouseCode::Middle; }
-
-		MouseUpEvent evt(
-			static_cast<float>(GET_X_LPARAM(lParam)),
-			static_cast<float>(GET_Y_LPARAM(lParam)),
-			btn
-		);
-		SceneManager::dispatch(&evt);
-	}
-	break;
-
-	case WM_LBUTTONDOWN:
-	case WM_MBUTTONDOWN:
-	case WM_RBUTTONDOWN:
-	{
-		MouseCode::Value btn = MouseCode::Left;
-		if (message == WM_LBUTTONDOWN) { btn = MouseCode::Left; }
-		else if (message == WM_RBUTTONDOWN) { btn = MouseCode::Right; }
-		else if (message == WM_MBUTTONDOWN) { btn = MouseCode::Middle; }
-
-		MouseDownEvent evt(
-			static_cast<float>(GET_X_LPARAM(lParam)),
-			static_cast<float>(GET_Y_LPARAM(lParam)),
-			btn
-		);
-		SceneManager::dispatch(&evt);
-	}
-	break;
-
-	case WM_MOUSEMOVE:
-	{
-		MouseMoveEvent evt(
-			static_cast<float>(GET_X_LPARAM(lParam)),
-			static_cast<float>(GET_Y_LPARAM(lParam))
-		);
-		SceneManager::dispatch(&evt);
-	}
-	break;
-
-	case WM_MOUSEWHEEL:
-	{
-		MouseWheelEvent evt(
-			static_cast<float>(GET_X_LPARAM(lParam)),
-			static_cast<float>(GET_Y_LPARAM(lParam)),
-			GET_WHEEL_DELTA_WPARAM(wParam) / (float)WHEEL_DELTA
-		);
-		SceneManager::dispatch(&evt);
-	}
-	break;
-
-	// 处理窗口大小变化消息
-	case WM_SIZE:
-	{
-		UINT width = LOWORD(lParam);
-		UINT height = HIWORD(lParam);
-		// 如果程序接收到一个 WM_SIZE 消息，这个方法将调整渲染
-		// 目标适当。它可能会调用失败，但是这里可以忽略有可能的
-		// 错误，因为这个错误将在下一次调用 EndDraw 时产生
-		auto pRT = Renderer::getRenderTarget();
-		if (pRT) pRT->Resize(D2D1::SizeU(width, height));
-	}
-	break;
-
-	// 处理分辨率变化消息
-	case WM_DISPLAYCHANGE:
-	{
-		// 重绘客户区
-		InvalidateRect(hWnd, nullptr, FALSE);
-	}
-	result = 0;
-	hasHandled = true;
-	break;
-
-	case WM_SETCURSOR:
-	{
-		Window::__updateCursor();
-	}
-	break;
-
-	// 窗口关闭消息
-	case WM_CLOSE:
-	{
-		easy2d::Scene * pCurrentScene = easy2d::SceneManager::getCurrentScene();
-		if (!pCurrentScene || pCurrentScene->onCloseWindow())
-		{
-			easy2d::Game::quit();
-		}
-	}
-	result = 0;
-	hasHandled = true;
-	break;
-
-	// 窗口销毁消息
-	case WM_DESTROY:
-	{
-		PostQuitMessage(0);
-	}
-	result = 1;
-	hasHandled = true;
-	break;
-
-	}
-
-	if (!hasHandled)
-	{
-		result = DefWindowProcA(hWnd, message, wParam, lParam);
-	}
-
-	return result;
 }

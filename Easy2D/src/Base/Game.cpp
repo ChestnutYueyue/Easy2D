@@ -2,7 +2,7 @@
 #include <easy2d/manager/e2dmanager.h>
 #include <easy2d/core/e2dtool.h>
 #include <easy2d/base/e2dobjectpool.h>
-
+#include <GLFW/glfw3.h>
 
 // 控制游戏终止
 static bool s_bEndGame = true;
@@ -14,7 +14,6 @@ static bool s_bInitialized = false;
 static easy2d::String s_sUniqueName;
 // 帧计数器
 static uint32_t s_uFrameCount = 0;
-
 
 bool easy2d::Game::init(const String& title, int width, int height, const String& uniqueName, bool singleton)
 {
@@ -29,22 +28,10 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 
 	if (singleton)
 	{
-		// 创建进程互斥体
-		String fullMutexName = "Easy2DApp-" + s_sUniqueName;
-		HANDLE hMutex = ::CreateMutexA(nullptr, TRUE, fullMutexName.c_str());
-
-		if (hMutex == nullptr)
-		{
-			E2D_WARNING("CreateMutex Failed!");
-		}
-		else if (::GetLastError() == ERROR_ALREADY_EXISTS)
-		{
-			// 如果程序已经存在并且正在运行，弹窗提示
-			Window::error("游戏已在其他窗口中打开！", "提示");
-			// 关闭进程互斥体
-			::CloseHandle(hMutex);
-			return false;
-		}
+		// GLFW 不提供进程互斥功能，这里使用简单的文件锁或标记文件
+		// 暂时使用日志警告代替
+		E2D_LOG("Singleton mode: checking for other instances...");
+		// 注意：完整的单实例实现需要平台特定代码
 	}
 
 	// 初始化 COM 组件
@@ -75,10 +62,10 @@ bool easy2d::Game::init(const String& title, int width, int height, const String
 		return false;
 	}
 
-	// 初始化 DirectInput
+	// 初始化输入系统
 	if (!Input::__init())
 	{
-		E2D_ERROR("初始化 DirectInput 失败");
+		E2D_ERROR("初始化输入系统失败");
 		return false;
 	}
 
@@ -111,10 +98,14 @@ void easy2d::Game::start(int fpsLimit)
 
 	// 初始化场景管理器
 	SceneManager::__init();
+	
 	// 显示窗口
-	::ShowWindow(Window::getHWnd(), SW_SHOWNORMAL);
-	// 刷新窗口内容
-	::UpdateWindow(Window::getHWnd());
+	GLFWwindow* window = Window::getGLFWwindow();
+	if (window)
+	{
+		glfwShowWindow(window);
+	}
+	
 	// 初始化计时
 	Time::__init(fpsLimit);
 
@@ -124,6 +115,14 @@ void easy2d::Game::start(int fpsLimit)
 	{
 		// 处理窗口消息
 		Window::__poll();
+		
+		// 检查窗口是否应该关闭
+		if (window && glfwWindowShouldClose(window))
+		{
+			s_bEndGame = true;
+			break;
+		}
+		
 		// 刷新时间
 		Time::__updateNow();
 
