@@ -65,6 +65,8 @@ target("easy2d")
         -- 添加 GLFW 头文件路径（common 和 windows 目录）
         add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/common"), {public = false})
         add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/windows"), {public = false})
+        -- 定义 GLFW Windows 平台宏
+        add_defines("_GLFW_WIN32", {public = false})
         -- 使用 public = true 确保依赖该静态库的目标也能继承这些系统库链接
         add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "dinput8", "d2d1", "dwrite", "dxguid", "oleaut32", "uuid", "opengl32", {public = true})
     elseif is_plat("linux") then
