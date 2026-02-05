@@ -1,7 +1,7 @@
-#include <easy2d/e2dmanager.h>
-#include <easy2d/e2daction.h>
-#include <easy2d/e2dnode.h>
-#include <easy2d/e2dobjectpool.h>
+#include <easy2d/manager/e2dmanager.h>
+#include <easy2d/action/e2daction.h>
+#include <easy2d/node/e2dnode.h>
+#include <easy2d/base/e2dobjectpool.h>
 #include <algorithm>
 
 static std::vector<easy2d::Action*> s_vActions;

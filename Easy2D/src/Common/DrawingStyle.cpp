@@ -1,4 +1,4 @@
-#include <easy2d/e2dcommon.h>
+#include <easy2d/core/e2dcommon.h>
 
 easy2d::DrawingStyle::DrawingStyle(Mode mode, Color fillColor, Color strokeColor, float strokeWidth, LineJoin lineJoin)
 	: mode(mode)

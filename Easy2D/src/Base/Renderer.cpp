@@ -1,6 +1,6 @@
-#include <easy2d/e2dbase.h>
-#include <easy2d/e2dmanager.h>
-#include <easy2d/e2dnode.h>
+#include <easy2d/base/e2dbase.h>
+#include <easy2d/manager/e2dmanager.h>
+#include <easy2d/node/e2dnode.h>
 
 // MinGW 兼容性：定义 SAL 注解宏
 #ifdef __MINGW32__

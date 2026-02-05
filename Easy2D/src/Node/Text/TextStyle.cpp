@@ -1,4 +1,4 @@
-#include <easy2d/e2dtext.h>
+#include <easy2d/node/e2dtext.h>
 
 easy2d::TextStyle::TextStyle(
 	Font font,

@@ -1,6 +1,6 @@
 #pragma once
 #include <cmath>
-#include <easy2d/e2dmacros.h>
+#include <easy2d/config/e2dmacros.h>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
 #include <glm/vec3.hpp>

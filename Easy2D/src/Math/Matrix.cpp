@@ -1,4 +1,4 @@
-#include <easy2d/e2dmath.h>
+#include <easy2d/math/e2dmath.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <cmath>
 

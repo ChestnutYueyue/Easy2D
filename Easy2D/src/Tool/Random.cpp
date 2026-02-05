@@ -1,4 +1,4 @@
-#include <easy2d/e2dtool.h>
+#include <easy2d/core/e2dtool.h>
 
 std::default_random_engine &easy2d::Random::__getEngine()
 {

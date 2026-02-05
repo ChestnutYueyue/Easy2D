@@ -1,4 +1,4 @@
-#include <easy2d/e2dnode.h>
+#include <easy2d/node/e2dnode.h>
 
 easy2d::Text::Text()
 	: Text(gcnew TextLayout())

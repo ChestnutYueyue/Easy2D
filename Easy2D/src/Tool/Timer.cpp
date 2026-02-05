@@ -1,6 +1,6 @@
-#include <easy2d/e2dtool.h>
-#include <easy2d/e2dnode.h>
-#include <easy2d/e2dobjectpool.h>
+#include <easy2d/core/e2dtool.h>
+#include <easy2d/node/e2dnode.h>
+#include <easy2d/base/e2dobjectpool.h>
 #include <atomic>
 #include <map>
 

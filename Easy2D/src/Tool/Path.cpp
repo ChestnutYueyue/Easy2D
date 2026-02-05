@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <easy2d/e2dtool.h>
+#include <easy2d/core/e2dtool.h>
 #include <filesystem> // C++17 filesystem
 #include <list>
 #include <path/portable-file-dialogs.h>

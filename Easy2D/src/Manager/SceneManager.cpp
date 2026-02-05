@@ -1,8 +1,8 @@
-#include <easy2d/e2dmanager.h>
-#include <easy2d/e2dbase.h>
-#include <easy2d/e2dnode.h>
-#include <easy2d/e2dtransition.h>
-#include <easy2d/e2dlistener.h>
+#include <easy2d/manager/e2dmanager.h>
+#include <easy2d/base/e2dbase.h>
+#include <easy2d/node/e2dnode.h>
+#include <easy2d/transition/e2dtransition.h>
+#include <easy2d/node/e2dlistener.h>
 #include <list>
 
 static bool s_bSaveCurrScene = true;

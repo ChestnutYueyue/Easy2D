@@ -1,6 +1,6 @@
-#include <easy2d/e2daction.h>
-#include <easy2d/e2dmanager.h>
-#include <easy2d/e2dnode.h>
+#include <easy2d/action/e2daction.h>
+#include <easy2d/manager/e2dmanager.h>
+#include <easy2d/node/e2dnode.h>
 
 easy2d::Action::Action() 
 	: _running(false)

@@ -1,5 +1,5 @@
 #pragma once
-#include <easy2d/e2dbase.h>
+#include <easy2d/base/e2dbase.h>
 #include <type_traits>
 
 namespace easy2d

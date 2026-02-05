@@ -1,4 +1,4 @@
-#include <easy2d/e2dcommon.h>
+#include <easy2d/core/e2dcommon.h>
 
 easy2d::Rect::Rect(void)
 {

@@ -1,6 +1,6 @@
 #pragma once
-#include <easy2d/e2dmacros.h>
-#include <easy2d/e2dcommon.h>
+#include <easy2d/config/e2dmacros.h>
+#include <easy2d/core/e2dcommon.h>
 #include <stack>
 #include <vector>
 

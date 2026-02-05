@@ -1,7 +1,7 @@
 #pragma once
-#include <easy2d/e2dbase.h>
-#include <easy2d/e2dcommon.h>
-#include <easy2d/e2dobjectpool.h>
+#include <easy2d/base/e2dbase.h>
+#include <easy2d/core/e2dcommon.h>
+#include <easy2d/base/e2dobjectpool.h>
 #include <vector>
 
 namespace easy2d {

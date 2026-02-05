@@ -1,5 +1,5 @@
-#include <easy2d/e2dtext.h>
-#include <easy2d/e2dbase.h>
+#include <easy2d/node/e2dtext.h>
+#include <easy2d/base/e2dbase.h>
 
 easy2d::TextLayout::TextLayout()
 	: _textFormat(nullptr)

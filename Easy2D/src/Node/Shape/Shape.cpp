@@ -1,4 +1,4 @@
-#include <easy2d/e2dshape.h>
+#include <easy2d/node/e2dshape.h>
 
 easy2d::Shape::LineType easy2d::Shape::Line;
 easy2d::Shape::RectType easy2d::Shape::Rect;

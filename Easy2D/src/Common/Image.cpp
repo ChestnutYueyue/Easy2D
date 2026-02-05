@@ -1,6 +1,6 @@
-#include <easy2d/e2dbase.h>
-#include <easy2d/e2dcommon.h>
-#include <easy2d/e2dtool.h>
+#include <easy2d/base/e2dbase.h>
+#include <easy2d/core/e2dcommon.h>
+#include <easy2d/core/e2dtool.h>
 #include <unordered_map>
 #include <vector>
 

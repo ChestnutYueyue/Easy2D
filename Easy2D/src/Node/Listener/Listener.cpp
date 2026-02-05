@@ -1,5 +1,5 @@
-#include <easy2d/e2dlistener.h>
-#include <easy2d/e2dbase.h>
+#include <easy2d/node/e2dlistener.h>
+#include <easy2d/base/e2dbase.h>
 
 easy2d::ListenerBase::ListenerBase()
 	: _running(true)

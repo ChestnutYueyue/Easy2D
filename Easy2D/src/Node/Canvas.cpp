@@ -1,4 +1,4 @@
-#include <easy2d/e2dcanvas.h>
+#include <easy2d/node/e2dcanvas.h>
 
 easy2d::Canvas::Canvas(const Size &size)
     : _rt(nullptr), _state(nullptr), _outputImage(nullptr), _size(size) {}

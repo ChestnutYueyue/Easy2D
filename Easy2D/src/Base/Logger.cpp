@@ -1,4 +1,4 @@
-#include <easy2d/e2dbase.h>
+#include <easy2d/base/e2dbase.h>
 #include <spdlog/sinks/ostream_sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>

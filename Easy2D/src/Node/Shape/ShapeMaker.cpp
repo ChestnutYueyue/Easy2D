@@ -1,4 +1,4 @@
-#include <easy2d/e2dshape.h>
+#include <easy2d/node/e2dshape.h>
 
 easy2d::ShapeMaker::~ShapeMaker()
 {

@@ -1,5 +1,5 @@
-#include <easy2d/e2daction.h>
-#include <easy2d/e2dmanager.h>
+#include <easy2d/action/e2daction.h>
+#include <easy2d/manager/e2dmanager.h>
 
 easy2d::Loop::Loop(Action * action, int times /* = -1 */)
 	: _action(action)

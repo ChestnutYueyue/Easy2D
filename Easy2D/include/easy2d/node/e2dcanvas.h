@@ -1,8 +1,8 @@
 #pragma once
-#include <easy2d/e2dcommon.h>
-#include <easy2d/e2dtext.h>
-#include <easy2d/e2dshape.h>
-#include <easy2d/e2daction.h>
+#include <easy2d/core/e2dcommon.h>
+#include <easy2d/node/e2dtext.h>
+#include <easy2d/node/e2dshape.h>
+#include <easy2d/action/e2daction.h>
 
 namespace easy2d
 {

@@ -1,5 +1,5 @@
-#include <easy2d/e2daction.h>
-#include <easy2d/e2dnode.h>
+#include <easy2d/action/e2daction.h>
+#include <easy2d/node/e2dnode.h>
 
 
 easy2d::MoveBy::MoveBy(float duration, Vector2 vector)

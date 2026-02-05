@@ -1,5 +1,5 @@
-#include <easy2d/e2dbase.h>
-#include <easy2d/e2dmanager.h>
+#include <easy2d/base/e2dbase.h>
+#include <easy2d/manager/e2dmanager.h>
 #include <unordered_map>
 
 

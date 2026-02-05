@@ -1,4 +1,4 @@
-#include <easy2d/e2daction.h>
+#include <easy2d/action/e2daction.h>
 
 easy2d::FiniteTimeAction::FiniteTimeAction(float duration)
 	: _delta(0)
