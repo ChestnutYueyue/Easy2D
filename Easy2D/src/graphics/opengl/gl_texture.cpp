@@ -111,4 +111,26 @@ void GLTexture::generateAlphaMask() {
     E2D_LOG_DEBUG("Generated alpha mask for texture: {}x{}", width_, height_);
 }
 
+PixelFormat GLTexture::getFormat() const {
+    switch (channels_) {
+        case 1: return PixelFormat::R8;
+        case 2: return PixelFormat::RG8;
+        case 3: return PixelFormat::RGB8;
+        case 4: return PixelFormat::RGBA8;
+        default: return PixelFormat::RGBA8;
+    }
+}
+
+Ptr<Texture> GLTexture::create(int width, int height, PixelFormat format) {
+    int channels = 4;
+    switch (format) {
+        case PixelFormat::R8: channels = 1; break;
+        case PixelFormat::RG8: channels = 2; break;
+        case PixelFormat::RGB8: channels = 3; break;
+        case PixelFormat::RGBA8: channels = 4; break;
+        default: channels = 4; break;
+    }
+    return makePtr<GLTexture>(width, height, nullptr, channels);
+}
+
 } // namespace easy2d

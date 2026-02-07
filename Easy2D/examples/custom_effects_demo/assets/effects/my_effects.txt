@@ -1,0 +1,160 @@
+# Easy2D 自定义特效配置文件
+# 格式说明：
+#   EFFECT <名称> <类型>     - 定义新特效，类型可以是 Particle 或 PostProcess
+#   DESC <描述>              - 特效描述
+#   DURATION <持续时间>      - 持续时间(秒)，-1表示无限循环
+#   LOOP <true/false>        - 是否循环播放
+#   EMISSION <每秒发射数>    - 粒子发射速率
+#   LIFE <最小值> <最大值>   - 粒子生命周期(秒)
+#   SIZE_START <最小值> <最大值> - 粒子初始大小
+#   SIZE_END <最小值> <最大值>   - 粒子结束大小
+#   VELOCITY <x1> <y1> <x2> <y2> - 速度范围
+#   ACCEL <x> <y>            - 加速度
+#   COLOR_START <r> <g> <b> <a>  - 初始颜色(0-1)
+#   COLOR_END <r> <g> <b> <a>    - 结束颜色(0-1)
+#   BLEND <Normal/Additive/Multiply> - 混合模式
+#   END                      - 特效定义结束
+
+# ============================================
+# 自定义火焰特效 - 适合篝火、火把等
+# ============================================
+EFFECT MyFire Particle
+DESC 自定义火焰效果，橙红色调，向上飘动
+DURATION -1
+LOOP true
+EMISSION 150
+LIFE 0.5 1.5
+SIZE_START 15 35
+SIZE_END 5 10
+VELOCITY -40 -120 40 -60
+ACCEL 0 0
+COLOR_START 1.0 0.9 0.2 1.0
+COLOR_END 1.0 0.2 0.0 0.0
+BLEND Additive
+END
+
+# ============================================
+# 自定义烟雾特效 - 适合火灾、蒸汽等
+# ============================================
+EFFECT MySmoke Particle
+DESC 自定义烟雾效果，灰色，缓慢上升扩散
+DURATION -1
+LOOP true
+EMISSION 50
+LIFE 2.0 4.0
+SIZE_START 20 40
+SIZE_END 60 100
+VELOCITY -20 -40 20 -10
+ACCEL 0 0
+COLOR_START 0.5 0.5 0.5 0.6
+COLOR_END 0.3 0.3 0.3 0.0
+BLEND Normal
+END
+
+# ============================================
+# 自定义爆炸特效 - 适合技能、碰撞等
+# ============================================
+EFFECT MyExplosion Particle
+DESC 自定义爆炸效果，瞬间爆发，向外扩散
+DURATION 0.5
+LOOP false
+EMISSION 500
+LIFE 0.3 0.8
+SIZE_START 10 20
+SIZE_END 40 80
+VELOCITY -200 -200 200 200
+ACCEL 0 0
+COLOR_START 1.0 0.8 0.0 1.0
+COLOR_END 0.8 0.0 0.0 0.0
+BLEND Additive
+END
+
+# ============================================
+# 自定义魔法特效 - 适合技能、传送门等
+# ============================================
+EFFECT MyMagic Particle
+DESC 自定义魔法效果，紫色粒子，螺旋上升
+DURATION -1
+LOOP true
+EMISSION 80
+LIFE 1.0 2.0
+SIZE_START 5 15
+SIZE_END 2 5
+VELOCITY -30 -80 30 -40
+ACCEL 0 0
+COLOR_START 0.8 0.2 1.0 1.0
+COLOR_END 0.2 0.0 0.8 0.0
+BLEND Additive
+END
+
+# ============================================
+# 自定义雨滴特效 - 适合雨天场景
+# ============================================
+EFFECT MyRain Particle
+DESC 自定义雨滴效果，蓝色，从上往下落
+DURATION -1
+LOOP true
+EMISSION 300
+LIFE 0.5 1.0
+SIZE_START 2 4
+SIZE_END 2 4
+VELOCITY -10 400 10 600
+ACCEL 0 100
+COLOR_START 0.6 0.7 0.9 0.8
+COLOR_END 0.6 0.7 0.9 0.4
+BLEND Normal
+END
+
+# ============================================
+# 自定义雪花特效 - 适合冬季场景
+# ============================================
+EFFECT MySnow Particle
+DESC 自定义雪花效果，白色，缓慢飘落
+DURATION -1
+LOOP true
+EMISSION 100
+LIFE 3.0 6.0
+SIZE_START 5 10
+SIZE_END 5 10
+VELOCITY -30 30 30 80
+ACCEL 0 0
+COLOR_START 1.0 1.0 1.0 0.9
+COLOR_END 1.0 1.0 1.0 0.5
+BLEND Normal
+END
+
+# ============================================
+# 自定义星光特效 - 适合装饰、奖励等
+# ============================================
+EFFECT MySparkle Particle
+DESC 自定义星光效果，金黄色闪烁
+DURATION -1
+LOOP true
+EMISSION 30
+LIFE 0.5 1.5
+SIZE_START 3 8
+SIZE_END 0 2
+VELOCITY -20 -20 20 20
+ACCEL 0 -20
+COLOR_START 1.0 1.0 0.5 1.0
+COLOR_END 1.0 0.5 0.0 0.0
+BLEND Additive
+END
+
+# ============================================
+# 自定义泡泡特效 - 适合水下场景
+# ============================================
+EFFECT MyBubbles Particle
+DESC 自定义泡泡效果，透明圆形，向上飘
+DURATION -1
+LOOP true
+EMISSION 40
+LIFE 2.0 5.0
+SIZE_START 5 15
+SIZE_END 8 20
+VELOCITY -10 -30 10 -60
+ACCEL 0 0
+COLOR_START 0.8 0.9 1.0 0.6
+COLOR_END 0.9 0.95 1.0 0.2
+BLEND Normal
+END

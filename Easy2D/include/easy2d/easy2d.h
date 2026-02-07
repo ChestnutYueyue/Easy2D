@@ -18,6 +18,9 @@
 #include <easy2d/graphics/texture.h>
 #include <easy2d/graphics/font.h>
 #include <easy2d/graphics/camera.h>
+#include <easy2d/graphics/shader_system.h>
+#include <easy2d/graphics/texture_pool.h>
+#include <easy2d/graphics/render_target.h>
 
 // Scene
 #include <easy2d/scene/node.h>
@@ -61,6 +64,11 @@
 #include <easy2d/spatial/quadtree.h>
 #include <easy2d/spatial/spatial_hash.h>
 #include <easy2d/spatial/spatial_manager.h>
+
+// Effects
+#include <easy2d/effects/post_process.h>
+#include <easy2d/effects/particle_system.h>
+#include <easy2d/effects/custom_effect_manager.h>
 
 // Application
 #include <easy2d/app/application.h>

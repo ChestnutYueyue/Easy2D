@@ -66,6 +66,19 @@ private:
 #define E2D_LOG_ERROR(...) ::easy2d::Logger::getCoreLogger()->error(__VA_ARGS__)
 #define E2D_LOG_FATAL(...) ::easy2d::Logger::getCoreLogger()->critical(__VA_ARGS__)
 
+// 简化的日志宏
+#define E2D_INFO(...)  E2D_LOG_INFO(__VA_ARGS__)
+#define E2D_WARN(...)  E2D_LOG_WARN(__VA_ARGS__)
+#define E2D_ERROR(...) E2D_LOG_ERROR(__VA_ARGS__)
+#define E2D_FATAL(...) E2D_LOG_FATAL(__VA_ARGS__)
+#ifdef E2D_DEBUG
+    #define E2D_DEBUG_LOG(...) E2D_LOG_DEBUG(__VA_ARGS__)
+    #define E2D_TRACE(...)     E2D_LOG_TRACE(__VA_ARGS__)
+#else
+    #define E2D_DEBUG_LOG(...)
+    #define E2D_TRACE(...)
+#endif
+
 // ============================================================================
 // 内联实现
 // ============================================================================

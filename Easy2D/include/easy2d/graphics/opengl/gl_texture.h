@@ -21,10 +21,14 @@ public:
     int getHeight() const override { return height_; }
     Size getSize() const override { return Size(static_cast<float>(width_), static_cast<float>(height_)); }
     int getChannels() const override { return channels_; }
+    PixelFormat getFormat() const override;
     void* getNativeHandle() const override { return reinterpret_cast<void*>(static_cast<uintptr_t>(textureID_)); }
     bool isValid() const override { return textureID_ != 0; }
     void setFilter(bool linear) override;
     void setWrap(bool repeat) override;
+
+    // 从参数创建纹理的工厂方法
+    static Ptr<Texture> create(int width, int height, PixelFormat format);
 
     // OpenGL 特定
     GLuint getTextureID() const { return textureID_; }

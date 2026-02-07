@@ -183,3 +183,84 @@ target("push_box")
         end
     end)
 target_end()
+
+-- ==============================================
+-- 5. 特效系统演示示例
+-- ==============================================
+target("effects_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/effects_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+target_end()
+
+-- ==============================================
+-- 6. 自定义特效系统演示示例
+-- ==============================================
+target("custom_effects_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/custom_effects_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+    -- 复制资源文件到输出目录
+    after_build(function (target)
+        local srcdir = "Easy2D/assets"
+        local dstdir = path.join(target:targetdir(), "assets")
+        if os.isdir(srcdir) then
+            if not os.isdir(dstdir) then
+                os.mkdir(dstdir)
+            end
+            os.cp(srcdir .. "/*", dstdir)
+        end
+    end)
+target_end()
+
+-- ==============================================
+-- 7. Shader LoadFromSource 示例
+-- ==============================================
+target("shader_loadfromsource_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/shader_loadfromsource_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+target_end()
+
+-- ==============================================
+-- 8. 酷炫特效演示
+-- ==============================================
+target("cool_effects_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/cool_effects_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+target_end()
+
+-- ==============================================
+-- 9. 高级图形功能演示
+-- ==============================================
+target("advanced_graphics_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/advanced_graphics_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+target_end()
+
+-- ==============================================
+-- 10. 纹理池特效合成演示
+-- ==============================================
+target("texture_effect_composition_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/texture_effect_composition_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+target_end()
+
+-- ==============================================
+-- 11. 精灵动画与特效合成演示
+-- ==============================================
+target("sprite_animation_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/sprite_animation_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+target_end()

@@ -51,6 +51,43 @@ struct Color {
     bool operator!=(const Color& other) const {
         return !(*this == other);
     }
+
+    // 算术运算符
+    Color operator+(const Color& other) const {
+        return Color(r + other.r, g + other.g, b + other.b, a + other.a);
+    }
+
+    Color operator-(const Color& other) const {
+        return Color(r - other.r, g - other.g, b - other.b, a - other.a);
+    }
+
+    Color operator*(float scalar) const {
+        return Color(r * scalar, g * scalar, b * scalar, a * scalar);
+    }
+
+    Color operator/(float scalar) const {
+        return Color(r / scalar, g / scalar, b / scalar, a / scalar);
+    }
+
+    Color& operator+=(const Color& other) {
+        r += other.r; g += other.g; b += other.b; a += other.a;
+        return *this;
+    }
+
+    Color& operator-=(const Color& other) {
+        r -= other.r; g -= other.g; b -= other.b; a -= other.a;
+        return *this;
+    }
+
+    Color& operator*=(float scalar) {
+        r *= scalar; g *= scalar; b *= scalar; a *= scalar;
+        return *this;
+    }
+
+    Color& operator/=(float scalar) {
+        r /= scalar; g /= scalar; b /= scalar; a /= scalar;
+        return *this;
+    }
 };
 
 // 命名颜色常量
