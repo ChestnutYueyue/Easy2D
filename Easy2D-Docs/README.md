@@ -16,6 +16,9 @@
 | 08 | [Shader-System.md](08-Shader-System.md) | Shader系统（自定义Shader、预设效果） |
 | 09 | [Custom-Effects.md](09-Custom-Effects.md) | 自定义特效系统（粒子特效） |
 | 10 | [Complete-Tutorial.md](10-Complete-Tutorial.md) | 完整游戏开发教程（推箱子示例） |
+| 11 | [Camera-System.md](11-Camera-System.md) | 相机系统（正交相机、跟随、边界限制） |
+| 12 | [Anchor-System.md](12-Anchor-System.md) | 锚点系统（变换基准点、最佳实践） |
+| 13 | [Button-System.md](13-Button-System.md) | 按钮系统（Button、ToggleImageButton） |
 
 ## 快速开始
 
@@ -105,8 +108,8 @@ onEnter() -> [onUpdate() -> onRender()]循环 -> onExit()
 
 ## 学习路径建议
 
-1. **新手入门**: 01 -> 02 -> 03 -> 04 -> 05
-2. **进阶开发**: 06 -> 07 -> 08 -> 09
+1. **新手入门**: 01 -> 02 -> 03 -> 04 -> 05 -> 12
+2. **进阶开发**: 06 -> 07 -> 08 -> 09 -> 11
 3. **完整项目**: 10
 
 ## 更多资源

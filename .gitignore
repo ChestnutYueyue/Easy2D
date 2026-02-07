@@ -9,4 +9,6 @@ Release/
 docs/
 build/
 logs/
+de/
+.claude/
 *.json
