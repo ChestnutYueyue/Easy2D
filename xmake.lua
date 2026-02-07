@@ -1,246 +1,181 @@
 -- ==============================================
--- Easy2D 静态库 Xmake 构建脚本（Debug 库名加 d 后缀版）
--- 功能：Debug 版生成 libeasy2dd.lib/a，Release 版生成 libeasy2d.lib/a，完善调试体验
--- 优化：MinGW 平台自动去掉 lib 前缀，避免生成 liblibeasy2d.a 重复前缀
+-- Easy2D v3.0 Xmake 构建脚本
+-- 功能：构建 Easy2D 静态库和示例程序
 -- ==============================================
 
--- 1. 项目基础配置（全局）
 set_project("Easy2D")
-set_version("2.1.29")
+set_version("3.0.0")
 set_languages("c++17")
 set_encodings("utf-8")
 add_rules("mode.debug", "mode.release")
 
--- 定义项目根目录下的核心路径（避免硬编码，提升可维护性）
-local EASY2D_SRC_DIR = "Easy2D/src"
-local EASY2D_INC_DIR = "Easy2D/include"
+-- 核心路径定义
+local SRC_DIR = "Easy2D/src"
+local INC_DIR = "Easy2D/include"
 
 -- ==============================================
--- 2. 目标静态库配置（核心）
+-- 1. Easy2D 静态库
 -- ==============================================
 target("easy2d")
-    -- 设置目标产物为静态库
     set_kind("static")
 
-    -- ==============================================
-    -- 优化：按平台+构建模式动态设置库文件名（解决 MinGW 重复 lib 前缀问题）
-    -- ==============================================
-    local lib_basename
-    -- 判断是否为 MinGW 平台（MinGW 会自动给 .a 文件添加 lib 前缀，无需手动指定）
+    -- 库文件名（Debug 加 d 后缀）
     if is_plat("mingw") then
-        lib_basename = "easy2d"
+        set_basename(is_mode("debug") and "easy2dd" or "easy2d")
     else
-        lib_basename = "libeasy2d"
+        set_basename(is_mode("debug") and "libeasy2dd" or "libeasy2d")
     end
 
-    -- 按构建模式追加 d 后缀（保持原有调试版命名规则）
-    if is_mode("debug") then
-        set_basename(lib_basename .. "d")
-    else
-        set_basename(lib_basename)
-    end
+    -- 引擎源文件
+    add_files(path.join(SRC_DIR, "**.cpp"))
 
-    add_files(path.join(EASY2D_SRC_DIR, "**.cpp"))
-    -- 添加 GLEW 源文件编译
-    add_files(path.join(EASY2D_SRC_DIR, "glew/glew.c"))
-    -- 添加 GLFW 通用源文件编译
-    add_files(path.join(EASY2D_SRC_DIR, "glfw/common/*.c"))
+    -- GLEW 源文件
+    add_files(path.join(INC_DIR, "glew/src/glew.c"))
 
-    -- 声明头文件（用于 xmake install 安装，保留 easy2d 目录层级）
-    add_headerfiles(path.join(EASY2D_INC_DIR, "easy2d/**.h"), {prefixdir = "easy2d"})
-    add_headerfiles(path.join(EASY2D_INC_DIR, "spdlog/**.h"), {prefixdir = "spdlog"})
-    add_headerfiles(path.join(EASY2D_INC_DIR, "audio/**.h"), {prefixdir = "audio"})
-    add_headerfiles(path.join(EASY2D_INC_DIR, "path/**.h"), {prefixdir = "path"})
-    add_headerfiles(path.join(EASY2D_INC_DIR, "GL/**.h"), {prefixdir = "GL"})
-    add_headerfiles(path.join(EASY2D_INC_DIR, "stb/**.h"), {prefixdir = "stb"})
-    add_headerfiles(path.join(EASY2D_INC_DIR, "ini/**.h"), {prefixdir = "ini"})
-    add_headerfiles(path.join(EASY2D_INC_DIR, "GLFW/**.h"), {prefixdir = "GLFW"})
+    -- GLFW 通用源文件
+    add_files(path.join(INC_DIR, "glfw/src/common/*.c"))
 
-    -- 公开头文件目录（其他依赖该库的目标会自动继承这个头文件路径）
-    add_includedirs(EASY2D_INC_DIR, {public = true})
-    
-    if is_plat("windows") or is_plat("mingw") then
-        -- 添加 Windows 平台 GLFW 源文件
-        add_files(path.join(EASY2D_SRC_DIR, "glfw/windows/*.c"))
-        -- 添加 GLFW 头文件路径（common 和 windows 目录）
-        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/common"), {public = false})
-        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/windows"), {public = false})
-        -- 定义 GLFW Windows 平台宏
-        add_defines("_GLFW_WIN32", {public = false})
-        -- 使用 public = true 确保依赖该静态库的目标也能继承这些系统库链接
-        -- 注意：已移除 dinput8 (DirectInput)，使用 GLFW 处理输入
-        add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32", "version", "ole32", "comdlg32", "d2d1", "dwrite", "dxguid", "oleaut32", "uuid", "opengl32", {public = true})
-    elseif is_plat("linux") then
-        -- 添加 Linux 平台 GLFW 源文件（X11 后端）
-        add_files(path.join(EASY2D_SRC_DIR, "glfw/linux/linux_x11/*.c"))
-        add_files(path.join(EASY2D_SRC_DIR, "glfw/linux/*.c"))
-        -- 添加 GLFW 头文件路径（common、linux 和 linux_x11 目录）
-        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/common"), {public = false})
-        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/linux/linux_x11"), {public = false})
-        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/linux"), {public = false})
-        add_syslinks("GL")
-        add_deps("libx11", "xorgproto")
-    elseif is_plat("macosx") then
-        -- 添加 macOS 平台 GLFW 源文件
-        add_files(path.join(EASY2D_SRC_DIR, "glfw/macos/*.c"))
-        add_files(path.join(EASY2D_SRC_DIR, "glfw/macos/*.m"))
-        -- 添加 GLFW 头文件路径（common 和 macos 目录）
-        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/common"), {public = false})
-        add_includedirs(path.join(EASY2D_SRC_DIR, "glfw/macos"), {public = false})
-    end
+    -- 公开头文件目录
+    add_includedirs(INC_DIR, {public = true})
+
+    -- 第三方头文件目录
+    add_includedirs(path.join(INC_DIR, "glew/include"), {public = true})
+    add_includedirs(path.join(INC_DIR, "glfw/include"), {public = true})
+
+    -- 全平台宏定义
+    add_defines("GLEW_STATIC")
+
     -- ==============================================
-    -- Windows 平台通用配置（包含 MSVC/Clang-Cl）
+    -- Windows 平台配置
+    -- ==============================================
+    if is_plat("windows") or is_plat("mingw") then
+        -- GLFW Windows 源文件
+        add_files(path.join(INC_DIR, "glfw/src/windows/*.c"))
+        add_includedirs(path.join(INC_DIR, "glfw/src/common"), {public = false})
+        add_includedirs(path.join(INC_DIR, "glfw/src/windows"), {public = false})
+        add_defines("_GLFW_WIN32")
+        add_defines("WIN32_LEAN_AND_MEAN", "NOMINMAX")
+
+        -- 系统库
+        add_syslinks("user32", "gdi32", "shell32", "winmm", "imm32",
+                     "version", "ole32", "opengl32", {public = true})
+    end
+
+    -- ==============================================
+    -- Linux 平台配置
+    -- ==============================================
+    if is_plat("linux") then
+        -- GLFW Linux 源文件（X11 后端）
+        add_files(path.join(INC_DIR, "glfw/src/linux/linux_x11/*.c"))
+        add_files(path.join(INC_DIR, "glfw/src/linux/*.c"))
+        add_includedirs(path.join(INC_DIR, "glfw/src/common"), {public = false})
+        add_includedirs(path.join(INC_DIR, "glfw/src/linux/linux_x11"), {public = false})
+        add_includedirs(path.join(INC_DIR, "glfw/src/linux"), {public = false})
+        add_defines("_GLFW_X11")
+        add_syslinks("GL", "X11", "pthread", "dl", {public = true})
+    end
+
+    -- ==============================================
+    -- macOS 平台配置
+    -- ==============================================
+    if is_plat("macosx") then
+        -- GLFW macOS 源文件
+        add_files(path.join(INC_DIR, "glfw/src/macos/*.c"))
+        add_files(path.join(INC_DIR, "glfw/src/macos/*.m"))
+        add_includedirs(path.join(INC_DIR, "glfw/src/common"), {public = false})
+        add_includedirs(path.join(INC_DIR, "glfw/src/macos"), {public = false})
+        add_defines("_GLFW_COCOA")
+        add_frameworks("Cocoa", "IOKit", "CoreFoundation", "CoreVideo", "OpenGL", {public = true})
+    end
+
+    -- ==============================================
+    -- 头文件安装配置
+    -- ==============================================
+    add_headerfiles(path.join(INC_DIR, "easy2d/**.h"), {prefixdir = "easy2d"})
+    add_headerfiles(path.join(INC_DIR, "glm/**.hpp"), {prefixdir = "glm"})
+    add_headerfiles(path.join(INC_DIR, "stb/**.h"), {prefixdir = "stb"})
+    add_headerfiles(path.join(INC_DIR, "spdlog/**.h"), {prefixdir = "spdlog"})
+    add_headerfiles(path.join(INC_DIR, "simpleini/**.h"), {prefixdir = "simpleini"})
+    add_headerfiles(path.join(INC_DIR, "glew/include/GL/**.h"), {prefixdir = "GL"})
+    add_headerfiles(path.join(INC_DIR, "glfw/include/GLFW/**.h"), {prefixdir = "GLFW"})
+    add_headerfiles(path.join(INC_DIR, "portable-file-dialogs/**.h"), {prefixdir = "portable-file-dialogs"})
+    add_headerfiles(path.join(INC_DIR, "miniaudio/**.h"), {prefixdir = "miniaudio"})
+    -- 编译器配置
     -- ==============================================
     if is_plat("windows") then
-        -- 定义宏，减少 Windows 头文件的冗余定义和编译时间
-        add_defines("WIN32_LEAN_AND_MEAN", "NOMINMAX")
-        -- 定义 GLEW 静态库宏，确保 GLEW 以静态方式编译
-        add_defines("GLEW_STATIC")
-        -- MSVC / Clang-Cl 工具链配置
         if get_config("toolchain") == "msvc" or get_config("toolchain") == "clang-cl" then
             add_cxxflags("/EHsc", "/Zc:__cplusplus", {force = true})
             add_cxxflags("/wd4996", {force = true})
-
             if is_mode("debug") then
                 set_runtimes("MDd")
-                add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
+                add_defines("E2D_DEBUG", "_DEBUG", {public = true})
                 add_cxxflags("/Od", "/Zi", {force = true})
             else
                 set_runtimes("MD")
-                add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
+                add_defines("NDEBUG", {public = true})
                 add_cxxflags("/O2", "/Ob2", {force = true})
             end
         end
     end
-    -- MinGW 平台配置
-    if is_plat("mingw") then
-            add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
-            add_cxxflags("-Wno-unused-parameter", "-Wno-missing-field-initializers", {force = true})
 
+    if is_plat("mingw") then
+        add_cxxflags("-Wall", "-Wextra", "-Wpedantic", {force = true})
+        add_cxxflags("-Wno-unused-parameter", "-Wno-missing-field-initializers", {force = true})
         if is_mode("debug") then
-            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
+            add_defines("E2D_DEBUG", "_DEBUG", {public = true})
             add_cxxflags("-O0", "-g", "-ggdb", {force = true})
-            set_runtimes("MDd")
         else
-            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
-            add_cxxflags("-O2", "-fno-strict-aliasing", "-fno-delete-null-pointer-checks", {force = true})
-            set_runtimes("MD")
+            add_defines("NDEBUG", {public = true})
+            add_cxxflags("-O2", {force = true})
+        end
+    end
+
+    if is_plat("linux") or is_plat("macosx") then
+        add_cxxflags("-Wall", "-Wextra", {force = true})
+        add_cxxflags("-Wno-unused-parameter", {force = true})
+        if is_mode("debug") then
+            add_defines("E2D_DEBUG", "_DEBUG", {public = true})
+            add_cxxflags("-O0", "-g", {force = true})
+        else
+            add_defines("NDEBUG", {public = true})
+            add_cxxflags("-O2", {force = true})
         end
     end
 target_end()
 
 -- ==============================================
--- 3. PushBox 示例程序配置
+-- 2. Hello World 示例
 -- ==============================================
-target("PushBox")
-    -- 设置目标产物为可执行程序
+target("hello_world")
     set_kind("binary")
-    
-    -- 设置目标名称
-    set_basename("PushBox")
-    
-    -- 定义 PushBox 源代码目录
-    local PUSHBOX_SRC_DIR = "PushBox-Easy2D-v2.1.12/src"
-    
-    -- 添加源文件
-    add_files(path.join(PUSHBOX_SRC_DIR, "**.cpp"))
-    
-    -- 添加资源文件（Windows 资源脚本）
-    add_files(path.join(PUSHBOX_SRC_DIR, "resources/PushBox.rc"))
-    
-    -- 链接 Easy2D 静态库
+    add_files("Easy2D/examples/hello_world/**.cpp")
     add_deps("easy2d")
-    
-    -- 设置输出目录
     set_targetdir("$(builddir)/bin")
-    if is_plat("windows") then
-        if is_mode("debug") then
-            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
-        else
-            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
-        end
-    else 
-        if is_mode("debug") then
-            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
-            add_cxxflags("-O0", "-g", "-ggdb", {force = true})
-            set_runtimes("MDd")
-        else
-            add_ldflags("-mwindows", {force = true})
-            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
-            add_cxxflags("-O2", "-fno-strict-aliasing", "-fno-delete-null-pointer-checks", {force = true})
-            set_runtimes("MD")
-        end
-    end    
-    -- 复制资源文件到输出目录
-    after_build(function (target)
-        import("core.project.config")
-        import("core.base.option")
-        local targetfile = target:targetfile()
-        local targetdir = path.directory(targetfile)
-        local srcdir = path.join(PUSHBOX_SRC_DIR, "assets")
-        -- 复制 assets 目录到输出目录
-        if os.isdir(srcdir) then
-            local dstdir = path.join(targetdir, "assets")
-            if not os.isdir(dstdir) then
-                os.mkdir(dstdir)
-            end
-            os.cp(srcdir .. "/*", dstdir)
-        end
-    end)
 target_end()
 
 -- ==============================================
--- 4. FlappyBird 示例程序配置
+-- 3. 字体测试示例
 -- ==============================================
-target("FlappyBird")
-    -- 设置目标产物为可执行程序
+target("font_test")
     set_kind("binary")
-    
-    -- 设置目标名称
-    set_basename("FlappyBird")
-    
-    -- 定义 FlappyBird 源代码目录
-    local FLAPPYBIRD_SRC_DIR = "FlappyBird"
-    
-    -- 添加源文件
-    add_files(path.join(FLAPPYBIRD_SRC_DIR, "**.cpp"))
-    
-    -- 添加资源文件（Windows 资源脚本）
-    add_files(path.join(FLAPPYBIRD_SRC_DIR, "FlappyBird.rc"))
-    
-    -- 链接 Easy2D 静态库
+    add_files("Easy2D/examples/font_test/**.cpp")
     add_deps("easy2d")
-    
-    -- 设置输出目录
     set_targetdir("$(builddir)/bin")
-    if is_plat("windows") then
-        if is_mode("debug") then
-            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
-        else
-            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
-        end
-    else 
-        if is_mode("debug") then
-            add_defines("EASY2D_DEBUG", "_DEBUG", {public = true})
-            add_cxxflags("-O0", "-g", "-ggdb", {force = true})
-            set_runtimes("MDd")
-        else
-            add_ldflags("-mwindows", {force = true})
-            add_defines("EASY2D_RELEASE", "NDEBUG", {public = true})
-            add_cxxflags("-O2", "-fno-strict-aliasing", "-fno-delete-null-pointer-checks", {force = true})
-            set_runtimes("MD")
-        end
-    end    
+target_end()
+
+-- ==============================================
+-- 4. 推箱子游戏示例
+-- ==============================================
+target("push_box")
+    set_kind("binary")
+    add_files("Easy2D/examples/push_box/src/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
     -- 复制资源文件到输出目录
     after_build(function (target)
-        import("core.project.config")
-        import("core.base.option")
-        local targetfile = target:targetfile()
-        local targetdir = path.directory(targetfile)
-        local srcdir = path.join(FLAPPYBIRD_SRC_DIR, "res")
-        -- 复制 res 目录到输出目录
+        local srcdir = "Easy2D/examples/push_box/src/assets"
+        local dstdir = path.join(target:targetdir(), "assets")
         if os.isdir(srcdir) then
-            local dstdir = path.join(targetdir, "res")
             if not os.isdir(dstdir) then
                 os.mkdir(dstdir)
             end
