@@ -4,7 +4,7 @@
 -- ==============================================
 
 set_project("Easy2D")
-set_version("3.0.0")
+set_version("3.1.0")
 set_languages("c++17")
 set_encodings("utf-8")
 add_rules("mode.debug", "mode.release")

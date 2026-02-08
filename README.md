@@ -40,9 +40,17 @@
 
 ## 🌟 简介
 
-**Easy2D v3.0** 是一个专为 C++ 设计的轻量级 2D 游戏引擎，采用全新架构设计，支持 Windows、Linux 和 macOS 三大平台。
+**Easy2D v3.1.0** 是一个专为 C++ 设计的轻量级 2D 游戏引擎，采用全新架构设计，支持 Windows、Linux 和 macOS 三大平台。
 
 > 💡 创建这个引擎的初衷是学习游戏引擎技术，并开发一些有趣的小游戏。Easy2D 提供了丰富的工具和轮子，让游戏开发变得简单而愉快。
+
+### ✨ 核心特性
+
+- **🎬 动画系统**：支持基于动作（Action）的补间动画和基于精灵图（Sprite Sheet）的帧动画。`AnimatedSprite` 提供完整的动画控制，包括播放、暂停、帧范围限制、动画字典管理等功能。
+
+- **📜 脚本系统**：集成 Squirrel 脚本引擎，支持使用类 JavaScript 语法编写游戏逻辑。通过 `ScriptComponent` 将脚本附加到节点，实现数据驱动的游戏开发。提供完整的引擎 API 绑定，包括节点操作、输入处理、动画控制等。
+
+- **🎮 跨平台**：一套代码，多平台运行。支持 Windows、Linux 和 macOS。
 
 ---
 
@@ -50,7 +58,7 @@
 
 ```mermaid
 mindmap
-  root((Easy2D v3.0 引擎架构))
+  root((Easy2D v3.1.0 引擎架构))
     核心系统
       应用管理 Application
       渲染后端 RenderBackend
@@ -74,14 +82,31 @@ mindmap
       形状 ShapeNode
       摄像机 Camera
     动画系统
-      动作基类 Action
-      位移动作 MoveBy/MoveTo
-      缩放动作 ScaleBy/ScaleTo
-      旋转动作 RotateBy/RotateTo
-      淡入淡出 FadeIn/FadeOut
-      跳跃动作 JumpBy/JumpTo
-      组合动作 Sequence/Spawn/Repeat
-      缓动函数 Ease
+      动作系统 Action
+        位移动作 MoveBy/MoveTo
+        缩放动作 ScaleBy/ScaleTo
+        旋转动作 RotateBy/RotateTo
+        淡入淡出 FadeIn/FadeOut
+        跳跃动作 JumpBy/JumpTo
+        组合动作 Sequence/Spawn/Repeat
+        缓动函数 Ease
+      精灵动画系统
+        动画精灵 AnimatedSprite
+        动画片段 AnimationClip
+        动画控制器 AnimationController
+        精灵帧 SpriteFrame
+    脚本系统
+      Squirrel 脚本引擎 ScriptEngine
+        VM 虚拟机管理
+        脚本加载与执行
+        错误处理与调试
+      脚本组件 ScriptComponent
+        生命周期回调 onEnter/onUpdate/onExit
+        节点访问与操作
+      脚本绑定 API
+        节点绑定 Node/Sprite/AnimatedSprite
+        输入绑定 Input/Key
+        数学绑定 Vec2/Rect/Color
     事件系统
       事件队列 EventQueue
       事件分发 EventDispatcher
@@ -103,6 +128,63 @@ mindmap
       矩阵 glm::mat4
 ```
 
+### 🎬 动画系统详解
+
+Easy2D 提供两套动画系统，满足不同场景需求：
+
+**1. 动作系统（Action）**
+- 基于补间动画的节点变换系统
+- 支持位移、缩放、旋转、淡入淡出等基础动作
+- 支持组合动作（Sequence/Spawn/Repeat）和缓动函数
+- 适用于 UI 动画、特效动画等场景
+
+**2. 精灵动画系统（AnimatedSprite）**
+- 基于精灵图的帧动画系统
+- 支持从网格创建动画（`createFromGrid`）
+- 支持帧范围限制，实现多方向动画管理
+- 支持动画字典，动态切换不同动画
+- 提供完整的播放控制（play/pause/stop/reset）
+- 适用于角色行走、攻击等游戏动画
+
+### 📜 脚本系统详解
+
+Easy2D v3.1.0 引入 Squirrel 脚本引擎，支持数据驱动的游戏开发：
+
+**1. 脚本引擎（ScriptEngine）**
+- 基于 Squirrel 3.2 稳定版
+- 类 JavaScript 语法，易于学习
+- 支持面向对象编程
+- 提供完整的错误处理和调试信息
+
+**2. 脚本组件（ScriptComponent）**
+- 将脚本附加到场景节点
+- 生命周期回调：`onEnter`、`onUpdate`、`onExit`
+- 通过 `node` 参数访问和操附加的节点
+- 支持自定义属性和方法
+
+**3. 脚本绑定 API**
+- **节点操作**：`Node`、`Sprite`、`AnimatedSprite` 等
+- **输入处理**：`Input.isKeyDown()`、`Input.isKeyPressed()`
+- **数学类型**：`Vec2`、`Rect`、`Color` 等
+- **全局函数**：`log()` 日志输出
+
+**示例脚本结构**：
+```nut
+return {
+    function onEnter(node) {
+        // 初始化：创建精灵、设置位置等
+    }
+    
+    function onUpdate(node, dt) {
+        // 每帧更新：处理输入、更新状态等
+    }
+    
+    function onExit(node) {
+        // 清理：释放资源等
+    }
+}
+```
+
 ---
 
 ## ✨ 功能特性
@@ -114,6 +196,7 @@ mindmap
 | 🎭 场景管理 | 灵活的场景切换与管理 | ✅ |
 | 🎨 过渡动画 | 淡入淡出、移动、盒子等多种过渡效果 | ✅ |
 | 🎬 动画系统 | 丰富的动作和帧动画支持 | ✅ |
+| 📜 脚本系统 | Squirrel 脚本支持，可编写游戏逻辑 | ✅ |
 | 🔘 GUI 系统 | 简单易用的按钮组件 | ✅ |
 | 🎵 音频支持 | 基于 miniaudio 的音频播放 | ✅ |
 | 💾 数据持久化 | 游戏数据保存与读取 | ✅ |
@@ -299,6 +382,87 @@ int main()
 }
 ```
 
+### 脚本系统示例
+
+```nut
+// player_controller.nut - 角色控制器脚本
+// 使用 WASD 控制角色移动和动画
+
+local Direction = {
+    Down = 0,   // 向下走 - 帧 0-3
+    Left = 1,   // 向左走 - 帧 4-7
+    Right = 2,  // 向右走 - 帧 8-11
+    Up = 3      // 向上走 - 帧 12-15
+}
+
+return {
+    character = null
+    currentDir = Direction.Down
+    isMoving = false
+    moveSpeed = 150.0
+
+    function onEnter(node) {
+        // 创建动画精灵
+        character = AnimatedSprite.createFromGrid(
+            "player.png", 96, 96, 125.0, 16)
+        
+        // 设置初始帧范围（向下走：帧 0-3）
+        character.setFrameRange(0, 3)
+        character.setPosition(450.0, 300.0)
+        
+        node.addChild(character)
+    }
+
+    function onUpdate(node, dt) {
+        isMoving = false
+
+        // 处理输入
+        if (Input.isKeyDown(Key.W)) {
+            moveCharacter(Direction.Up, dt)
+        } else if (Input.isKeyDown(Key.S)) {
+            moveCharacter(Direction.Down, dt)
+        } else if (Input.isKeyDown(Key.A)) {
+            moveCharacter(Direction.Left, dt)
+        } else if (Input.isKeyDown(Key.D)) {
+            moveCharacter(Direction.Right, dt)
+        }
+
+        // 停止移动时暂停动画
+        if (!isMoving && character.isPlaying()) {
+            character.pause()
+        }
+    }
+
+    function moveCharacter(dir, dt) {
+        local frameStart = dir * 4
+        local frameEnd = frameStart + 3
+
+        // 方向改变时切换帧范围
+        if (currentDir != dir) {
+            character.setFrameRange(frameStart, frameEnd)
+            character.setFrameIndex(frameStart)
+        }
+
+        if (!character.isPlaying()) {
+            character.play()
+        }
+
+        currentDir = dir
+        isMoving = true
+
+        // 移动角色
+        local pos = character.getPosition()
+        switch (dir) {
+            case Direction.Down:  pos.setY(pos.getY() + moveSpeed * dt); break
+            case Direction.Up:    pos.setY(pos.getY() - moveSpeed * dt); break
+            case Direction.Left:  pos.setX(pos.getX() - moveSpeed * dt); break
+            case Direction.Right: pos.setX(pos.getX() + moveSpeed * dt); break
+        }
+        character.setPosition(pos.getX(), pos.getY())
+    }
+}
+```
+
 ---
 
 ## 🏗️ 项目结构
@@ -350,6 +514,10 @@ Easy2D/
 │   │   │   │   ├── spatial_manager.h
 │   │   │   │   ├── quadtree.h
 │   │   │   │   └── spatial_hash.h
+│   │   │   ├── script/           # 脚本系统
+│   │   │   │   ├── script_engine.h
+│   │   │   │   ├── script_component.h
+│   │   │   │   └── sq_binding.h
 │   │   │   ├── ui/               # UI 系统
 │   │   │   │   ├── widget.h
 │   │   │   │   └── button.h
@@ -368,6 +536,7 @@ Easy2D/
 │   ├── 📁 src/                   # 源文件
 │   │   ├── App/                  # 应用实现
 │   │   ├── Action/               # 动作系统实现
+│   │   ├── Animation/            # 动画系统实现
 │   │   ├── Audio/                # 音频系统实现
 │   │   ├── Core/                 # 核心实现
 │   │   ├── Event/                # 事件系统实现
@@ -375,11 +544,14 @@ Easy2D/
 │   │   ├── Platform/             # 平台实现
 │   │   ├── Resource/             # 资源管理实现
 │   │   ├── Scene/                # 场景系统实现
+│   │   ├── Script/               # 脚本系统实现
 │   │   ├── Spatial/              # 空间索引实现
 │   │   ├── UI/                   # UI 系统实现
 │   │   └── Utils/                # 工具库实现
 │   └── 📁 examples/              # 示例程序
 │       ├── hello_world/          # Hello World 示例
+│       ├── animation_demo/       # 精灵动画示例
+│       ├── script_demo/          # 脚本系统示例
 │       ├── font_test/            # 字体测试示例
 │       └── push_box/             # 推箱子游戏示例
 ├── 📁 logo/                      # Logo 资源
