@@ -265,37 +265,36 @@ private:
 
     // 使用引擎 API 从精灵图创建动画片段
     // 精灵图布局（96x96像素每帧，1px间距，4x4=16帧）：
-    // 根据实际测试修正映射：
-    // 第1行 (索引 0-3): 实际显示为 向下走（正面）
-    // 第2行 (索引 4-7): 实际显示为 向右走（右侧面）
-    // 第3行 (索引 8-11): 实际显示为 向上走（背面）- 但会消失，可能是空白
-    // 第4行 (索引 12-15): 实际显示为 向左走（左侧面）
+    // 第1行 (索引 0-3):  向下走（正面，人物朝向你）
+    // 第2行 (索引 4-7):  向左走（左侧面）
+    // 第3行 (索引 8-11): 向右走（右侧面）
+    // 第4行 (索引 12-15): 向上走（背面，人物背对你）
     float frameDurationMs = 125.0f; // 8 FPS
 
-    // 根据实际显示效果重新映射
     E2D_INFO("精灵图尺寸: {}x{}, 帧尺寸: {}x{}, 间距: {}",
              spriteSheet_->getWidth(), spriteSheet_->getHeight(), kFrameWidth,
              kFrameHeight, kSpacing);
 
-    auto walkUp = AnimationClip::createFromGridIndices(
+    // 根据正确的帧顺序创建动画
+    auto walkDown = AnimationClip::createFromGridIndices(
         spriteSheet_, kFrameWidth, kFrameHeight, {0, 1, 2, 3}, frameDurationMs,
         kSpacing);
-    E2D_INFO("walkUp 帧数: {}", walkUp->getFrameCount());
-
-    auto walkRight = AnimationClip::createFromGridIndices(
-        spriteSheet_, kFrameWidth, kFrameHeight, {4, 5, 6, 7}, frameDurationMs,
-        kSpacing);
-    E2D_INFO("walkRight 帧数: {}", walkRight->getFrameCount());
+    E2D_INFO("walkDown 帧数: {}", walkDown->getFrameCount());
 
     auto walkLeft = AnimationClip::createFromGridIndices(
+        spriteSheet_, kFrameWidth, kFrameHeight, {4, 5, 6, 7}, frameDurationMs,
+        kSpacing);
+    E2D_INFO("walkLeft 帧数: {}", walkLeft->getFrameCount());
+
+    auto walkRight = AnimationClip::createFromGridIndices(
         spriteSheet_, kFrameWidth, kFrameHeight, {8, 9, 10, 11},
         frameDurationMs, kSpacing);
-    E2D_INFO("walkUp 帧数: {}", walkLeft->getFrameCount());
+    E2D_INFO("walkRight 帧数: {}", walkRight->getFrameCount());
 
-    auto walkDown = AnimationClip::createFromGridIndices(
+    auto walkUp = AnimationClip::createFromGridIndices(
         spriteSheet_, kFrameWidth, kFrameHeight, {12, 13, 14, 15},
         frameDurationMs, kSpacing);
-    E2D_INFO("walkDown 帧数: {}", walkDown->getFrameCount());
+    E2D_INFO("walkUp 帧数: {}", walkUp->getFrameCount());
 
     // 创建 AnimatedSprite 并注册命名动画
     character_ = AnimatedSprite::create();

@@ -341,6 +341,10 @@ void TexturePool::evict() {
 
 Ptr<Texture> TexturePool::loadTexture(const std::string &filepath) {
   // 使用stb_image加载图像
+  // 不翻转图片，保持原始方向
+  // OpenGL纹理坐标原点在左下角，图片数据原点在左上角
+  // 在渲染时通过纹理坐标翻转来处理
+  stbi_set_flip_vertically_on_load(false);
   int width, height, channels;
   unsigned char *pixels =
       stbi_load(filepath.c_str(), &width, &height, &channels, 4);

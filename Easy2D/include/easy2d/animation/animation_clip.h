@@ -125,9 +125,13 @@ public:
             int row = i / cols;
             if (row >= rows) break;
 
+            // 翻转行顺序：精灵图第0行在顶部，但OpenGL纹理V坐标从底部开始
+            // 所以将行索引翻转，使第0行对应纹理底部（V=1.0），第3行对应纹理顶部（V=0.0）
+            int flippedRow = (rows - 1) - row;
+
             Rect rect(
                 static_cast<float>(margin + col * (frameWidth + spacing)),
-                static_cast<float>(margin + row * (frameHeight + spacing)),
+                static_cast<float>(margin + flippedRow * (frameHeight + spacing)),
                 static_cast<float>(frameWidth),
                 static_cast<float>(frameHeight)
             );
@@ -151,17 +155,23 @@ public:
         if (!texture) return nullptr;
 
         int texW = texture->getWidth();
+        int texH = texture->getHeight();
         int usableW = texW - 2 * margin;
+        int usableH = texH - 2 * margin;
         int cols = (usableW + spacing) / (frameWidth + spacing);
+        int rows = (usableH + spacing) / (frameHeight + spacing);
 
         auto clip = makePtr<AnimationClip>();
         for (int idx : frameIndices) {
             int col = idx % cols;
             int row = idx / cols;
 
+            // 翻转行顺序：精灵图第0行在顶部，但OpenGL纹理V坐标从底部开始
+            int flippedRow = (rows - 1) - row;
+
             Rect rect(
                 static_cast<float>(margin + col * (frameWidth + spacing)),
-                static_cast<float>(margin + row * (frameHeight + spacing)),
+                static_cast<float>(margin + flippedRow * (frameHeight + spacing)),
                 static_cast<float>(frameWidth),
                 static_cast<float>(frameHeight)
             );

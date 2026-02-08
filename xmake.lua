@@ -35,12 +35,17 @@ target("easy2d")
     -- GLFW 通用源文件
     add_files(path.join(INC_DIR, "glfw/src/common/*.c"))
 
+    -- Squirrel 3.2 源文件
+    add_files("squirrel/squirrel/*.cpp")
+    add_files("squirrel/sqstdlib/*.cpp")
+
     -- 公开头文件目录
     add_includedirs(INC_DIR, {public = true})
 
     -- 第三方头文件目录
     add_includedirs(path.join(INC_DIR, "glew/include"), {public = true})
     add_includedirs(path.join(INC_DIR, "glfw/include"), {public = true})
+    add_includedirs("squirrel/include", {public = true})
 
     -- 全平台宏定义
     add_defines("GLEW_STATIC")
@@ -236,15 +241,6 @@ target("advanced_graphics_demo")
     set_targetdir("$(builddir)/bin")
 target_end()
 
--- ==============================================
--- 10. 纹理池特效合成演示
--- ==============================================
-target("texture_effect_composition_demo")
-    set_kind("binary")
-    add_files("Easy2D/examples/texture_effect_composition_demo/**.cpp")
-    add_deps("easy2d")
-    set_targetdir("$(builddir)/bin")
-target_end()
 
 -- ==============================================
 -- 11. 精灵动画与特效合成演示
@@ -264,4 +260,25 @@ target("animation_demo")
     add_files("Easy2D/examples/animation_demo/**.cpp")
     add_deps("easy2d")
     set_targetdir("$(builddir)/bin")
+target_end()
+
+-- ==============================================
+-- 13. Squirrel 脚本演示
+-- ==============================================
+target("script_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/script_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+    -- 复制脚本文件到输出目录
+    after_build(function (target)
+        local srcdir = "Easy2D/examples/script_demo/scripts"
+        local dstdir = path.join(target:targetdir(), "scripts")
+        if os.isdir(srcdir) then
+            if not os.isdir(dstdir) then
+                os.mkdir(dstdir)
+            end
+            os.cp(srcdir .. "/*", dstdir)
+        end
+    end)
 target_end()

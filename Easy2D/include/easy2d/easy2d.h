@@ -90,3 +90,7 @@
 
 // Application
 #include <easy2d/app/application.h>
+
+// Script
+#include <easy2d/script/script_engine.h>
+#include <easy2d/script/script_node.h>
