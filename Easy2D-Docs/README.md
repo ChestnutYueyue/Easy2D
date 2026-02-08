@@ -19,6 +19,8 @@
 | 11 | [Camera-System.md](11-Camera-System.md) | 相机系统（正交相机、跟随、边界限制） |
 | 12 | [Anchor-System.md](12-Anchor-System.md) | 锚点系统（变换基准点、最佳实践） |
 | 13 | [Button-System.md](13-Button-System.md) | 按钮系统（Button、ToggleImageButton） |
+| 14 | [Animation-System.md](14-Animation-System.md) | 动画系统（AnimationClip、AnimatedSprite、缓存系统） |
+| 15 | [ANI-File-Format.md](15-ANI-File-Format.md) | ANI 文件格式详解（ANI/ALS 解析、标签参考） |
 
 ## 快速开始
 
@@ -108,7 +110,7 @@ onEnter() -> [onUpdate() -> onRender()]循环 -> onExit()
 
 ## 学习路径建议
 
-1. **新手入门**: 01 -> 02 -> 03 -> 04 -> 05 -> 12
+1. **新手入门**: 01 -> 02 -> 03 -> 04 -> 05 -> 12 -> 14
 2. **进阶开发**: 06 -> 07 -> 08 -> 09 -> 11
 3. **完整项目**: 10
 

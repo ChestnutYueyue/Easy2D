@@ -31,6 +31,24 @@
 #include <easy2d/scene/scene_manager.h>
 #include <easy2d/scene/transition.h>
 
+// Animation
+#include <easy2d/animation/sprite_frame.h>
+#include <easy2d/animation/sprite_frame_cache.h>
+#include <easy2d/animation/frame_property.h>
+#include <easy2d/animation/animation_frame.h>
+#include <easy2d/animation/animation_clip.h>
+#include <easy2d/animation/animation_controller.h>
+#include <easy2d/animation/animation_cache.h>
+#include <easy2d/animation/interpolation_engine.h>
+#include <easy2d/animation/animated_sprite.h>
+#include <easy2d/animation/frame_renderer.h>
+#include <easy2d/animation/animation_event.h>
+#include <easy2d/animation/animation_node.h>
+#include <easy2d/animation/composite_animation.h>
+#include <easy2d/animation/ani_parser.h>
+#include <easy2d/animation/ani_binary_parser.h>
+#include <easy2d/animation/als_parser.h>
+
 // UI
 #include <easy2d/ui/widget.h>
 #include <easy2d/ui/button.h>

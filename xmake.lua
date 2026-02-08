@@ -184,15 +184,6 @@ target("push_box")
     end)
 target_end()
 
--- ==============================================
--- 5. 特效系统演示示例
--- ==============================================
-target("effects_demo")
-    set_kind("binary")
-    add_files("Easy2D/examples/effects_demo/**.cpp")
-    add_deps("easy2d")
-    set_targetdir("$(builddir)/bin")
-target_end()
 
 -- ==============================================
 -- 6. 自定义特效系统演示示例
@@ -261,6 +252,16 @@ target_end()
 target("sprite_animation_demo")
     set_kind("binary")
     add_files("Easy2D/examples/sprite_animation_demo/**.cpp")
+    add_deps("easy2d")
+    set_targetdir("$(builddir)/bin")
+target_end()
+
+-- ==============================================
+-- 12. 精灵动画演示（简化版）
+-- ==============================================
+target("animation_demo")
+    set_kind("binary")
+    add_files("Easy2D/examples/animation_demo/**.cpp")
     add_deps("easy2d")
     set_targetdir("$(builddir)/bin")
 target_end()
