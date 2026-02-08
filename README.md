@@ -1,6 +1,6 @@
 <div align="center">
 
-![Easy2D Logo](./logo/logo_text_dark.png#gh-dark-mode-only)
+![Easy2D Logo](./logo/logo_text_dark.png)
 
 <p align="center">
   <a href="https://github.com/Easy2D/Easy2D/releases/latest">
